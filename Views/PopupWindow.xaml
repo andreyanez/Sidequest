@@ -1,0 +1,121 @@
+<Window x:Class="WeeklyReminder.Views.PopupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Weekly Reminder"
+        Width="380"
+        SizeToContent="Height"
+        MaxHeight="560"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        Opacity="0">
+
+    <Border Margin="14"
+            Background="{StaticResource CardBrush}"
+            BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="10">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="18" ShadowDepth="3" Direction="270" Opacity="0.22" Color="#000000"/>
+        </Border.Effect>
+
+        <Grid Margin="16,14,16,12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="This week" Style="{StaticResource HeadingText}"/>
+                    <TextBlock x:Name="RangeText" Style="{StaticResource MutedText}" Margin="0,1,0,0"/>
+                </StackPanel>
+                <Button Grid.Column="1"
+                        Content="✕"
+                        BorderThickness="0"
+                        Padding="8,2"
+                        VerticalAlignment="Top"
+                        Foreground="{StaticResource MutedBrush}"
+                        ToolTip="Dismiss"
+                        Click="Dismiss_Click"/>
+            </Grid>
+
+            <TextBlock x:Name="ProgressText"
+                       Grid.Row="1"
+                       Style="{StaticResource MutedText}"
+                       Margin="0,10,0,8"/>
+
+            <ScrollViewer Grid.Row="2"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Margin="0,0,0,4">
+                <Grid>
+                    <ItemsControl x:Name="ItemList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding Done, Mode=TwoWay}"
+                                          Margin="0,4,0,4">
+                                    <TextBlock Text="{Binding Text}"
+                                               TextWrapping="Wrap"
+                                               Margin="4,0,0,0">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Done}" Value="True">
+                                                        <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+                                                        <Setter Property="TextDecorations" Value="Strikethrough"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </CheckBox>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Empty state -->
+                    <StackPanel x:Name="EmptyState" Visibility="Collapsed" Margin="0,12,0,18">
+                        <TextBlock Text="Nothing on the list yet."
+                                   Style="{StaticResource MutedText}"
+                                   HorizontalAlignment="Center"/>
+                        <Button Content="Add some items"
+                                Style="{StaticResource PrimaryButton}"
+                                HorizontalAlignment="Center"
+                                Margin="0,10,0,0"
+                                Click="Edit_Click"/>
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+
+            <!-- Footer -->
+            <Grid Grid.Row="3" Margin="0,6,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock x:Name="CountdownText"
+                           Grid.Column="0"
+                           Style="{StaticResource MutedText}"
+                           VerticalAlignment="Center"/>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="Edit" Margin="0,0,6,0" Click="Edit_Click"/>
+                    <Button x:Name="SnoozeButton" Margin="0,0,6,0" Click="Snooze_Click"/>
+                    <Button Content="Dismiss" Style="{StaticResource PrimaryButton}" Click="Dismiss_Click"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

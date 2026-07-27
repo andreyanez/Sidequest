@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <!-- WinForms is enabled solely for NotifyIcon, which WPF does not provide.
+         Both namespaces define Application/MessageBox, so code files alias them. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>WeeklyReminder</RootNamespace>
+    <AssemblyName>WeeklyReminder</AssemblyName>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+</Project>
