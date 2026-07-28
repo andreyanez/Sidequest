@@ -32,6 +32,10 @@ dotnet publish -c Release -r win-x64 --self-contained false -o publish
 - **Popup** — slides into the bottom-right corner with a flat list of everything on
   this week's list. Tick items off directly. Snooze, Edit, or Dismiss. Closes itself
   after a configurable delay unless you move the mouse over it.
+- **Dragging** — grab any empty part of the card and drag. The position is remembered
+  and reused for every later popup. If the saved spot is no longer on any screen (a
+  monitor unplugged, a resolution change) it falls back to the bottom-right corner.
+  *Reset popup position* in the tray menu forgets it deliberately.
 - **Schedule** — fires at each configured time of day, at least twice, on the days you
   pick. Times are checked against the wall clock every 30 seconds, so sleep, hibernation
   and clock changes need no special handling. A slot missed while the machine was off

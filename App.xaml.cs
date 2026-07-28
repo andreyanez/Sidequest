@@ -82,6 +82,7 @@ public partial class App : System.Windows.Application
         menu.Items.Add("Show reminders", null, (_, _) => ShowPopup());
         menu.Items.Add("Edit this week…", null, (_, _) => ShowEditor());
         menu.Items.Add("Settings…", null, (_, _) => ShowSettings());
+        menu.Items.Add("Reset popup position", null, (_, _) => ResetPopupPosition());
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add("Quit", null, (_, _) => Shutdown());
 
@@ -115,6 +116,17 @@ public partial class App : System.Windows.Application
         _popup.SnoozeRequested += () => _scheduler?.Snooze();
         _popup.EditRequested += ShowEditor;
         _popup.Show();
+    }
+
+    /// <summary>Forgets a dragged position and shows the popup back in the corner.</summary>
+    private void ResetPopupPosition()
+    {
+        Settings.PopupLeft = null;
+        Settings.PopupTop = null;
+        Storage.SaveSettings(Settings);
+
+        _popup?.Close();
+        ShowPopup();
     }
 
     public void ShowEditor()

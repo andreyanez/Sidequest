@@ -13,11 +13,14 @@
         ShowInTaskbar="False"
         Opacity="0">
 
+    <!-- Dragging is handled on the card itself. Buttons, checkboxes and text boxes
+         mark the event handled, so they keep working normally. -->
     <Border Margin="14"
             Background="{StaticResource CardBrush}"
             BorderBrush="{StaticResource BorderBrush}"
             BorderThickness="1"
-            CornerRadius="10">
+            CornerRadius="10"
+            MouseLeftButtonDown="Card_MouseLeftButtonDown">
         <Border.Effect>
             <DropShadowEffect BlurRadius="18" ShadowDepth="3" Direction="270" Opacity="0.22" Color="#000000"/>
         </Border.Effect>

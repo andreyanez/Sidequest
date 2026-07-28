@@ -28,6 +28,14 @@ public sealed class AppSettings
 
     public bool StartWithWindows { get; set; }
 
+    /// <summary>
+    /// Where the user dragged the popup to. Null means "anchor to the bottom-right",
+    /// which is also the fallback if the saved spot is no longer on any screen.
+    /// </summary>
+    public double? PopupLeft { get; set; }
+
+    public double? PopupTop { get; set; }
+
     /// <summary>Last time the scheduler fired, so a restart doesn't re-fire a slot already shown.</summary>
     public DateTime? LastFired { get; set; }
 
