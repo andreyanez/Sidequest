@@ -59,6 +59,32 @@ public partial class App : System.Windows.Application
         _scheduler = new Scheduler(Settings);
         _scheduler.Due += ShowPopup;
         _scheduler.Start();
+
+        OpenRequestedWindow(e.Args);
+    }
+
+    /// <summary>
+    /// Opens a window straight from the command line, so a given screen can be brought
+    /// up without navigating the tray menu. Only honoured by the first instance; a
+    /// relaunch while running always just surfaces the popup.
+    /// </summary>
+    private void OpenRequestedWindow(string[] args)
+    {
+        foreach (var arg in args)
+        {
+            switch (arg.ToLowerInvariant())
+            {
+                case "--edit":
+                    ShowEditor();
+                    return;
+                case "--settings":
+                    ShowSettings();
+                    return;
+                case "--popup":
+                    ShowPopup();
+                    return;
+            }
+        }
     }
 
     /// <summary>Relaunching the exe surfaces the popup rather than starting a second copy.</summary>
@@ -114,7 +140,12 @@ public partial class App : System.Windows.Application
             _popup = null;
         };
         _popup.SnoozeRequested += () => _scheduler?.Snooze();
-        _popup.EditRequested += ShowEditor;
+
+        // The popup is topmost, so it steps aside while another window is in use and
+        // comes back once that window is done with.
+        _popup.EditRequested += () => ShowEditor(returnToPopup: true);
+        _popup.SettingsRequested += () => ShowSettings(returnToPopup: true);
+
         _popup.Show();
     }
 
@@ -129,7 +160,11 @@ public partial class App : System.Windows.Application
         ShowPopup();
     }
 
-    public void ShowEditor()
+    /// <param name="returnToPopup">
+    /// Reopen the reminder list once this window closes. Set when the editor was
+    /// reached from the popup, so the popup is restored rather than left dismissed.
+    /// </param>
+    public void ShowEditor(bool returnToPopup = false)
     {
         if (_editor is { IsLoaded: true })
         {
@@ -142,11 +177,13 @@ public partial class App : System.Windows.Application
         {
             Storage.SaveWeek(Plan);
             _editor = null;
+            if (returnToPopup) ShowPopup();
         };
         _editor.Show();
     }
 
-    public void ShowSettings()
+    /// <param name="returnToPopup">See <see cref="ShowEditor"/>.</param>
+    public void ShowSettings(bool returnToPopup = false)
     {
         if (_settingsWindow is { IsLoaded: true })
         {
@@ -161,6 +198,7 @@ public partial class App : System.Windows.Application
             AutoStart.Set(Settings.StartWithWindows);
             _scheduler?.ClearSnooze();
             _settingsWindow = null;
+            if (returnToPopup) ShowPopup();
         };
         _settingsWindow.Show();
     }

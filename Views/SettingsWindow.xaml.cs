@@ -67,6 +67,10 @@ public partial class SettingsWindow : Window
         StartWithWindowsBox.IsChecked = settings.StartWithWindows;
 
         _loading = false;
+
+        // Controls receiving focus during load can scroll themselves into view, which
+        // left the window opening part-way down with the first popup time cut off.
+        Loaded += (_, _) => ContentScroll.ScrollToTop();
     }
 
     private static string Format(TimeOnly time) => time.ToString("HH:mm", CultureInfo.InvariantCulture);
@@ -91,8 +95,9 @@ public partial class SettingsWindow : Window
                 Content = format.GetAbbreviatedDayName(day),
                 Tag = day,
                 IsChecked = _settings.ActiveDays.Contains(day),
-                Margin = new Thickness(0, 0, 14, 6),
-                MinWidth = 44,
+                // Tight enough that all seven abbreviated day names fit on one row.
+                Margin = new Thickness(0, 0, 9, 6),
+                MinWidth = 36,
             };
 
             box.Checked += Day_Changed;

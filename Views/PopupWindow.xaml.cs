@@ -12,6 +12,12 @@ public partial class PopupWindow : Window
     /// <summary>How much of the window must stay reachable for a saved position to be reused.</summary>
     private const double MinVisible = 120;
 
+    /// <summary>Breathing room left between the popup and the edges of the work area.</summary>
+    private const double ScreenPadding = 48;
+
+    /// <summary>Floor for the height cap, so a tiny work area can't collapse the popup.</summary>
+    private const double MinUsableHeight = 240;
+
     private readonly WeekPlan _plan;
     private readonly AppSettings _settings;
     private DispatcherTimer? _countdown;
@@ -20,6 +26,7 @@ public partial class PopupWindow : Window
 
     public event Action? SnoozeRequested;
     public event Action? EditRequested;
+    public event Action? SettingsRequested;
 
     public PopupWindow(WeekPlan plan, AppSettings settings)
     {
@@ -31,6 +38,11 @@ public partial class PopupWindow : Window
         RangeText.Text = plan.RangeLabel;
         SnoozeButton.Content = $"Snooze {settings.SnoozeMinutes}m";
         ItemList.ItemsSource = plan.Items;
+
+        // Grow to fit the whole list rather than capping at a fixed height. Only when
+        // the list outgrows the screen does the ScrollViewer take over. Set before
+        // layout runs so SizeToContent measures against the right ceiling.
+        MaxHeight = Math.Max(MinUsableHeight, SystemParameters.WorkArea.Height - ScreenPadding);
 
         // Known up front so the SizeChanged handler below doesn't yank a dragged
         // window back to the corner while the content is still being measured.
@@ -86,12 +98,28 @@ public partial class PopupWindow : Window
             Left = left;
             Top = top;
             _userPositioned = true;
+            ClampToVirtualScreen();
             return;
         }
 
         // Saved spot is gone — a monitor was unplugged or the resolution changed.
         _userPositioned = false;
         PositionBottomRight();
+    }
+
+    /// <summary>
+    /// Pulls the window back inside the desktop. A position saved when the popup was
+    /// smaller can hang off an edge once it grows to fit a longer list or a wider layout.
+    /// </summary>
+    private void ClampToVirtualScreen()
+    {
+        var vLeft = SystemParameters.VirtualScreenLeft;
+        var vTop = SystemParameters.VirtualScreenTop;
+        var vRight = vLeft + SystemParameters.VirtualScreenWidth;
+        var vBottom = vTop + SystemParameters.VirtualScreenHeight;
+
+        if (Left + ActualWidth > vRight) Left = Math.Max(vLeft, vRight - ActualWidth);
+        if (Top + ActualHeight > vBottom) Top = Math.Max(vTop, vBottom - ActualHeight);
     }
 
     /// <summary>True if enough of the window would land on the virtual desktop to grab it.</summary>
@@ -167,6 +195,12 @@ public partial class PopupWindow : Window
     private void Edit_Click(object sender, RoutedEventArgs e)
     {
         EditRequested?.Invoke();
+        Close();
+    }
+
+    private void Settings_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsRequested?.Invoke();
         Close();
     }
 

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text.Json.Serialization;
 
 namespace WeeklyReminder.Models;
 
@@ -19,6 +20,8 @@ public sealed class WeekPlan
     public static DateOnly CurrentWeekStart() =>
         WeekStartFor(DateOnly.FromDateTime(DateTime.Now));
 
+    /// <summary>Display only — it would otherwise be written to week.json and go stale on rollover.</summary>
+    [JsonIgnore]
     public string RangeLabel
     {
         get

@@ -16,10 +16,15 @@
             <SolidColorBrush x:Key="AccentHoverBrush" Color="#2760CC"/>
             <SolidColorBrush x:Key="SubtleHoverBrush" Color="#ECEEF1"/>
 
-            <Style TargetType="TextBlock">
-                <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-                <Setter Property="FontFamily" Value="Segoe UI"/>
-                <Setter Property="FontSize" Value="13"/>
+            <!-- Text defaults are set on the window as inherited properties rather than
+                 as an implicit TextBlock style. An implicit style would also apply to the
+                 TextBlock that ContentPresenter generates for a button's string content,
+                 and a style setter beats inheritance — which painted the white-on-blue
+                 button labels dark. -->
+            <Style TargetType="Window">
+                <Setter Property="TextElement.Foreground" Value="{StaticResource TextBrush}"/>
+                <Setter Property="TextElement.FontFamily" Value="Segoe UI"/>
+                <Setter Property="TextElement.FontSize" Value="13"/>
                 <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
             </Style>
 

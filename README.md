@@ -19,6 +19,18 @@ dotnet run
 The app has no main window. On launch it puts a blue tick icon in the notification
 area; everything is reached from there.
 
+A window can also be opened straight from the command line, which is handy for
+checking a screen without navigating the tray menu:
+
+```
+WeeklyReminder.exe --popup
+WeeklyReminder.exe --edit
+WeeklyReminder.exe --settings
+```
+
+These are honoured by the first instance only. Launching the exe while it is already
+running always just surfaces the popup.
+
 Publish a standalone copy:
 
 ```
@@ -31,7 +43,8 @@ dotnet publish -c Release -r win-x64 --self-contained false -o publish
   icon shows the popup.
 - **Popup** — slides into the bottom-right corner with a flat list of everything on
   this week's list. Tick items off directly. Snooze, Edit, or Dismiss. Closes itself
-  after a configurable delay unless you move the mouse over it.
+  after a configurable delay unless you move the mouse over it. It grows to fit the
+  whole list, and only scrolls once the list outgrows the screen.
 - **Dragging** — grab any empty part of the card and drag. The position is remembered
   and reused for every later popup. If the saved spot is no longer on any screen (a
   monitor unplugged, a resolution change) it falls back to the bottom-right corner.
