@@ -15,6 +15,9 @@
             <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
             <SolidColorBrush x:Key="AccentHoverBrush" Color="#2760CC"/>
             <SolidColorBrush x:Key="SubtleHoverBrush" Color="#ECEEF1"/>
+            <SolidColorBrush x:Key="DangerBrush" Color="#D93036"/>
+            <SolidColorBrush x:Key="DangerHoverBrush" Color="#B7272C"/>
+            <SolidColorBrush x:Key="DropTargetBrush" Color="#DCE8FF"/>
 
             <!-- Text defaults are set on the window as inherited properties rather than
                  as an implicit TextBlock style. An implicit style would also apply to the
@@ -103,6 +106,40 @@
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+            </Style>
+
+            <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd"
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="6"
+                                    SnapsToDevicePixels="True">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"
+                                                  Margin="{TemplateBinding Padding}"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource DangerHoverBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Compact, borderless button for the per-row action bar. -->
+            <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Padding" Value="7,3"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
             </Style>
 
             <Style TargetType="CheckBox">
