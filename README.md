@@ -55,6 +55,8 @@ dotnet publish -c Release -r win-x64 --self-contained false -o publish
   surfaces once when it wakes, rather than queueing up several popups.
 - **Week rollover** — every Monday the plan resets. Items flagged *Weekly* carry over
   and are unticked; everything else is cleared.
+- **Dark mode** — toggled in Settings, applied live to every open window including the
+  Windows title bar. The choice is saved immediately rather than on close.
 - **Startup** — optional per-user `Run` key entry, toggled in Settings. No admin rights.
 - **Single instance** — launching the exe again just shows the popup.
 
@@ -75,11 +77,20 @@ file is ever unreadable it's renamed to `*.corrupt-<timestamp>` rather than disc
 
 ```
 Models/      TaskItem, WeekPlan, AppSettings
-Services/    Storage, Scheduler, AutoStart, TrayIconFactory
-Views/       PopupWindow, EditorWindow, SettingsWindow
-App.xaml     Shared light theme and control styles
+Services/    Storage, Scheduler, AutoStart, TrayIconFactory, ThemeService
+Views/       PopupWindow, EditorWindow, SettingsWindow, ConfirmDialog
+Themes/      Light.xaml, Dark.xaml — colours only, swapped at runtime
+App.xaml     Control styles and templates, shared by both themes
 App.xaml.cs  Tray host, single-instance, window lifetime
 ```
+
+Colours live only in the two theme dictionaries and are referenced with
+`DynamicResource`, so slot 0 of the merged dictionaries can be swapped while windows
+are open. Adding a colour means adding it to **both** files.
+
+WPF's stock `TextBox`, `CheckBox`, `ComboBox` and `ScrollBar` paint themselves with
+fixed light chrome that ignores `Background`/`Foreground`, so `App.xaml` retemplates
+them. That is the bulk of the file.
 
 WinForms is referenced only for `NotifyIcon`, which WPF has no equivalent for. The tray
 icon is drawn with GDI+ at runtime, so the project ships no binary assets.

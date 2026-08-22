@@ -49,6 +49,8 @@ public partial class EditorWindow : Window
         RangeText.Text = plan.RangeLabel;
         ItemList.ItemsSource = plan.Items;
 
+        ThemeService.TrackTitleBar(this);
+
         // The plan outlives this window, so keep a handle to detach on close.
         _itemsChanged = (_, _) => UpdateEmptyState();
         _plan.Items.CollectionChanged += _itemsChanged;

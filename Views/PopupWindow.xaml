@@ -15,8 +15,8 @@
     <!-- Dragging is handled on the card itself. Buttons, checkboxes and text boxes
          mark the event handled, so they keep working normally. -->
     <Border Margin="14"
-            Background="{StaticResource CardBrush}"
-            BorderBrush="{StaticResource BorderBrush}"
+            Background="{DynamicResource CardBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
             BorderThickness="1"
             CornerRadius="10"
             MouseLeftButtonDown="Card_MouseLeftButtonDown">
@@ -47,7 +47,7 @@
                         BorderThickness="0"
                         Padding="8,2"
                         VerticalAlignment="Top"
-                        Foreground="{StaticResource MutedBrush}"
+                        Foreground="{DynamicResource MutedBrush}"
                         ToolTip="Dismiss"
                         Click="Dismiss_Click"/>
             </Grid>
@@ -74,7 +74,7 @@
                                             <Style TargetType="TextBlock">
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Done}" Value="True">
-                                                        <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+                                                        <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
                                                         <Setter Property="TextDecorations" Value="Strikethrough"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>

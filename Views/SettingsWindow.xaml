@@ -2,10 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Weekly Reminder — Settings"
-        Width="470" Height="740"
+        Width="470" Height="812"
         MinWidth="430" MinHeight="480"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource PageBrush}">
+        Background="{DynamicResource PageBrush}">
 
     <Grid Margin="18">
         <Grid.RowDefinitions>
@@ -24,8 +24,8 @@
             <StackPanel>
 
                 <!-- Popup times -->
-                <Border Background="{StaticResource CardBrush}"
-                        BorderBrush="{StaticResource BorderBrush}"
+                <Border Background="{DynamicResource CardBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
                         CornerRadius="8"
                         Padding="12"
@@ -52,7 +52,7 @@
                                                 Content="Remove"
                                                 Padding="8,3"
                                                 FontSize="12"
-                                                Foreground="{StaticResource MutedBrush}"
+                                                Foreground="{DynamicResource MutedBrush}"
                                                 Click="RemoveTime_Click"/>
                                     </Grid>
                                 </DataTemplate>
@@ -83,8 +83,8 @@
                 </Border>
 
                 <!-- Active days -->
-                <Border Background="{StaticResource CardBrush}"
-                        BorderBrush="{StaticResource BorderBrush}"
+                <Border Background="{DynamicResource CardBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
                         CornerRadius="8"
                         Padding="12"
@@ -101,8 +101,8 @@
                 </Border>
 
                 <!-- Behaviour -->
-                <Border Background="{StaticResource CardBrush}"
-                        BorderBrush="{StaticResource BorderBrush}"
+                <Border Background="{DynamicResource CardBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
                         CornerRadius="8"
                         Padding="12"
@@ -116,12 +116,20 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Snooze for" VerticalAlignment="Center"/>
+                            <!-- Explicit ItemTemplate rather than DisplayMemberPath: the
+                                 custom ComboBox template renders SelectionBoxItem, which
+                                 falls back to ToString() when only a path is given. -->
                             <ComboBox x:Name="SnoozeBox"
                                       Grid.Column="1"
-                                      Width="150"
-                                      DisplayMemberPath="Label"
+                                      Width="165"
                                       SelectedValuePath="Value"
-                                      SelectionChanged="SnoozeBox_SelectionChanged"/>
+                                      SelectionChanged="SnoozeBox_SelectionChanged">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Label}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                         </Grid>
 
                         <Grid>
@@ -132,17 +140,42 @@
                             <TextBlock Grid.Column="0" Text="Close popup after" VerticalAlignment="Center"/>
                             <ComboBox x:Name="AutoCloseBox"
                                       Grid.Column="1"
-                                      Width="150"
-                                      DisplayMemberPath="Label"
+                                      Width="165"
                                       SelectedValuePath="Value"
-                                      SelectionChanged="AutoCloseBox_SelectionChanged"/>
+                                      SelectionChanged="AutoCloseBox_SelectionChanged">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Label}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                         </Grid>
                     </StackPanel>
                 </Border>
 
+                <!-- Appearance -->
+                <Border Background="{DynamicResource CardBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="12"
+                        Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Appearance" Style="{StaticResource HeadingText}" Margin="0,0,0,8"/>
+                        <CheckBox x:Name="DarkModeBox"
+                                  Content="Dark mode"
+                                  Checked="DarkMode_Changed"
+                                  Unchecked="DarkMode_Changed"/>
+                        <TextBlock Style="{StaticResource MutedText}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,6,0,0"
+                                   Text="Applies straight away, to every window."/>
+                    </StackPanel>
+                </Border>
+
                 <!-- Startup -->
-                <Border Background="{StaticResource CardBrush}"
-                        BorderBrush="{StaticResource BorderBrush}"
+                <Border Background="{DynamicResource CardBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
                         CornerRadius="8"
                         Padding="12">

@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using WeeklyReminder.Models;
+using WeeklyReminder.Services;
 
 // WinForms is referenced for NotifyIcon, so its implicit using collides with WPF's.
 // Alias the handful of types we touch rather than fully qualifying at each use.
@@ -20,7 +21,8 @@ public partial class SettingsWindow : Window
         public string Display => Format(Value);
     }
 
-    private sealed record Choice(string Label, int Value);
+    /// <summary>Public so the ComboBox DataTemplate can bind to Label.</summary>
+    public sealed record Choice(string Label, int Value);
 
     private static readonly DayOfWeek[] WeekOrder =
     {
@@ -65,6 +67,9 @@ public partial class SettingsWindow : Window
         AutoCloseBox.SelectedValue = settings.AutoCloseSeconds;
 
         StartWithWindowsBox.IsChecked = settings.StartWithWindows;
+        DarkModeBox.IsChecked = settings.Theme == AppTheme.Dark;
+
+        ThemeService.TrackTitleBar(this);
 
         _loading = false;
 
@@ -206,6 +211,17 @@ public partial class SettingsWindow : Window
     {
         if (_loading) return;
         _settings.StartWithWindows = StartWithWindowsBox.IsChecked == true;
+    }
+
+    private void DarkMode_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+
+        _settings.Theme = DarkModeBox.IsChecked == true ? AppTheme.Dark : AppTheme.Light;
+        ThemeService.Apply(_settings.Theme);
+
+        // Saved now rather than on close, so the choice survives a forced quit.
+        Storage.SaveSettings(_settings);
     }
 
     private void Preview_Click(object sender, RoutedEventArgs e) => App.Current.ShowPopup();

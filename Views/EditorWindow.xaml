@@ -5,7 +5,7 @@
         Width="620" Height="760"
         MinWidth="500" MinHeight="360"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource PageBrush}">
+        Background="{DynamicResource PageBrush}">
 
     <Grid Margin="18">
         <Grid.RowDefinitions>
@@ -22,8 +22,8 @@
 
         <!-- Add a new item -->
         <Border Grid.Row="1"
-                Background="{StaticResource CardBrush}"
-                BorderBrush="{StaticResource BorderBrush}"
+                Background="{DynamicResource CardBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
                 BorderThickness="1"
                 CornerRadius="8"
                 Padding="10"
@@ -48,8 +48,8 @@
 
         <!-- Existing items -->
         <Border Grid.Row="2"
-                Background="{StaticResource CardBrush}"
-                BorderBrush="{StaticResource BorderBrush}"
+                Background="{DynamicResource CardBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
                 BorderThickness="1"
                 CornerRadius="8">
             <Grid>
@@ -95,8 +95,8 @@
                                         <!-- Action bar -->
                                         <Border Grid.Column="3"
                                                 Margin="10,0,0,0"
-                                                Background="{StaticResource PageBrush}"
-                                                BorderBrush="{StaticResource BorderBrush}"
+                                                Background="{DynamicResource PageBrush}"
+                                                BorderBrush="{DynamicResource BorderBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="6">
                                             <StackPanel Orientation="Horizontal">
@@ -109,7 +109,7 @@
                                                         PreviewMouseMove="DragHandle_MouseMove">
                                                     <TextBlock Text="⋮⋮"
                                                                FontSize="14"
-                                                               Foreground="{StaticResource MutedBrush}"/>
+                                                               Foreground="{DynamicResource MutedBrush}"/>
                                                 </Border>
 
                                                 <Button Style="{StaticResource IconButton}"

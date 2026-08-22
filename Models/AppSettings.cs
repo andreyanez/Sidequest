@@ -1,5 +1,11 @@
 namespace WeeklyReminder.Models;
 
+public enum AppTheme
+{
+    Light,
+    Dark,
+}
+
 public sealed class AppSettings
 {
     /// <summary>The app is a reminder app; fewer than two nudges a day defeats the point.</summary>
@@ -27,6 +33,8 @@ public sealed class AppSettings
     public int AutoCloseSeconds { get; set; } = 60;
 
     public bool StartWithWindows { get; set; }
+
+    public AppTheme Theme { get; set; } = AppTheme.Light;
 
     /// <summary>
     /// Where the user dragged the popup to. Null means "anchor to the bottom-right",

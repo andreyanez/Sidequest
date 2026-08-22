@@ -50,6 +50,9 @@ public partial class App : System.Windows.Application
         Settings = Storage.LoadSettings();
         Plan = Storage.LoadWeek();
 
+        // Before any window is created, so nothing flashes in the wrong theme.
+        ThemeService.Apply(Settings.Theme);
+
         // The registry is the source of truth for autostart; it can be changed
         // outside the app (Task Manager's Startup tab, for one).
         Settings.StartWithWindows = AutoStart.IsEnabled();
