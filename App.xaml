@@ -15,8 +15,12 @@
                  as an implicit TextBlock style. An implicit style would also apply to the
                  TextBlock that ContentPresenter generates for a button's string content,
                  and a style setter beats inheritance — which painted the white-on-blue
-                 button labels dark. -->
-            <Style TargetType="Window">
+                 button labels dark.
+
+                 Keyed, not implicit: an implicit style matches on the exact type, so
+                 TargetType="Window" would never apply to SettingsWindow and friends.
+                 Every window must set Style="{StaticResource AppWindow}" explicitly. -->
+            <Style x:Key="AppWindow" TargetType="Window">
                 <Setter Property="TextElement.Foreground" Value="{DynamicResource TextBrush}"/>
                 <Setter Property="TextElement.FontFamily" Value="Segoe UI"/>
                 <Setter Property="TextElement.FontSize" Value="13"/>
