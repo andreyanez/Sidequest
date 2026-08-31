@@ -32,6 +32,9 @@ public sealed class AppSettings
     /// <summary>Seconds before an ignored popup closes itself. 0 keeps it open.</summary>
     public int AutoCloseSeconds { get; set; } = 60;
 
+    /// <summary>Whether the popup floats above other windows. Off suits leaving it open all day.</summary>
+    public bool KeepOnTop { get; set; } = true;
+
     public bool StartWithWindows { get; set; }
 
     public AppTheme Theme { get; set; } = AppTheme.Light;

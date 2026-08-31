@@ -45,6 +45,14 @@ dotnet publish -c Release -r win-x64 --self-contained false -o publish
   this week's list. Tick items off directly. Snooze, Edit, or Dismiss. Closes itself
   after a configurable delay unless you move the mouse over it. It grows to fit the
   whole list, and only scrolls once the list outgrows the screen.
+- **Collapse** — the chevron rolls the popup up to just its header, showing
+  `This week · 6 of 18 done`. It stays on screen and out of the way, and expands again
+  with one click. The bottom edge is pinned while collapsing, so a popup anchored near
+  the bottom of the screen rolls up rather than leaving a gap. Deliberately not
+  persisted: a popup that fires on schedule should show what it is reminding you about.
+- **Keep on top** — on by default, so the reminder floats above other windows. Turn it
+  off in Settings to let it sit behind whatever you are working in, which suits leaving
+  it open all day with auto-close set to Never.
 - **Dragging** — grab any empty part of the card and drag. The position is remembered
   and reused for every later popup. If the saved spot is no longer on any screen (a
   monitor unplugged, a resolution change) it falls back to the bottom-right corner.

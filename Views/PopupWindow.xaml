@@ -43,14 +43,21 @@
                     <TextBlock Text="This week" Style="{StaticResource HeadingText}"/>
                     <TextBlock x:Name="RangeText" Style="{StaticResource MutedText}" Margin="0,1,0,0"/>
                 </StackPanel>
-                <Button Grid.Column="1"
-                        Content="✕"
-                        BorderThickness="0"
-                        Padding="8,2"
-                        VerticalAlignment="Top"
-                        Foreground="{DynamicResource MutedBrush}"
-                        ToolTip="Dismiss"
-                        Click="Dismiss_Click"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                    <Button x:Name="CollapseButton"
+                            Content="▾"
+                            BorderThickness="0"
+                            Padding="8,2"
+                            Foreground="{DynamicResource MutedBrush}"
+                            ToolTip="Collapse"
+                            Click="Collapse_Click"/>
+                    <Button Content="✕"
+                            BorderThickness="0"
+                            Padding="8,2"
+                            Foreground="{DynamicResource MutedBrush}"
+                            ToolTip="Dismiss"
+                            Click="Dismiss_Click"/>
+                </StackPanel>
             </Grid>
 
             <TextBlock x:Name="ProgressText"
@@ -58,7 +65,8 @@
                        Style="{StaticResource MutedText}"
                        Margin="0,10,0,8"/>
 
-            <ScrollViewer Grid.Row="2"
+            <ScrollViewer x:Name="ListArea"
+                          Grid.Row="2"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
                           Margin="0,0,0,4">
@@ -102,7 +110,7 @@
             </ScrollViewer>
 
             <!-- Footer: secondary action on the left, the popup's own actions on the right -->
-            <Grid Grid.Row="3" Margin="0,6,0,0">
+            <Grid x:Name="FooterArea" Grid.Row="3" Margin="0,6,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>

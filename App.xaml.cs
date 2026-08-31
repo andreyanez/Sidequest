@@ -152,6 +152,13 @@ public partial class App : System.Windows.Application
         _popup.Show();
     }
 
+    /// <summary>Pushes the keep-on-top setting to a popup that is already open.</summary>
+    public void ApplyKeepOnTop()
+    {
+        if (_popup is { IsLoaded: true })
+            _popup.Topmost = Settings.KeepOnTop;
+    }
+
     /// <summary>Forgets a dragged position and shows the popup back in the corner.</summary>
     private void ResetPopupPosition()
     {

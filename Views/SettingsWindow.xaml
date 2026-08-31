@@ -151,6 +151,16 @@
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
                         </Grid>
+
+                        <CheckBox x:Name="KeepOnTopBox"
+                                  Content="Keep on top of other windows"
+                                  Margin="0,14,0,0"
+                                  Checked="KeepOnTop_Changed"
+                                  Unchecked="KeepOnTop_Changed"/>
+                        <TextBlock Style="{StaticResource MutedText}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,6,0,0"
+                                   Text="Off lets the reminder sit behind whatever you are working in."/>
                     </StackPanel>
                 </Border>
 

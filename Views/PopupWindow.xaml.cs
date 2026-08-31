@@ -23,6 +23,7 @@ public partial class PopupWindow : Window
     private DispatcherTimer? _countdown;
     private int _secondsLeft;
     private bool _userPositioned;
+    private bool _collapsed;
 
     public event Action? SnoozeRequested;
     public event Action? EditRequested;
@@ -38,6 +39,9 @@ public partial class PopupWindow : Window
         RangeText.Text = plan.RangeLabel;
         SnoozeButton.Content = $"Snooze {settings.SnoozeMinutes}m";
         ItemList.ItemsSource = plan.Items;
+
+        // XAML defaults to topmost; the setting decides whether it stays there.
+        Topmost = settings.KeepOnTop;
 
         // Grow to fit the whole list rather than capping at a fixed height. Only when
         // the list outgrows the screen does the ScrollViewer take over. Set before
@@ -141,9 +145,51 @@ public partial class PopupWindow : Window
         var total = _plan.Items.Count;
         var done = _plan.Items.Count(i => i.Done);
 
+        if (_collapsed)
+        {
+            // With the list hidden, the header line carries the summary instead of the dates.
+            RangeText.Text = total == 0 ? "Nothing on the list" : $"{done} of {total} done";
+            ProgressText.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        RangeText.Text = _plan.RangeLabel;
         EmptyState.Visibility = total == 0 ? Visibility.Visible : Visibility.Collapsed;
         ProgressText.Visibility = total == 0 ? Visibility.Collapsed : Visibility.Visible;
         ProgressText.Text = $"{done} of {total} done";
+    }
+
+    /// <summary>
+    /// Rolls the window up to just its header, so it can stay on screen without taking
+    /// space. Deliberately not persisted: a popup that fires on schedule should show
+    /// what it is reminding you about.
+    /// </summary>
+    private void Collapse_Click(object sender, RoutedEventArgs e)
+    {
+        var bottomEdge = Top + ActualHeight;
+
+        _collapsed = !_collapsed;
+
+        var listVisibility = _collapsed ? Visibility.Collapsed : Visibility.Visible;
+        ListArea.Visibility = listVisibility;
+        FooterArea.Visibility = listVisibility;
+
+        CollapseButton.Content = _collapsed ? "▴" : "▾";
+        CollapseButton.ToolTip = _collapsed ? "Expand" : "Collapse";
+
+        UpdateProgress();
+
+        // SizeToContent re-measures on the next layout pass. Pin the bottom edge so a
+        // popup sitting near the bottom of the screen rolls up instead of leaving a gap.
+        UpdateLayout();
+        if (_userPositioned)
+        {
+            Top = bottomEdge - ActualHeight;
+            ClampToVirtualScreen();
+        }
+
+        // Collapsing is interaction; it should not then close itself.
+        StopCountdown();
     }
 
     private void PositionBottomRight()

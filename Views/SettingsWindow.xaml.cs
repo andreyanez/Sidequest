@@ -67,6 +67,7 @@ public partial class SettingsWindow : Window
         AutoCloseBox.SelectedValue = settings.AutoCloseSeconds;
 
         StartWithWindowsBox.IsChecked = settings.StartWithWindows;
+        KeepOnTopBox.IsChecked = settings.KeepOnTop;
         DarkModeBox.IsChecked = settings.Theme == AppTheme.Dark;
 
         ThemeService.TrackTitleBar(this);
@@ -211,6 +212,15 @@ public partial class SettingsWindow : Window
     {
         if (_loading) return;
         _settings.StartWithWindows = StartWithWindowsBox.IsChecked == true;
+    }
+
+    private void KeepOnTop_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+
+        _settings.KeepOnTop = KeepOnTopBox.IsChecked == true;
+        App.Current.ApplyKeepOnTop();
+        Storage.SaveSettings(_settings);
     }
 
     private void DarkMode_Changed(object sender, RoutedEventArgs e)
