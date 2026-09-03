@@ -158,9 +158,11 @@
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     CornerRadius="5"
                                     SnapsToDevicePixels="True">
+                                <!-- Follows VerticalContentAlignment so a wrapping,
+                                     multi-line TextBox is not clipped to one line. -->
                                 <ScrollViewer x:Name="PART_ContentHost"
                                               Margin="{TemplateBinding Padding}"
-                                              VerticalAlignment="Center"/>
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsKeyboardFocusWithin" Value="True">
@@ -181,8 +183,15 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="CheckBox">
-                            <StackPanel Orientation="Horizontal" Background="Transparent">
+                            <!-- Grid, not a horizontal StackPanel: a StackPanel gives its
+                                 children infinite width, so wrapped content never wraps. -->
+                            <Grid Background="Transparent">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
                                 <Border x:Name="Box"
+                                        Grid.Column="0"
                                         Width="16" Height="16"
                                         CornerRadius="4"
                                         BorderThickness="1"
@@ -202,9 +211,10 @@
                                           Visibility="Collapsed"/>
                                 </Border>
                                 <ContentPresenter x:Name="Label"
+                                                  Grid.Column="1"
                                                   Margin="7,0,0,0"
                                                   VerticalAlignment="Center"/>
-                            </StackPanel>
+                            </Grid>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsChecked" Value="True">
                                     <Setter TargetName="Box" Property="Background" Value="{DynamicResource AccentBrush}"/>

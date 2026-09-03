@@ -1,6 +1,7 @@
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using WeeklyReminder.Models;
 using WeeklyReminder.Services;
 
@@ -35,10 +36,20 @@ public partial class EditorWindow : Window
     private readonly WeekPlan _plan;
     private readonly NotifyCollectionChangedEventHandler _itemsChanged;
 
+    /// <summary>How close to the list's edge a drag must get before the list scrolls itself.</summary>
+    private const double ScrollZone = 34;
+
+    /// <summary>Pixels scrolled per tick while the drag sits in the edge zone.</summary>
+    private const double ScrollStep = 16;
+
     private Point _dragOrigin;
     private TaskItem? _pendingDrag;
     private TaskItem? _draggingItem;
     private Border? _highlighted;
+
+    private DispatcherTimer? _autoScroll;
+    private double _autoScrollDelta;
+    private Point _dragPointInScroller;
 
     public EditorWindow(WeekPlan plan)
     {
@@ -156,6 +167,8 @@ public partial class EditorWindow : Window
         finally
         {
             _draggingItem = null;
+            StopAutoScroll();
+            Highlight(null);
         }
     }
 
@@ -170,6 +183,9 @@ public partial class EditorWindow : Window
     {
         e.Handled = true;
 
+        _dragPointInScroller = e.GetPosition(ListScroll);
+        UpdateAutoScroll();
+
         var target = RowBorderAt(e.GetPosition(ItemList));
         var valid = _draggingItem is not null
                     && e.Data.GetDataPresent(ItemFormat)
@@ -180,11 +196,57 @@ public partial class EditorWindow : Window
         Highlight(valid ? target : null);
     }
 
-    private void List_DragLeave(object sender, DragEventArgs e) => Highlight(null);
+    private void List_DragLeave(object sender, DragEventArgs e)
+    {
+        StopAutoScroll();
+        Highlight(null);
+    }
+
+    /// <summary>
+    /// Scrolls the list while an item is dragged into its top or bottom edge. This needs a
+    /// timer rather than acting straight from DragOver: DragOver only fires while the
+    /// pointer moves, so holding still in the edge zone would stop the scroll after one step.
+    /// </summary>
+    private void UpdateAutoScroll()
+    {
+        var y = _dragPointInScroller.Y;
+
+        if (y < ScrollZone) _autoScrollDelta = -ScrollStep;
+        else if (y > ListScroll.ActualHeight - ScrollZone) _autoScrollDelta = ScrollStep;
+        else _autoScrollDelta = 0;
+
+        if (_autoScrollDelta == 0)
+        {
+            StopAutoScroll();
+            return;
+        }
+
+        if (_autoScroll is not null) return;
+
+        _autoScroll = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
+        _autoScroll.Tick += (_, _) =>
+        {
+            ListScroll.ScrollToVerticalOffset(ListScroll.VerticalOffset + _autoScrollDelta);
+
+            // The pointer has not moved, but the rows underneath it have, so the drop
+            // highlight has to be recomputed from the unchanged screen position.
+            var point = ItemList.PointFromScreen(ListScroll.PointToScreen(_dragPointInScroller));
+            Highlight(RowBorderAt(point));
+        };
+        _autoScroll.Start();
+    }
+
+    private void StopAutoScroll()
+    {
+        _autoScroll?.Stop();
+        _autoScroll = null;
+        _autoScrollDelta = 0;
+    }
 
     private void List_Drop(object sender, DragEventArgs e)
     {
         e.Handled = true;
+        StopAutoScroll();
         Highlight(null);
 
         if (_draggingItem is null || !e.Data.GetDataPresent(ItemFormat)) return;

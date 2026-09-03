@@ -54,7 +54,7 @@
                 BorderThickness="1"
                 CornerRadius="8">
             <Grid>
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10,8">
+                <ScrollViewer x:Name="ListScroll" VerticalScrollBarVisibility="Auto" Padding="10,8">
                     <!-- One drop target for the whole list; the row under the pointer is
                          found by hit test. Per-row AllowDrop did not resolve reliably as
                          the pointer moved between rows mid-drag. -->
@@ -82,9 +82,14 @@
                                                   VerticalAlignment="Center"
                                                   ToolTip="Done"/>
 
+                                        <!-- Wraps rather than scrolling out of sight; Enter
+                                             must not insert a newline into an item name. -->
                                         <TextBox Grid.Column="1"
                                                  Margin="6,0,8,0"
                                                  VerticalAlignment="Center"
+                                                 VerticalContentAlignment="Top"
+                                                 TextWrapping="Wrap"
+                                                 AcceptsReturn="False"
                                                  Text="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                                         <CheckBox Grid.Column="2"
