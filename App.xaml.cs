@@ -4,6 +4,9 @@ using WeeklyReminder.Models;
 using WeeklyReminder.Services;
 using WeeklyReminder.Views;
 using Forms = System.Windows.Forms;
+using ComboBox = System.Windows.Controls.ComboBox;
+using MouseWheelEventArgs = System.Windows.Input.MouseWheelEventArgs;
+using MouseWheelEventHandler = System.Windows.Input.MouseWheelEventHandler;
 
 namespace WeeklyReminder;
 
@@ -46,6 +49,11 @@ public partial class App : System.Windows.Application
         }
 
         ListenForShowRequests();
+
+        EventManager.RegisterClassHandler(
+            typeof(ComboBox),
+            UIElement.PreviewMouseWheelEvent,
+            new MouseWheelEventHandler(OnComboBoxPreviewMouseWheel));
 
         Settings = Storage.LoadSettings();
         Plan = Storage.LoadWeek();
@@ -129,6 +137,28 @@ public partial class App : System.Windows.Application
             _tray.ContextMenuStrip = BuildTrayMenu();
             previous?.Dispose();
         };
+    }
+
+    /// <summary>
+    /// A closed WPF ComboBox consumes the mouse wheel and steps its selection, so
+    /// scrolling the Settings page with the pointer over a dropdown silently changed the
+    /// setting. Swallow the wheel while the drop-down is shut and hand the event to the
+    /// parent instead, so the page still scrolls. An open drop-down keeps normal
+    /// behaviour, since scrolling its list is what you would expect.
+    /// </summary>
+    private static void OnComboBoxPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (sender is not ComboBox combo || combo.IsDropDownOpen) return;
+
+        e.Handled = true;
+
+        if (combo.Parent is not UIElement parent) return;
+
+        parent.RaiseEvent(new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta)
+        {
+            RoutedEvent = UIElement.MouseWheelEvent,
+            Source = combo,
+        });
     }
 
     private Forms.ContextMenuStrip BuildTrayMenu()
