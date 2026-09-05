@@ -50,7 +50,10 @@ public partial class App : System.Windows.Application
         Settings = Storage.LoadSettings();
         Plan = Storage.LoadWeek();
 
-        // Before any window is created, so nothing flashes in the wrong theme.
+        // Before any window is created, so nothing flashes in the wrong theme or language.
+        // Left null in settings deliberately: until a language is picked explicitly, the
+        // app keeps following the Windows display language rather than freezing today's.
+        LanguageService.Apply(Settings.Language ?? LanguageService.DetectFromSystem());
         ThemeService.Apply(Settings.Theme);
 
         // The registry is the source of truth for autostart; it can be changed
@@ -107,22 +110,37 @@ public partial class App : System.Windows.Application
 
     private void BuildTrayIcon()
     {
-        var menu = new Forms.ContextMenuStrip();
-        menu.Items.Add("Show reminders", null, (_, _) => ShowPopup());
-        menu.Items.Add("Edit this week…", null, (_, _) => ShowEditor());
-        menu.Items.Add("Settings…", null, (_, _) => ShowSettings());
-        menu.Items.Add("Reset popup position", null, (_, _) => ResetPopupPosition());
-        menu.Items.Add(new Forms.ToolStripSeparator());
-        menu.Items.Add("Quit", null, (_, _) => Shutdown());
-
         _tray = new Forms.NotifyIcon
         {
             Icon = TrayIconFactory.Create(),
             Text = "Weekly Reminder",
             Visible = true,
-            ContextMenuStrip = menu,
+            ContextMenuStrip = BuildTrayMenu(),
         };
         _tray.DoubleClick += (_, _) => ShowPopup();
+
+        // WinForms menu labels are plain strings, so the menu is rebuilt wholesale
+        // rather than tracking a resource.
+        LanguageService.Changed += () =>
+        {
+            if (_tray is null) return;
+
+            var previous = _tray.ContextMenuStrip;
+            _tray.ContextMenuStrip = BuildTrayMenu();
+            previous?.Dispose();
+        };
+    }
+
+    private Forms.ContextMenuStrip BuildTrayMenu()
+    {
+        var menu = new Forms.ContextMenuStrip();
+        menu.Items.Add(LanguageService.Get("L_TrayShow"), null, (_, _) => ShowPopup());
+        menu.Items.Add(LanguageService.Get("L_TrayEdit"), null, (_, _) => ShowEditor());
+        menu.Items.Add(LanguageService.Get("L_TraySettings"), null, (_, _) => ShowSettings());
+        menu.Items.Add(LanguageService.Get("L_TrayResetPosition"), null, (_, _) => ResetPopupPosition());
+        menu.Items.Add(new Forms.ToolStripSeparator());
+        menu.Items.Add(LanguageService.Get("L_TrayQuit"), null, (_, _) => Shutdown());
+        return menu;
     }
 
     public void ShowPopup()

@@ -16,13 +16,24 @@ namespace WeeklyReminder.Views;
 public partial class SettingsWindow : Window
 {
     /// <summary>Wrapper so the list can bind to a preformatted string without XAML format escaping.</summary>
+    // ToString is overridden throughout: a templated ComboBoxItem takes its accessible
+    // name from the bound object, and the record default reads "Choice { Label = ... }".
     public sealed record TimeEntry(TimeOnly Value)
     {
         public string Display => Format(Value);
+
+        public override string ToString() => Display;
     }
 
-    /// <summary>Public so the ComboBox DataTemplate can bind to Label.</summary>
-    public sealed record Choice(string Label, int Value);
+    public sealed record Choice(string Label, int Value)
+    {
+        public override string ToString() => Label;
+    }
+
+    public sealed record LanguageChoice(string Label, AppLanguage Value)
+    {
+        public override string ToString() => Label;
+    }
 
     private static readonly DayOfWeek[] WeekOrder =
     {
@@ -32,6 +43,7 @@ public partial class SettingsWindow : Window
 
     private readonly AppSettings _settings;
     private readonly ObservableCollection<TimeEntry> _times = new();
+    private readonly Action _languageChanged;
     private bool _loading = true;
 
     public SettingsWindow(AppSettings settings)
@@ -44,39 +56,45 @@ public partial class SettingsWindow : Window
             _times.Add(new TimeEntry(time));
         TimeList.ItemsSource = _times;
 
-        BuildDayToggles();
-
-        SnoozeBox.ItemsSource = WithCurrent(new List<Choice>
+        // Language names are endonyms, so this list is not rebuilt on a language change.
+        LanguageBox.ItemsSource = new List<LanguageChoice>
         {
-            new("5 minutes", 5),
-            new("10 minutes", 10),
-            new("15 minutes", 15),
-            new("30 minutes", 30),
-            new("1 hour", 60),
-        }, settings.SnoozeMinutes, v => $"{v} minutes");
-        SnoozeBox.SelectedValue = settings.SnoozeMinutes;
-
-        AutoCloseBox.ItemsSource = WithCurrent(new List<Choice>
-        {
-            new("Never", 0),
-            new("15 seconds", 15),
-            new("30 seconds", 30),
-            new("1 minute", 60),
-            new("2 minutes", 120),
-        }, settings.AutoCloseSeconds, v => $"{v} seconds");
-        AutoCloseBox.SelectedValue = settings.AutoCloseSeconds;
+            new("English", AppLanguage.English),
+            new("Español", AppLanguage.Spanish),
+        };
+        LanguageBox.SelectedValue = settings.Language ?? LanguageService.Current;
 
         StartWithWindowsBox.IsChecked = settings.StartWithWindows;
         KeepOnTopBox.IsChecked = settings.KeepOnTop;
         DarkModeBox.IsChecked = settings.Theme == AppTheme.Dark;
 
+        ApplyStrings();
         ThemeService.TrackTitleBar(this);
 
         _loading = false;
 
+        _languageChanged = ApplyStrings;
+        LanguageService.Changed += _languageChanged;
+
         // Controls receiving focus during load can scroll themselves into view, which
         // left the window opening part-way down with the first popup time cut off.
         Loaded += (_, _) => ContentScroll.ScrollToTop();
+    }
+
+    /// <summary>
+    /// Rebuilds everything this window renders from code: day names and duration labels
+    /// are culture- and language-dependent, so a switch has to regenerate them.
+    /// </summary>
+    private void ApplyStrings()
+    {
+        var wasLoading = _loading;
+        _loading = true;
+
+        BuildDayToggles();
+        BuildDurationChoices();
+        TimeHint.Text = LanguageService.Get("L_TimeHintDefault");
+
+        _loading = wasLoading;
     }
 
     private static string Format(TimeOnly time) => time.ToString("HH:mm", CultureInfo.InvariantCulture);
@@ -90,8 +108,32 @@ public partial class SettingsWindow : Window
         return choices.OrderBy(c => c.Value).ToList();
     }
 
+    private void BuildDurationChoices()
+    {
+        SnoozeBox.ItemsSource = WithCurrent(new List<Choice>
+        {
+            new(LanguageService.Format("L_MinutesFmt", 5), 5),
+            new(LanguageService.Format("L_MinutesFmt", 10), 10),
+            new(LanguageService.Format("L_MinutesFmt", 15), 15),
+            new(LanguageService.Format("L_MinutesFmt", 30), 30),
+            new(LanguageService.Get("L_OneHour"), 60),
+        }, _settings.SnoozeMinutes, v => LanguageService.Format("L_MinutesFmt", v));
+        SnoozeBox.SelectedValue = _settings.SnoozeMinutes;
+
+        AutoCloseBox.ItemsSource = WithCurrent(new List<Choice>
+        {
+            new(LanguageService.Get("L_Never"), 0),
+            new(LanguageService.Format("L_SecondsFmt", 15), 15),
+            new(LanguageService.Format("L_SecondsFmt", 30), 30),
+            new(LanguageService.Get("L_OneMinute"), 60),
+            new(LanguageService.Get("L_TwoMinutes"), 120),
+        }, _settings.AutoCloseSeconds, v => LanguageService.Format("L_SecondsFmt", v));
+        AutoCloseBox.SelectedValue = _settings.AutoCloseSeconds;
+    }
+
     private void BuildDayToggles()
     {
+        DaysPanel.Children.Clear();
         var format = CultureInfo.CurrentCulture.DateTimeFormat;
 
         foreach (var day in WeekOrder)
@@ -149,13 +191,13 @@ public partial class SettingsWindow : Window
 
         if (!TryParseTime(text, out var time))
         {
-            TimeHint.Text = $"Couldn't read \"{text}\" as a time. Try 09:00 or 7:30 pm.";
+            TimeHint.Text = LanguageService.Format("L_TimeUnreadableFmt", text);
             return;
         }
 
         if (_times.Any(t => t.Value == time))
         {
-            TimeHint.Text = $"{Format(time)} is already in the list.";
+            TimeHint.Text = LanguageService.Format("L_TimeDuplicateFmt", Format(time));
             return;
         }
 
@@ -170,7 +212,7 @@ public partial class SettingsWindow : Window
 
         _times.Insert(index, new TimeEntry(time));
         NewTimeText.Clear();
-        TimeHint.Text = $"Added {Format(time)}.";
+        TimeHint.Text = LanguageService.Format("L_TimeAddedFmt", Format(time));
         SyncTimes();
     }
 
@@ -180,12 +222,12 @@ public partial class SettingsWindow : Window
 
         if (_times.Count <= AppSettings.MinPopupTimes)
         {
-            TimeHint.Text = $"At least {AppSettings.MinPopupTimes} popup times a day are required.";
+            TimeHint.Text = LanguageService.Format("L_TimeMinimumFmt", AppSettings.MinPopupTimes);
             return;
         }
 
         _times.Remove(entry);
-        TimeHint.Text = $"Removed {entry.Display}.";
+        TimeHint.Text = LanguageService.Format("L_TimeRemovedFmt", entry.Display);
         SyncTimes();
     }
 
@@ -206,6 +248,16 @@ public partial class SettingsWindow : Window
     {
         if (_loading || AutoCloseBox.SelectedValue is not int value) return;
         _settings.AutoCloseSeconds = value;
+    }
+
+    private void LanguageBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_loading || LanguageBox.SelectedValue is not AppLanguage language) return;
+        if (language == _settings.Language) return;
+
+        _settings.Language = language;
+        LanguageService.Apply(language);
+        Storage.SaveSettings(_settings);
     }
 
     private void StartWithWindows_Changed(object sender, RoutedEventArgs e)
@@ -237,4 +289,10 @@ public partial class SettingsWindow : Window
     private void Preview_Click(object sender, RoutedEventArgs e) => App.Current.ShowPopup();
 
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
+
+    protected override void OnClosed(EventArgs e)
+    {
+        LanguageService.Changed -= _languageChanged;
+        base.OnClosed(e);
+    }
 }

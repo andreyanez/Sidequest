@@ -1,4 +1,5 @@
 using System.Windows;
+using WeeklyReminder.Services;
 
 namespace WeeklyReminder.Views;
 
@@ -8,13 +9,13 @@ namespace WeeklyReminder.Views;
 /// </summary>
 public partial class ConfirmDialog : Window
 {
-    private ConfirmDialog(string heading, string detail, string confirmLabel, string footnote)
+    private ConfirmDialog(string heading, string detail, string? confirmLabel, string footnote)
     {
         InitializeComponent();
 
         HeadingText.Text = heading;
         DetailText.Text = detail;
-        ConfirmButton.Content = confirmLabel;
+        ConfirmButton.Content = confirmLabel ?? LanguageService.Get("L_Remove");
 
         FooterNote.Text = footnote;
         FooterNote.Visibility = string.IsNullOrEmpty(footnote) ? Visibility.Collapsed : Visibility.Visible;
@@ -25,7 +26,7 @@ public partial class ConfirmDialog : Window
         Window owner,
         string heading,
         string detail,
-        string confirmLabel = "Remove",
+        string? confirmLabel = null,
         string footnote = "")
     {
         var dialog = new ConfirmDialog(heading, detail, confirmLabel, footnote) { Owner = owner };

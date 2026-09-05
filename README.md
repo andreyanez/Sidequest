@@ -65,6 +65,10 @@ dotnet publish -c Release -r win-x64 --self-contained false -o publish
   and are unticked; everything else is cleared.
 - **Dark mode** — toggled in Settings, applied live to every open window including the
   Windows title bar. The choice is saved immediately rather than on close.
+- **Language** — English or Spanish, switched in Settings and applied live. Until one is
+  picked the app follows the Windows display language, so `Language` stays null in
+  settings.json rather than being frozen on first run. Switching also sets the culture,
+  so weekday names and the date range follow.
 - **Startup** — optional per-user `Run` key entry, toggled in Settings. No admin rights.
 - **Single instance** — launching the exe again just shows the popup.
 
@@ -88,13 +92,20 @@ Models/      TaskItem, WeekPlan, AppSettings
 Services/    Storage, Scheduler, AutoStart, TrayIconFactory, ThemeService
 Views/       PopupWindow, EditorWindow, SettingsWindow, ConfirmDialog
 Themes/      Light.xaml, Dark.xaml — colours only, swapped at runtime
+Strings/     English.xaml, Spanish.xaml — UI text, swapped at runtime
 App.xaml     Control styles and templates, shared by both themes
 App.xaml.cs  Tray host, single-instance, window lifetime
 ```
 
 Colours live only in the two theme dictionaries and are referenced with
 `DynamicResource`, so slot 0 of the merged dictionaries can be swapped while windows
-are open. Adding a colour means adding it to **both** files.
+are open. Adding a colour means adding it to **both** files. Slot 1 holds the language
+dictionary and works the same way — adding a string means adding it to both of those.
+
+`DynamicResource` only covers text declared in XAML. Anything built in code — the tray
+menu, the done count, duration labels, weekday names — is rebuilt from
+`LanguageService.Changed`, which each window subscribes to and unsubscribes from on
+close.
 
 WPF's stock `TextBox`, `CheckBox`, `ComboBox` and `ScrollBar` paint themselves with
 fixed light chrome that ignores `Background`/`Foreground`, so `App.xaml` retemplates

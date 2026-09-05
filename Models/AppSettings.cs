@@ -6,6 +6,12 @@ public enum AppTheme
     Dark,
 }
 
+public enum AppLanguage
+{
+    English,
+    Spanish,
+}
+
 public sealed class AppSettings
 {
     /// <summary>The app is a reminder app; fewer than two nudges a day defeats the point.</summary>
@@ -38,6 +44,9 @@ public sealed class AppSettings
     public bool StartWithWindows { get; set; }
 
     public AppTheme Theme { get; set; } = AppTheme.Light;
+
+    /// <summary>Null until chosen, so a first run can follow the Windows display language.</summary>
+    public AppLanguage? Language { get; set; }
 
     /// <summary>
     /// Where the user dragged the popup to. Null means "anchor to the bottom-right",

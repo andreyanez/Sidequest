@@ -24,6 +24,18 @@ public partial class PopupWindow : Window
     private int _secondsLeft;
     private bool _userPositioned;
     private bool _collapsed;
+    private readonly Action _languageChanged;
+
+    /// <summary>Text this window builds in code, which DynamicResource cannot keep current.</summary>
+    private void ApplyStrings()
+    {
+        SnoozeButton.Content = LanguageService.Format("L_SnoozeFmt", _settings.SnoozeMinutes);
+        CollapseButton.ToolTip = LanguageService.Get(_collapsed ? "L_Expand" : "L_Collapse");
+        UpdateProgress();
+
+        if (_countdown is not null)
+            CountdownText.Text = LanguageService.Format("L_ClosesInFmt", _secondsLeft);
+    }
 
     public event Action? SnoozeRequested;
     public event Action? EditRequested;
@@ -37,8 +49,11 @@ public partial class PopupWindow : Window
         InitializeComponent();
 
         RangeText.Text = plan.RangeLabel;
-        SnoozeButton.Content = $"Snooze {settings.SnoozeMinutes}m";
         ItemList.ItemsSource = plan.Items;
+        ApplyStrings();
+
+        _languageChanged = ApplyStrings;
+        LanguageService.Changed += _languageChanged;
 
         // XAML defaults to topmost; the setting decides whether it stays there.
         Topmost = settings.KeepOnTop;
@@ -148,7 +163,9 @@ public partial class PopupWindow : Window
         if (_collapsed)
         {
             // With the list hidden, the header line carries the summary instead of the dates.
-            RangeText.Text = total == 0 ? "Nothing on the list" : $"{done} of {total} done";
+            RangeText.Text = total == 0
+                ? LanguageService.Get("L_NothingOnList")
+                : LanguageService.Format("L_DoneCountFmt", done, total);
             ProgressText.Visibility = Visibility.Collapsed;
             return;
         }
@@ -156,7 +173,7 @@ public partial class PopupWindow : Window
         RangeText.Text = _plan.RangeLabel;
         EmptyState.Visibility = total == 0 ? Visibility.Visible : Visibility.Collapsed;
         ProgressText.Visibility = total == 0 ? Visibility.Collapsed : Visibility.Visible;
-        ProgressText.Text = $"{done} of {total} done";
+        ProgressText.Text = LanguageService.Format("L_DoneCountFmt", done, total);
     }
 
     /// <summary>
@@ -175,7 +192,7 @@ public partial class PopupWindow : Window
         FooterArea.Visibility = listVisibility;
 
         CollapseButton.Content = _collapsed ? "▴" : "▾";
-        CollapseButton.ToolTip = _collapsed ? "Expand" : "Collapse";
+        CollapseButton.ToolTip = LanguageService.Get(_collapsed ? "L_Expand" : "L_Collapse");
 
         UpdateProgress();
 
@@ -220,7 +237,7 @@ public partial class PopupWindow : Window
                 Close();
                 return;
             }
-            CountdownText.Text = $"Closes in {_secondsLeft}s";
+            CountdownText.Text = LanguageService.Format("L_ClosesInFmt", _secondsLeft);
         };
         _countdown.Start();
     }
@@ -255,6 +272,7 @@ public partial class PopupWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         StopCountdown();
+        LanguageService.Changed -= _languageChanged;
         base.OnClosed(e);
     }
 }

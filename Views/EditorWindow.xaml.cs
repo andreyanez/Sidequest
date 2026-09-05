@@ -35,6 +35,7 @@ public partial class EditorWindow : Window
 
     private readonly WeekPlan _plan;
     private readonly NotifyCollectionChangedEventHandler _itemsChanged;
+    private readonly Action _languageChanged;
 
     /// <summary>How close to the list's edge a drag must get before the list scrolls itself.</summary>
     private const double ScrollZone = 34;
@@ -65,6 +66,10 @@ public partial class EditorWindow : Window
         // The plan outlives this window, so keep a handle to detach on close.
         _itemsChanged = (_, _) => UpdateEmptyState();
         _plan.Items.CollectionChanged += _itemsChanged;
+
+        // The date range is culture-formatted, so it has to be rebuilt on a language switch.
+        _languageChanged = () => RangeText.Text = _plan.RangeLabel;
+        LanguageService.Changed += _languageChanged;
 
         UpdateEmptyState();
         Loaded += (_, _) => NewItemText.Focus();
@@ -98,11 +103,9 @@ public partial class EditorWindow : Window
     {
         if (sender is not FrameworkElement { DataContext: TaskItem item }) return;
 
-        var note = item.RepeatsWeekly
-            ? "This one repeats weekly, so removing it stops it coming back."
-            : string.Empty;
+        var note = item.RepeatsWeekly ? LanguageService.Get("L_RemoveRepeatsNote") : string.Empty;
 
-        if (!ConfirmDialog.Ask(this, "Remove this item?", item.Text, footnote: note)) return;
+        if (!ConfirmDialog.Ask(this, LanguageService.Get("L_RemoveItemQ"), item.Text, footnote: note)) return;
 
         _plan.Items.Remove(item);
         Storage.SaveWeek(_plan);
@@ -114,11 +117,11 @@ public partial class EditorWindow : Window
         if (completed.Count == 0) return;
 
         var heading = completed.Count == 1
-            ? "Remove the completed item?"
-            : $"Remove {completed.Count} completed items?";
+            ? LanguageService.Get("L_RemoveCompletedOneQ")
+            : LanguageService.Format("L_RemoveCompletedManyQFmt", completed.Count);
         var detail = string.Join(Environment.NewLine, completed.Select(i => "•  " + i.Text));
 
-        if (!ConfirmDialog.Ask(this, heading, detail, confirmLabel: "Remove all")) return;
+        if (!ConfirmDialog.Ask(this, heading, detail, confirmLabel: LanguageService.Get("L_RemoveAll"))) return;
 
         foreach (var item in completed)
             _plan.Items.Remove(item);
@@ -295,6 +298,7 @@ public partial class EditorWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         _plan.Items.CollectionChanged -= _itemsChanged;
+        LanguageService.Changed -= _languageChanged;
         base.OnClosed(e);
     }
 }
