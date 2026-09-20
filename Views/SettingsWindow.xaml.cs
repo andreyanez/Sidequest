@@ -2,8 +2,8 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
-using WeeklyReminder.Models;
-using WeeklyReminder.Services;
+using Sidequest.Models;
+using Sidequest.Services;
 
 // WinForms is referenced for NotifyIcon, so its implicit using collides with WPF's.
 // Alias the handful of types we touch rather than fully qualifying at each use.
@@ -11,7 +11,7 @@ using CheckBox = System.Windows.Controls.CheckBox;
 using Key = System.Windows.Input.Key;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
-namespace WeeklyReminder.Views;
+namespace Sidequest.Views;
 
 public partial class SettingsWindow : Window
 {

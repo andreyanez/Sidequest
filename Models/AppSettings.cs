@@ -1,4 +1,4 @@
-namespace WeeklyReminder.Models;
+namespace Sidequest.Models;
 
 public enum AppTheme
 {

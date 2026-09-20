@@ -1,12 +1,12 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using WeeklyReminder.Models;
+using Sidequest.Models;
 
-namespace WeeklyReminder.Services;
+namespace Sidequest.Services;
 
 /// <summary>
-/// Reads and writes the two JSON files under %APPDATA%\WeeklyReminder.
+/// Reads and writes the two JSON files under %APPDATA%\Sidequest.
 /// Both files are meant to be readable and hand-editable.
 /// </summary>
 public static class Storage
@@ -19,7 +19,7 @@ public static class Storage
 
     public static string Directory { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "WeeklyReminder");
+        "Sidequest");
 
     public static string WeekPath => Path.Combine(Directory, "week.json");
     public static string SettingsPath => Path.Combine(Directory, "settings.json");

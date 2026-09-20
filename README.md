@@ -1,4 +1,10 @@
-# Weekly Reminder
+# Sidequest
+
+> **This README still describes WeeklyReminder, the app Sidequest is replacing.**
+> The rebuild is under way on the `sidequest` branch; what is being built is specified
+> in [`docs/design-spec.md`](docs/design-spec.md). Sections below describe behaviour
+> that is on its way out — the scheduler, the weekly rollover and the popup most of all.
+> This file gets rewritten once the new screens land.
 
 A small tray-resident Windows app that pops up a reminder window showing what you
 planned for the week. Runs entirely locally; no accounts, no network.
@@ -23,9 +29,9 @@ A window can also be opened straight from the command line, which is handy for
 checking a screen without navigating the tray menu:
 
 ```
-WeeklyReminder.exe --popup
-WeeklyReminder.exe --edit
-WeeklyReminder.exe --settings
+Sidequest.exe --popup
+Sidequest.exe --edit
+Sidequest.exe --settings
 ```
 
 These are honoured by the first instance only. Launching the exe while it is already
@@ -74,7 +80,7 @@ dotnet publish -c Release -r win-x64 --self-contained false -o publish
 
 ## Data
 
-Two human-readable JSON files under `%APPDATA%\WeeklyReminder\`:
+Two human-readable JSON files under `%APPDATA%\Sidequest\`:
 
 | File | Contents |
 | --- | --- |

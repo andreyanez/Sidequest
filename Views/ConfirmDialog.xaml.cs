@@ -1,7 +1,7 @@
 using System.Windows;
-using WeeklyReminder.Services;
+using Sidequest.Services;
 
-namespace WeeklyReminder.Views;
+namespace Sidequest.Views;
 
 /// <summary>
 /// Small modal confirmation styled like the rest of the app, rather than a system

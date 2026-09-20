@@ -1,9 +1,9 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using WeeklyReminder.Models;
+using Sidequest.Models;
 
-namespace WeeklyReminder.Services;
+namespace Sidequest.Services;
 
 /// <summary>
 /// Swaps the active theme dictionary at runtime. Slot 0 of the application's merged

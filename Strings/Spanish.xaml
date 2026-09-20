@@ -41,7 +41,7 @@
     <sys:String x:Key="L_RemoveAll">Eliminar todos</sys:String>
 
     <!-- Settings -->
-    <sys:String x:Key="L_SettingsTitle">Weekly Reminder — Ajustes</sys:String>
+    <sys:String x:Key="L_SettingsTitle">Sidequest — Ajustes</sys:String>
     <sys:String x:Key="L_Settings">Ajustes</sys:String>
     <sys:String x:Key="L_WhenItPopsUp">Cuándo aparece</sys:String>
     <sys:String x:Key="L_TimesHelp">Al menos dos al día. Añade los que quieras.</sys:String>

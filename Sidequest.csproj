@@ -9,9 +9,10 @@
     <!-- WinForms is enabled solely for NotifyIcon, which WPF does not provide.
          Both namespaces define Application/MessageBox, so code files alias them. -->
     <UseWindowsForms>true</UseWindowsForms>
-    <RootNamespace>WeeklyReminder</RootNamespace>
-    <AssemblyName>WeeklyReminder</AssemblyName>
-    <Version>1.0.0</Version>
+    <RootNamespace>Sidequest</RootNamespace>
+    <AssemblyName>Sidequest</AssemblyName>
+    <!-- 5.8 shows this in the Settings footer as "Sidequest 0.1". -->
+    <Version>0.1.0</Version>
   </PropertyGroup>
 
 </Project>

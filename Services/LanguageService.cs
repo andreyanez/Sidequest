@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Threading;
 using System.Windows;
-using WeeklyReminder.Models;
+using Sidequest.Models;
 
-namespace WeeklyReminder.Services;
+namespace Sidequest.Services;
 
 /// <summary>
 /// Swaps the active string dictionary at runtime, mirroring <see cref="ThemeService"/>.

@@ -2,10 +2,10 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
-using WeeklyReminder.Models;
-using WeeklyReminder.Services;
+using Sidequest.Models;
+using Sidequest.Services;
 
-namespace WeeklyReminder.Views;
+namespace Sidequest.Views;
 
 public partial class PopupWindow : Window
 {
