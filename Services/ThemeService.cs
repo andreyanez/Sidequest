@@ -30,6 +30,13 @@ public static class ThemeService
 
     public static AppTheme Current { get; private set; } = AppTheme.Light;
 
+    /// <summary>
+    /// Raised after a switch. DynamicResource covers everything drawn from the token
+    /// dictionaries, but a Sidequest's colour is resolved in code from two axes, so
+    /// anything showing one has to re-resolve it here.
+    /// </summary>
+    public static event Action? Changed;
+
     public static void Apply(AppTheme theme)
     {
         Current = theme;
@@ -43,6 +50,8 @@ public static class ThemeService
 
         foreach (Window window in System.Windows.Application.Current.Windows)
             ApplyTitleBar(window);
+
+        Changed?.Invoke();
     }
 
     /// <summary>

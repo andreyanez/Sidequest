@@ -76,6 +76,16 @@
     <sys:String x:Key="L_OneMinute">1 minuto</sys:String>
     <sys:String x:Key="L_TwoMinutes">2 minutos</sys:String>
 
+    <!-- Claves de la 7, añadidas conforme aparece cada pantalla. -->
+    <sys:String x:Key="L_AppName">Sidequest</sys:String>
+    <sys:String x:Key="L_Close">Cerrar</sys:String>
+    <sys:String x:Key="L_Sidequests">Sidequests</sys:String>
+    <sys:String x:Key="L_CounterFmt">{0} / {1}</sys:String>
+    <sys:String x:Key="L_PanelEmpty">Sin objetivos. Entra a un Sidequest y envía uno.</sys:String>
+    <sys:String x:Key="L_ReturnToSidequest">Devolver al Sidequest</sys:String>
+    <sys:String x:Key="L_DeleteObjective">Eliminar objetivo</sys:String>
+    <sys:String x:Key="L_DeleteObjectiveQ">¿Eliminar este objetivo? También se borra de su Sidequest.</sys:String>
+
     <!-- Migración (D3). El resto de la tabla de la 7 reemplaza este archivo más adelante. -->
     <sys:String x:Key="L_ImportedSidequest">Importados</sys:String>
 

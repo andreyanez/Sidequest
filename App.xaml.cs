@@ -24,7 +24,7 @@ public partial class App : System.Windows.Application
     private Mutex? _mutex;
     private EventWaitHandle? _showEvent;
     private Forms.NotifyIcon? _tray;
-    private Scheduler? _scheduler;
+    private MainWindow? _mainWindow;
 
     private PopupWindow? _popup;
     private EditorWindow? _editor;
@@ -60,6 +60,11 @@ public partial class App : System.Windows.Application
             UIElement.PreviewMouseWheelEvent,
             new MouseWheelEventHandler(OnComboBoxPreviewMouseWheel));
 
+        // First, before anything reads a file: settings were otherwise loaded from the
+        // real folder and only then redirected, so a sandboxed run silently started from
+        // the wrong settings.
+        RedirectDataIfSandboxed();
+
         Settings = Storage.LoadSettings();
         Plan = Storage.LoadWeek();
 
@@ -67,7 +72,6 @@ public partial class App : System.Windows.Application
         // Left null in settings deliberately: until a language is picked explicitly, the
         // app keeps following the Windows display language rather than freezing today's.
         LanguageService.Apply(Settings.Language ?? LanguageService.DetectFromSystem());
-        RedirectDataIfSandboxed();
 
         // D3: one-time import of WeeklyReminder's data, after the language is known so
         // the imported Sidequest gets a name the user can read. It is a no-op once
@@ -83,9 +87,10 @@ public partial class App : System.Windows.Application
 
         BuildTrayIcon();
 
-        _scheduler = new Scheduler(Settings);
-        _scheduler.Due += ShowPopup;
-        _scheduler.Start();
+        // D1: nothing surfaces the app on a schedule any more. The panel is a fixture, so
+        // it opens on launch and restores the collapsed state it was left in.
+        _mainWindow = new MainWindow();
+        _mainWindow.ShowPanel();
 
         OpenRequestedWindow(e.Args);
     }
@@ -125,6 +130,7 @@ public partial class App : System.Windows.Application
         if (string.IsNullOrWhiteSpace(sandbox)) return;
 
         SidequestStore.Directory = Path.Combine(sandbox, "Sidequest");
+        Storage.Directory = Path.Combine(sandbox, "Sidequest");
         LegacyMigration.LegacyDirectory = Path.Combine(sandbox, "WeeklyReminder");
     }
 
@@ -134,7 +140,7 @@ public partial class App : System.Windows.Application
         var listener = new Thread(() =>
         {
             while (_showEvent!.WaitOne())
-                Dispatcher.BeginInvoke(ShowPopup);
+                Dispatcher.BeginInvoke(ShowPanel);
         })
         {
             IsBackground = true,
@@ -152,7 +158,7 @@ public partial class App : System.Windows.Application
             Visible = true,
             ContextMenuStrip = BuildTrayMenu(),
         };
-        _tray.DoubleClick += (_, _) => ShowPopup();
+        _tray.DoubleClick += (_, _) => ShowPanel();
 
         // WinForms menu labels are plain strings, so the menu is rebuilt wholesale
         // rather than tracking a resource.
@@ -191,7 +197,7 @@ public partial class App : System.Windows.Application
     private Forms.ContextMenuStrip BuildTrayMenu()
     {
         var menu = new Forms.ContextMenuStrip();
-        menu.Items.Add(LanguageService.Get("L_TrayShow"), null, (_, _) => ShowPopup());
+        menu.Items.Add(LanguageService.Get("L_TrayShow"), null, (_, _) => ShowPanel());
         menu.Items.Add(LanguageService.Get("L_TrayEdit"), null, (_, _) => ShowEditor());
         menu.Items.Add(LanguageService.Get("L_TraySettings"), null, (_, _) => ShowSettings());
         menu.Items.Add(LanguageService.Get("L_TrayResetPosition"), null, (_, _) => ResetPopupPosition());
@@ -199,6 +205,9 @@ public partial class App : System.Windows.Application
         menu.Items.Add(LanguageService.Get("L_TrayQuit"), null, (_, _) => Shutdown());
         return menu;
     }
+
+    /// <summary>Brings the main panel back. Replaces ShowPopup as the app's front door.</summary>
+    public void ShowPanel() => _mainWindow?.ShowPanel();
 
     public void ShowPopup()
     {
@@ -217,7 +226,9 @@ public partial class App : System.Windows.Application
             Storage.SaveWeek(Plan);
             _popup = null;
         };
-        _popup.SnoozeRequested += () => _scheduler?.Snooze();
+        // Snooze went with the scheduler (D1); the old popup is unreachable from the tray
+        // now and goes away entirely in phase 3.
+        _popup.SnoozeRequested += () => { };
 
         // The popup is topmost, so it steps aside while another window is in use and
         // comes back once that window is done with.
@@ -281,7 +292,6 @@ public partial class App : System.Windows.Application
         {
             Storage.SaveSettings(Settings);
             AutoStart.Set(Settings.StartWithWindows);
-            _scheduler?.ClearSnooze();
             _settingsWindow = null;
             if (returnToPopup) ShowPopup();
         };
@@ -298,7 +308,6 @@ public partial class App : System.Windows.Application
             _tray.Dispose();
         }
 
-        _scheduler?.Dispose();
         _showEvent?.Dispose();
         _mutex?.Dispose();
 

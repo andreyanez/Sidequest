@@ -78,6 +78,16 @@
     <sys:String x:Key="L_OneMinute">1 minute</sys:String>
     <sys:String x:Key="L_TwoMinutes">2 minutes</sys:String>
 
+    <!-- 7's keys, added as each screen lands. -->
+    <sys:String x:Key="L_AppName">Sidequest</sys:String>
+    <sys:String x:Key="L_Close">Close</sys:String>
+    <sys:String x:Key="L_Sidequests">Sidequests</sys:String>
+    <sys:String x:Key="L_CounterFmt">{0} / {1}</sys:String>
+    <sys:String x:Key="L_PanelEmpty">No objectives yet. Open a Sidequest and send one.</sys:String>
+    <sys:String x:Key="L_ReturnToSidequest">Return to Sidequest</sys:String>
+    <sys:String x:Key="L_DeleteObjective">Delete objective</sys:String>
+    <sys:String x:Key="L_DeleteObjectiveQ">Delete this objective? It is removed from its Sidequest too.</sys:String>
+
     <!-- Migration (D3). The rest of 7's table replaces this file in later phases. -->
     <sys:String x:Key="L_ImportedSidequest">Imported</sys:String>
 

@@ -43,7 +43,8 @@ public sealed class AppSettings
 
     public bool StartWithWindows { get; set; }
 
-    public AppTheme Theme { get; set; } = AppTheme.Light;
+    /// <summary>3 makes dark the default.</summary>
+    public AppTheme Theme { get; set; } = AppTheme.Dark;
 
     // ---- 3's shape. The fields above that phase 2 deletes with the old screens
     // (PopupTimes, ActiveDays, SnoozeMinutes, AutoCloseSeconds, LastFired) still exist
