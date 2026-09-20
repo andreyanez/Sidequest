@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'DM Sans', system-ui, sans-serif; background: #16171a; color: #e8e9ec; }
+    a { color: #e8e9ec; text-decoration: none; } a:hover { color: #9a9ea8; }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    .ib:hover { background: #202328; color: #e8e9ec; }
+    .row:hover { background: #202328; }
+    .row .acts { display: none; }
+    .row:hover .acts { display: flex; }
+    .cb { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+    .cb + span svg { opacity: 0; }
+    .cb:checked + span { background: var(--c, #e8e9ec); border-color: var(--c, #e8e9ec); }
+    .cb:checked + span svg { opacity: 1; }
+    .cb:focus-visible + span { outline: 2px solid #e8e9ec; outline-offset: 2px; }
+    .row:has(.cb:checked) .t { text-decoration: line-through; color: #9a9ea8 !important; }
+    .sw:checked + span { background: #e8e9ec !important; border-color: #e8e9ec !important; }
+    .sw:checked + span span { transform: translateX(16px); background: #16171a !important; }
+    .sw:focus-visible + span { outline: 2px solid #e8e9ec; outline-offset: 2px; }
+    .cta:hover { border-color: #e8e9ec; }
+  </style>
+</helmet>
+<div style="width: 400px; height: 720px; box-sizing: border-box; display: flex; flex-direction: column; background: #16171a; border: 1px solid #3a3e46; color: #e8e9ec;">
+  <div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 14px 0 6px; border-bottom: 1px solid #2a2d33;">
+    <a class="ib" href="FnMain.html" style="display: flex; align-items: center; gap: 4px; height: 28px; padding: 0 8px 0 4px; border-radius: 8px; font-size: 12px; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 3.5L5 8l4.5 4.5"/></svg>Panel principal</a>
+    <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #9a9ea8;">Sidequest</span>
+  </div>
+  <div class="row" style="flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; margin: 12px 12px 0; padding: 16px; border-radius: 12px; background: rgba(79, 181, 168, 0.14);">
+    <div style="display: flex; align-items: flex-start; gap: 12px;">
+      <div style="padding-top: 3px; display: flex;"><label style="position: relative; width: 18px; height: 18px; flex-shrink: 0; display: flex; --c: #4fb5a8;"><input class="cb" type="checkbox" aria-label="Completar objetivo"><span style="box-sizing: border-box; width: 18px; height: 18px; border: 1.5px solid #3a3e46; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #16171a;"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 4.5"/></svg></span></label></div>
+      <span class="t" style="font-size: 19px; font-weight: 700; line-height: 1.3; letter-spacing: -0.02em;">Cotizar camión de mudanza</span>
+    </div>
+    <div style="display: flex; padding-left: 30px;"><a href="FnSidequest.html" style="flex-shrink: 0; display: flex; align-items: center; height: 24px; padding: 0 10px; border: 1px solid #2a2d33; border-radius: 999px; background: #1d1f23; font-family: 'DM Sans', system-ui, sans-serif; font-size: 11px; font-weight: 500; color: #4fb5a8;">Mudanza</a></div>
+  </div>
+  <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 20px; padding: 18px 16px; overflow: hidden;">
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline;"><span id="notas-label" style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #9a9ea8;">Notas y enlaces</span><span style="font-size: 12px; color: #9a9ea8;">129 / 500</span></div>
+      <div contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="notas-label" style="box-sizing: border-box; width: 100%; height: 148px; padding: 12px; border: 1px solid #2a2d33; border-radius: 10px; background: #1d1f23; font-size: 13px; line-height: 1.55; color: #e8e9ec; display: flex; flex-direction: column; gap: 6px; overflow: hidden;">
+        <span>Pedir cotización a 3 empresas. Confirmar embalaje y seguro.</span>
+        <a href="https://transportes.example/cotizar" style="color: #4fb5a8; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere;">https://transportes.example/cotizar</a>
+        <a href="https://hojas.example/comparativa" style="color: #4fb5a8; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere;">https://hojas.example/comparativa</a>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #9a9ea8;">Archivos locales</span><span style="font-size: 12px; color: #9a9ea8;">1 / 5</span></div>
+      <div style="display: flex; flex-direction: column; border: 1px solid #2a2d33; border-radius: 10px; background: #1d1f23; overflow: hidden;">
+        <div style="display: flex; align-items: center; gap: 10px; height: 42px; padding: 0 6px 0 12px; border-bottom: 1px solid #2a2d33;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#9a9ea8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0;"><path d="M4 1.5h5l3 3v10H4zM9 1.5v3h3"/></svg><span style="flex-grow: 1; min-width: 0; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">inventario-cajas.xlsx</span><span style="flex-shrink: 0; font-family: 'DM Sans', system-ui, sans-serif; font-size: 11px; color: #9a9ea8;">…\Mudanza</span><button class="ib" aria-label="Desvincular archivo" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: none; border: none; border-radius: 8px; padding: 0; color: #9a9ea8; flex-shrink: 0;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>
+        <button class="ib" style="display: flex; align-items: center; gap: 10px; height: 42px; padding: 0 12px; background: none; border: none; font-size: 13px; color: #9a9ea8; text-align: left;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>Vincular archivo</button>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #9a9ea8;">Imágenes</span><span style="font-size: 12px; color: #9a9ea8;">3 / 5</span></div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px;">
+        <div style="height: 66px; box-sizing: border-box; border: 1px solid #2a2d33; border-radius: 10px; background: repeating-linear-gradient(135deg, #1d1f23 0 6px, #24272c 6px 12px); display: flex; align-items: center; justify-content: center; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="12" height="10"/><path d="M2 11l3.5-3.5 3 3 2-2L14 12"/></svg></div>
+        <div style="height: 66px; box-sizing: border-box; border: 1px solid #2a2d33; border-radius: 10px; background: repeating-linear-gradient(135deg, #1d1f23 0 6px, #24272c 6px 12px); display: flex; align-items: center; justify-content: center; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="12" height="10"/><path d="M2 11l3.5-3.5 3 3 2-2L14 12"/></svg></div>
+        <div style="height: 66px; box-sizing: border-box; border: 1px solid #2a2d33; border-radius: 10px; background: repeating-linear-gradient(135deg, #1d1f23 0 6px, #24272c 6px 12px); display: flex; align-items: center; justify-content: center; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="12" height="10"/><path d="M2 11l3.5-3.5 3 3 2-2L14 12"/></svg></div>
+        <button class="ib" aria-label="Añadir imagen" style="height: 66px; border: 1px dashed #3a3e46; border-radius: 10px; background: none; display: flex; align-items: center; justify-content: center; padding: 0; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg></button>
+        <div style="height: 66px; box-sizing: border-box; border: 1px dashed #2a2d33; border-radius: 10px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":400,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
