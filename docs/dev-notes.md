@@ -58,22 +58,31 @@ Two traps, both of which produced confident wrong answers before:
   nothing". `capture-window.ps1`'s `EnumWindows` found it immediately. Confirm a window
   exists with `EnumWindows`, not UIA.
 
-## Open decisions
+## Decisions
 
-Both surfaced from the artboards and need a call before the screens that use them.
+Artboards win wherever they conflict with the spec's prose — with the one exception
+below. Flag each conflict as it comes up rather than resolving it silently.
 
-**Chip names.** The panel's chips in `FnMain.html` read `Portafolio`, `Curso TS`,
-`Impuestos` — abbreviated, not the full Sidequest name truncated, which is what is built.
-Following the artboard means a second short-name field on `SidequestProject`. Not
-implemented.
+**Chip names — full name, truncated.** `FnMain.html` shows abbreviated names
+(`Portafolio`, `Curso TS`). Decided against: the Sidequest's real name stays and is
+truncated with an ellipsis when it does not fit, so the model keeps one name and no
+second short-name field is introduced. This is what is built (`MaxWidth` plus
+`TextTrimming` on the chip). **The artboards lose this one** — the only place other than
+contrast where that is true.
 
-**Amber in light mode.** `Services/SidequestPalette.cs` overrides two light values. The
-spec's own rule (§4.2, "todo texto de tema sobre `Bg`/`Surface` cumple 4.5:1") is not met
-by its table: Amber `#9A6B1F` measures **4.32** on `Bg` and **3.64** on its own 14% header
-band; Olive `#5F6B2A` measures **4.45** on that band. They are darkened to `#815A1A` and
-`#5C6829`, the smallest change clearing 4.6:1. The artboards use the spec's values, so
-this is the one place the build deliberately differs from them — but the artboard and the
-spec agree here, so it is a conflict *inside* the spec, not one the artboards settle.
+**Contrast comes first.** §4.2's rule — every theme colour carrying text clears 4.5:1 —
+governs over the colour table and over the artboards. Amber light `#9A6B1F` measures
+**4.32** on `Bg` and **3.64** on its own 14 % header band, and Olive `#5F6B2A` measures
+**4.45** on that band, so both are darkened in `Services/SidequestPalette.cs` to
+`#815A1A` and `#5C6829` — the smallest move that clears the rule with the hue kept.
+
+`ContrastTests` enforces this over all eight themes × both app themes × the five surfaces
+a theme colour carries text on (`Bg`, `Surface`, the 14 % header band, the 9 % list tint,
+and `Inv` reversed out of a solid fill). It reads the surface tokens straight from
+`Themes/*.xaml`, so editing a colour there is what it measures. All 80 combinations pass;
+the tightest is Teal light on its own header band at **4.51**, so treat that one as having
+no headroom. If a new colour fails, darken the light value or lighten the dark one — do
+not lower the threshold.
 
 ## Known deviations from the spec
 
