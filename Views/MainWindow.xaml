@@ -28,7 +28,8 @@
             <!-- ============ Expanded ============ -->
             <Grid x:Name="ExpandedRoot">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="36"/>
+                    <!-- 37 as the artboard renders it; 4.4 says 36 and measures the content box. -->
+                    <RowDefinition Height="37"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
@@ -46,25 +47,30 @@
                         <ToggleButton x:Name="PinButton"
                                       Style="{StaticResource Sq.IconToggle}"
                                       ToolTip="{DynamicResource L_KeepOnTop}"
+                                      AutomationProperties.Name="{DynamicResource L_KeepOnTop}"
                                       Checked="Pin_Changed"
                                       Unchecked="Pin_Changed">
                             <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Pin}"/>
                         </ToggleButton>
                         <Button Style="{StaticResource Sq.IconButton}"
                                 ToolTip="{DynamicResource L_Collapse}"
+                                AutomationProperties.Name="{DynamicResource L_Collapse}"
                                 Click="Collapse_Click">
                             <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.ChevronUp}"/>
                         </Button>
                         <Button Style="{StaticResource Sq.IconButton}"
                                 ToolTip="{DynamicResource L_Close}"
+                                AutomationProperties.Name="{DynamicResource L_Close}"
                                 Click="Close_Click">
                             <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Close}"/>
                         </Button>
                     </StackPanel>
                 </Grid>
 
-                <!-- Panels 1-4 swap in here; phase 2 only ever hosts the main panel. -->
-                <ContentControl x:Name="ViewHost" Grid.Row="1"/>
+                <!-- Panels 1-4 swap in here; phase 2 only ever hosts the main panel.
+                     Focusable=False: a ContentControl is focusable by default and was
+                     taking an inert tab stop between the title bar and the first row. -->
+                <ContentControl x:Name="ViewHost" Grid.Row="1" Focusable="False"/>
             </Grid>
 
             <!-- ============ Collapsed (5.2) ============
@@ -109,11 +115,13 @@
                             Margin="6,0,6,0">
                     <Button Style="{StaticResource Sq.IconButton}"
                             ToolTip="{DynamicResource L_Expand}"
+                            AutomationProperties.Name="{DynamicResource L_Expand}"
                             Click="Collapse_Click">
                         <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.ChevronDown}"/>
                     </Button>
                     <Button Style="{StaticResource Sq.IconButton}"
                             ToolTip="{DynamicResource L_Close}"
+                            AutomationProperties.Name="{DynamicResource L_Close}"
                             Click="Close_Click">
                         <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Close}"/>
                     </Button>
@@ -122,3 +130,4 @@
         </Grid>
     </Border>
 </Window>
+

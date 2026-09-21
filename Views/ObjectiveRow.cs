@@ -31,4 +31,10 @@ public sealed class ObjectiveRow
     /// its rows on a theme switch, which re-reads this.
     /// </summary>
     public Brush ThemeBrush => SidequestPalette.Brush(Project.Theme, ThemeService.Current);
+
+    /// <summary>
+    /// What a screen reader reads for the row. Without this the generated ItemsControl
+    /// container falls back to the type name and announces "Sidequest.Views.ObjectiveRow".
+    /// </summary>
+    public override string ToString() => $"{Item.Text} - {Project.Name}";
 }
