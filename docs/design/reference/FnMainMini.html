@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'DM Sans', system-ui, sans-serif; background: #16171a; color: #e8e9ec; }
+    a { color: #e8e9ec; text-decoration: none; } a:hover { color: #9a9ea8; }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    .ib:hover { background: #202328; color: #e8e9ec; }
+    .row:hover { background: #202328; }
+    .row .acts { display: none; }
+    .row:hover .acts { display: flex; }
+    .cb { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+    .cb + span svg { opacity: 0; }
+    .cb:checked + span { background: var(--c, #e8e9ec); border-color: var(--c, #e8e9ec); }
+    .cb:checked + span svg { opacity: 1; }
+    .cb:focus-visible + span { outline: 2px solid #e8e9ec; outline-offset: 2px; }
+    .row:has(.cb:checked) .t { text-decoration: line-through; color: #9a9ea8 !important; }
+    .sw:checked + span { background: #e8e9ec !important; border-color: #e8e9ec !important; }
+    .sw:checked + span span { transform: translateX(16px); background: #16171a !important; }
+    .sw:focus-visible + span { outline: 2px solid #e8e9ec; outline-offset: 2px; }
+    .cta:hover { border-color: #e8e9ec; }
+  </style>
+</helmet>
+<div style="width: 400px; height: 50px; box-sizing: border-box; display: flex; flex-direction: column; background: #16171a; border: 1px solid #3a3e46; color: #e8e9ec;">
+  <div style="height: 50px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 6px 0 14px;">
+    <span style="flex-grow: 1; min-width: 0; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">17 de septiembre de 2026</span>
+    <span style="flex-shrink: 0; display: flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 999px; background: #e8e9ec; font-size: 11px; font-weight: 700; color: #16171a;">2 / 6</span>
+    <div style="flex-shrink: 0; display: flex; gap: 2px;"><a class="ib" href="FnMain.html" aria-label="Expandir" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: none; border: none; border-radius: 8px; padding: 0; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 6l4.5 4.5L12.5 6"/></svg></a><button class="ib" aria-label="Cerrar" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: none; border: none; border-radius: 8px; padding: 0; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":400,"height":50}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

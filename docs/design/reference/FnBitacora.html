@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'DM Sans', system-ui, sans-serif; background: #16171a; color: #e8e9ec; }
+    a { color: #e8e9ec; text-decoration: none; } a:hover { color: #9a9ea8; }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    .ib:hover { background: #202328; color: #e8e9ec; }
+    .row:hover { background: #202328; }
+    .row .acts { display: none; }
+    .row:hover .acts { display: flex; }
+    .cb { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+    .cb + span svg { opacity: 0; }
+    .cb:checked + span { background: var(--c, #e8e9ec); border-color: var(--c, #e8e9ec); }
+    .cb:checked + span svg { opacity: 1; }
+    .cb:focus-visible + span { outline: 2px solid #e8e9ec; outline-offset: 2px; }
+    .row:has(.cb:checked) .t { text-decoration: line-through; color: #9a9ea8 !important; }
+    .sw:checked + span { background: #e8e9ec !important; border-color: #e8e9ec !important; }
+    .sw:checked + span span { transform: translateX(16px); background: #16171a !important; }
+    .sw:focus-visible + span { outline: 2px solid #e8e9ec; outline-offset: 2px; }
+    .cta:hover { border-color: #e8e9ec; }
+  </style>
+</helmet>
+<div style="width: 1200px; height: 760px; box-sizing: border-box; display: flex; flex-direction: column; background: #16171a; border: 1px solid #3a3e46; color: #e8e9ec;">
+  <div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 6px 0 14px; border-bottom: 1px solid #2a2d33;">
+    <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #9a9ea8;">Sidequest</span>
+    <div style="display: flex; gap: 2px;"><button class="ib" aria-label="Minimizar" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: none; border: none; border-radius: 8px; padding: 0; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10"/></svg></button><button class="ib" aria-label="Maximizar" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: none; border: none; border-radius: 8px; padding: 0; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="9" height="9"/></svg></button><button class="ib" aria-label="Cerrar" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: none; border: none; border-radius: 8px; padding: 0; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>
+  </div>
+  <div style="height: 2px; flex-shrink: 0; background: #4fb5a8;"></div>
+  <div style="height: 48px; flex-shrink: 0; display: flex; align-items: center; gap: 16px; padding: 0 16px 0 8px; border-bottom: 1px solid #2a2d33;">
+    <a class="ib" href="FnSidequest.html" style="display: flex; align-items: center; gap: 4px; height: 32px; padding: 0 10px 0 4px; border-radius: 10px; font-size: 13px; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 3.5L5 8l4.5 4.5"/></svg>Volver</a>
+    <div style="flex-grow: 1; display: flex; align-items: center; gap: 8px;"><span style="font-size: 15px; font-weight: 600; color: #4fb5a8;">Mudanza</span><span style="font-size: 15px; color: #9a9ea8;">/ Bitácora</span></div>
+    <span style="font-family: 'DM Sans', system-ui, sans-serif; font-size: 11px; color: #9a9ea8;">Guardado</span>
+  </div>
+  <div style="flex-grow: 1; display: flex; min-height: 0;">
+    <div style="width: 52px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; border-right: 1px solid #2a2d33;"><button aria-label="Seleccionar" aria-pressed="true" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; padding: 0; background: #e8e9ec; color: #16171a;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2l8 6-4 1-1.5 4z"/></svg></button><button class="ib" aria-label="Texto" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; padding: 0; background: none; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 4V3h9v1M8 3v10M6.5 13h3"/></svg></button><button class="ib" aria-label="Nota" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; padding: 0; background: none; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 2.5h11v7l-4 4h-7zM13.5 9.5h-4v4"/></svg></button><button class="ib" aria-label="Imagen" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; padding: 0; background: none; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="12" height="10"/><path d="M2 11l3.5-3.5 3 3 2-2L14 12"/></svg></button><span style="width: 24px; height: 1px; margin: 4px 0; background: #2a2d33;"></span><button class="ib" aria-label="Rectángulo" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; padding: 0; background: none; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="9"/></svg></button><button class="ib" aria-label="Círculo" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; padding: 0; background: none; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/></svg></button><button class="ib" aria-label="Línea" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; padding: 0; background: none; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13L13 3"/></svg></button><button class="ib" aria-label="Flecha" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; padding: 0; background: none; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13L13 3M7 3h6v6"/></svg></button></div>
+    <div style="flex-grow: 1; position: relative; overflow: hidden; background-color: #111214; background-image: radial-gradient(#2a2d33 1px, transparent 1px); background-size: 24px 24px;">
+      <svg width="1146" height="672" viewBox="0 0 1146 672" fill="none" stroke="#9a9ea8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; left: 0; top: 0;"><path d="M300 170L400 232M390 220l10 12-15 2"/><path d="M300 330L400 274M385 272l15 2-10 12"/><path d="M640 252h88M716 244l12 8-12 8"/><path d="M840 340v74" stroke-dasharray="5 5"/></svg>
+      <div style="position: absolute; left: 72px; top: 48px; font-size: 26px; font-weight: 600; letter-spacing: -0.01em;">Plan de mudanza</div>
+      <div style="position: absolute; left: 72px; top: 120px; width: 228px; box-sizing: border-box; padding: 14px 16px; border: 1px solid #3a3e46; border-radius: 8px; background: #1d1f23; font-size: 14px; line-height: 1.45;">Opción A: empresa completa, con embalaje</div>
+      <div style="position: absolute; left: 72px; top: 288px; width: 228px; box-sizing: border-box; padding: 14px 16px; border: 1px solid #3a3e46; border-radius: 8px; background: #1d1f23; font-size: 14px; line-height: 1.45;">Opción B: solo camión, embalamos nosotros</div>
+      <div style="position: absolute; left: 410px; top: 196px; width: 220px; height: 112px; box-sizing: border-box; border: 1.5px solid #4fb5a8; background: rgba(79, 181, 168, 0.08); display: flex; align-items: center; justify-content: center; text-align: center; font-size: 15px; font-weight: 500;">Presupuesto máximo</div>
+      <div style="position: absolute; left: 403px; top: 189px; width: 234px; height: 126px; box-sizing: border-box; border: 1px solid #e8e9ec; pointer-events: none;"><span style="position: absolute; width: 7px; height: 7px; box-sizing: border-box; background: #16171a; border: 1.25px solid #e8e9ec; left: -4px; top: -4px;"></span><span style="position: absolute; width: 7px; height: 7px; box-sizing: border-box; background: #16171a; border: 1.25px solid #e8e9ec; right: -4px; top: -4px;"></span><span style="position: absolute; width: 7px; height: 7px; box-sizing: border-box; background: #16171a; border: 1.25px solid #e8e9ec; left: -4px; bottom: -4px;"></span><span style="position: absolute; width: 7px; height: 7px; box-sizing: border-box; background: #16171a; border: 1.25px solid #e8e9ec; right: -4px; bottom: -4px;"></span></div>
+      <div style="position: absolute; left: 730px; top: 164px; width: 220px; height: 176px; box-sizing: border-box; border: 1.5px solid #9a9ea8; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 15px; font-weight: 500;">Fecha límite<br>de entrega</div>
+      <div style="position: absolute; left: 700px; top: 416px; width: 280px; height: 180px; box-sizing: border-box; border: 1px solid #3a3e46; border-radius: 8px; background: repeating-linear-gradient(135deg, #1d1f23 0 8px, #24272c 8px 16px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #9a9ea8;"><svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="12" height="10"/><path d="M2 11l3.5-3.5 3 3 2-2L14 12"/></svg><span style="font-family: 'DM Sans', system-ui, sans-serif; font-size: 11px;">plano-depto-nuevo.png</span></div>
+      <div style="position: absolute; left: 72px; top: 472px; width: 300px; font-size: 14px; line-height: 1.55; color: #e8e9ec;">Pendiente: confirmar si el edificio nuevo permite mudanzas en fin de semana.</div>
+      <div style="position: absolute; right: 16px; bottom: 16px; display: flex; align-items: center; gap: 2px; height: 32px; padding: 0 4px; border: 1px solid #3a3e46; border-radius: 10px; background: #1d1f23;"><button class="ib" aria-label="Alejar" style="width: 28px; height: 24px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 8px; background: none; padding: 0; color: #9a9ea8;"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10"/></svg></button><span style="font-family: 'DM Sans', system-ui, sans-serif; font-size: 11px; min-width: 40px; text-align: center;">100%</span><button class="ib" aria-label="Acercar" style="width: 28px; height: 24px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 8px; background: none; padding: 0; color: #9a9ea8;"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg></button></div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1200,"height":760}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

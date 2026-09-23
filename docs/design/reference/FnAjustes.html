@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'DM Sans', system-ui, sans-serif; background: #16171a; color: #e8e9ec; }
+    a { color: #e8e9ec; text-decoration: none; } a:hover { color: #9a9ea8; }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    .ib:hover { background: #202328; color: #e8e9ec; }
+    .row:hover { background: #202328; }
+    .row .acts { display: none; }
+    .row:hover .acts { display: flex; }
+    .cb { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+    .cb + span svg { opacity: 0; }
+    .cb:checked + span { background: var(--c, #e8e9ec); border-color: var(--c, #e8e9ec); }
+    .cb:checked + span svg { opacity: 1; }
+    .cb:focus-visible + span { outline: 2px solid #e8e9ec; outline-offset: 2px; }
+    .row:has(.cb:checked) .t { text-decoration: line-through; color: #9a9ea8 !important; }
+    .sw:checked + span { background: #e8e9ec !important; border-color: #e8e9ec !important; }
+    .sw:checked + span span { transform: translateX(16px); background: #16171a !important; }
+    .sw:focus-visible + span { outline: 2px solid #e8e9ec; outline-offset: 2px; }
+    .cta:hover { border-color: #e8e9ec; }
+  </style>
+</helmet>
+<div style="width: 720px; height: 520px; box-sizing: border-box; display: flex; flex-direction: column; background: #16171a; border: 1px solid #3a3e46; color: #e8e9ec;">
+  <div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 14px 0 6px; border-bottom: 1px solid #2a2d33;">
+    <a class="ib" href="FnMain.html" style="display: flex; align-items: center; gap: 4px; height: 28px; padding: 0 8px 0 4px; border-radius: 8px; font-size: 12px; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 3.5L5 8l4.5 4.5"/></svg>Panel principal</a>
+    <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #9a9ea8;">Sidequest</span>
+  </div>
+  <div style="flex-grow: 1; display: flex; flex-direction: column; padding: 28px 40px 0;">
+    <span style="font-size: 22px; font-weight: 600; letter-spacing: -0.01em; padding-bottom: 14px;">Ajustes</span>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 80px; border-top: 1px solid #2a2d33;">
+      <div style="display: flex; flex-direction: column; gap: 3px;"><span style="font-size: 14px; font-weight: 500;">Apariencia</span><span style="font-size: 12px; color: #9a9ea8;">Tema de todos los paneles</span></div>
+      <div role="group" aria-label="Apariencia" style="display: flex; gap: 2px; padding: 3px; border: 1px solid #2a2d33; border-radius: 12px; background: #1d1f23;"><button class="ib" style="height: 30px; padding: 0 16px; border: none; border-radius: 5px; background: none; font-size: 13px; color: #9a9ea8;">Claro</button><button aria-pressed="true" style="height: 30px; padding: 0 16px; border: none; border-radius: 5px; background: #e8e9ec; font-size: 13px; font-weight: 600; color: #16171a;">Oscuro</button><button class="ib" style="height: 30px; padding: 0 16px; border: none; border-radius: 5px; background: none; font-size: 13px; color: #9a9ea8;">Sistema</button></div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 80px; border-top: 1px solid #2a2d33;">
+      <div style="display: flex; flex-direction: column; gap: 3px;"><span style="font-size: 14px; font-weight: 500;">Idioma</span><span style="font-size: 12px; color: #9a9ea8;">Solo cambia la interfaz, no tu contenido</span></div>
+      <div role="group" aria-label="Idioma" style="display: flex; gap: 2px; padding: 3px; border: 1px solid #2a2d33; border-radius: 12px; background: #1d1f23;"><button aria-pressed="true" style="height: 30px; padding: 0 16px; border: none; border-radius: 5px; background: #e8e9ec; font-size: 13px; font-weight: 600; color: #16171a;">Español</button><button class="ib" style="height: 30px; padding: 0 16px; border: none; border-radius: 5px; background: none; font-size: 13px; color: #9a9ea8;">English</button></div>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 80px; border-top: 1px solid #2a2d33;">
+      <label for="inicio" style="display: flex; flex-direction: column; gap: 3px; cursor: pointer;"><span style="font-size: 14px; font-weight: 500;">Abrir al iniciar el equipo</span><span style="font-size: 12px; color: #9a9ea8;">Sidequest se abre cuando enciendes tu PC</span></label>
+      <label style="position: relative; width: 40px; height: 24px; flex-shrink: 0; display: flex;"><input id="inicio" class="cb sw" type="checkbox" checked><span style="box-sizing: border-box; width: 40px; height: 24px; padding: 3px; border: 1px solid #3a3e46; border-radius: 12px; background: #1d1f23; display: flex; align-items: center;"><span style="width: 16px; height: 16px; border-radius: 50%; background: #9a9ea8; transition: transform 0.15s;"></span></span></label>
+    </div>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 80px; border-top: 1px solid #2a2d33; border-bottom: 1px solid #2a2d33;">
+      <label for="encima" style="display: flex; flex-direction: column; gap: 3px; cursor: pointer;"><span style="font-size: 14px; font-weight: 500;">Panel principal siempre visible</span><span style="font-size: 12px; color: #9a9ea8;">Se mantiene encima de las demás aplicaciones</span></label>
+      <label style="position: relative; width: 40px; height: 24px; flex-shrink: 0; display: flex;"><input id="encima" class="cb sw" type="checkbox" checked><span style="box-sizing: border-box; width: 40px; height: 24px; padding: 3px; border: 1px solid #3a3e46; border-radius: 12px; background: #1d1f23; display: flex; align-items: center;"><span style="width: 16px; height: 16px; border-radius: 50%; background: #9a9ea8; transition: transform 0.15s;"></span></span></label>
+    </div>
+  </div>
+  <div style="flex-shrink: 0; padding: 0 40px 20px;"><span style="font-family: 'DM Sans', system-ui, sans-serif; font-size: 11px; color: #9a9ea8;">Sidequest 0.1</span></div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":720,"height":520}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
