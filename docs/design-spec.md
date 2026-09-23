@@ -10,19 +10,41 @@ valores exactos de CSS).
 
 ---
 
-## 0. Decisiones pendientes
+## 0. Decisiones
 
-Estas decisiones cambian el alcance. Están marcadas con **[DECIDIR]** en el texto; hasta que
-se resuelvan, la opción por defecto es la que aparece primero.
+**Resueltas el 19 de septiembre de 2026.** Todas quedaron en su opción por defecto salvo D7,
+que no estaba en la versión 0.1. Las marcas **[DECIDIR]** del resto del documento se leen ya
+como decididas.
 
-| # | Tema | Opción por defecto | Alternativa |
-|---|------|--------------------|-------------|
-| D1 | Recordatorios programados, snooze y auto-cierre de WeeklyReminder | **Se eliminan.** Sidequest es un panel persistente, no un popup que aparece solo. | Conservar el `Scheduler` para mostrar el panel principal a horas fijas. |
+| # | Tema | Decisión | Se descartó |
+|---|------|----------|-------------|
+| D1 | Recordatorios programados, snooze y auto-cierre de WeeklyReminder | **Se eliminan.** Sidequest es un panel persistente, no un popup que aparece solo. Se pierden los avisos de 09:00 / 15:00 / 23:00. | Conservar el `Scheduler` para mostrar el panel principal a horas fijas. |
 | D2 | Rollover semanal | **Se elimina.** Los objetivos no expiran por fecha; el usuario los quita. | — |
-| D3 | Migración de `week.json` | **Se importa** a un Sidequest llamado "Importados" (tema Grafito); los items conservan `Done`. | Descartar los datos antiguos. |
+| D3 | Migración de `week.json` | **Se importa** a un Sidequest llamado "Importados" (tema Grafito); los items conservan `Done` y su orden actual. | Descartar los datos antiguos. |
 | D4 | Imágenes adjuntas a un objetivo | **Se copian** a `%APPDATA%\Sidequest\media\` (el original puede moverse). Los archivos locales solo se **referencian** por ruta. | Referenciar también las imágenes. |
-| D5 | Nombre del ejecutable, mutex y carpeta de datos | **Se renombra todo a `Sidequest`.** La carpeta antigua `%APPDATA%\WeeklyReminder\` solo se lee para migrar. | Mantener el nombre interno y cambiar solo la UI. |
+| D5 | Nombre del ejecutable, mutex y carpeta de datos | **Se renombra todo a `Sidequest`**, incluidos el repositorio de GitHub y la carpeta del proyecto. La carpeta antigua `%APPDATA%\WeeklyReminder\` solo se lee para migrar. | Mantener el nombre interno y cambiar solo la UI. |
 | D6 | Whiteboard: redimensionar formas | **v1 no redimensiona**; solo crear, mover, editar texto y borrar. | Incluir asas de redimensión en v1. |
+| D7 | Reordenar objetivos e items *(no estaba en la 0.1)* | **No se reordena en ninguna lista.** `SortIndex` y `PanelIndex` solo crecen: el panel va en orden de envío y el Sidequest en orden de creación, dentro de los grupos de la 5.6. Los campos se conservan por si más adelante se quiere reordenar. | Arrastrar para reordenar, como hace hoy WeeklyReminder. |
+
+### Alcance de v1
+
+La **Bitácora (5.7) se aplaza a v1.1** y se construye después del cambio definitivo a
+Sidequest. En v1 el botón "Bitácora" **no aparece** en el detalle del Sidequest — no se
+muestra un control muerto — y `boards\<sidequestId>.json` no se crea todavía.
+
+Orden de trabajo: fase 0 (renombres, fuente, resolución de color, iconos) → 1 (datos y
+migración) → 2 (shell y panel principal) → 3 (navegación y Sidequests) → 4 (detalle del
+objetivo) → 5 (ajustes y bandeja) → 6 (tema claro y repaso de teclado) → 7 (Bitácora, v1.1).
+Se trabaja en la rama `sidequest`; WeeklyReminder sigue instalado y funcionando hasta que
+se complete la fase 6.
+
+### Correcciones a la 0.1
+
+- **Cerrar el panel principal lo oculta, no lo cierra.** La 6 da `Owner = MainWindow` a la
+  Bitácora y a Ajustes; en WPF una ventana propiedad de otra se cierra con ella, así que
+  cerrar el panel se llevaría por delante una Bitácora abierta.
+- El color efectivo de un Sidequest depende de **dos** ejes (`SidequestTheme` × tema claro /
+  oscuro de la app) más los derivados con alfa de la 4.2. `ThemeService` hoy solo conoce uno.
 
 ---
 
