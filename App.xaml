@@ -8,10 +8,13 @@
             <!-- Slot 0 is the active theme; ThemeService swaps this dictionary at runtime.
                  Colours are therefore referenced with DynamicResource throughout. -->
             <!-- Slot 0 is the active theme, slot 1 the active language. ThemeService and
-                 LanguageService replace them by index at runtime. -->
+                 LanguageService replace them by index at runtime, so anything appended
+                 after them must never be swapped - icons are theme-independent geometry
+                 and take their colour from the ambient Foreground. -->
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Themes/Light.xaml"/>
                 <ResourceDictionary Source="Strings/English.xaml"/>
+                <ResourceDictionary Source="Icons/Icons.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Text defaults are set on the window as inherited properties rather than
