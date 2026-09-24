@@ -1,7 +1,7 @@
 using System.Windows.Threading;
-using WeeklyReminder.Models;
+using Sidequest.Models;
 
-namespace WeeklyReminder.Services;
+namespace Sidequest.Services;
 
 /// <summary>
 /// Decides when the popup should appear.

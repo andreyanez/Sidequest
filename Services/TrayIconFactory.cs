@@ -2,7 +2,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
 
-namespace WeeklyReminder.Services;
+namespace Sidequest.Services;
 
 /// <summary>
 /// Draws the tray icon at runtime instead of shipping an .ico, so the project

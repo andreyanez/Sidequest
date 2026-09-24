@@ -1,14 +1,14 @@
 using System.Threading;
 using System.Windows;
-using WeeklyReminder.Models;
-using WeeklyReminder.Services;
-using WeeklyReminder.Views;
+using Sidequest.Models;
+using Sidequest.Services;
+using Sidequest.Views;
 using Forms = System.Windows.Forms;
 using ComboBox = System.Windows.Controls.ComboBox;
 using MouseWheelEventArgs = System.Windows.Input.MouseWheelEventArgs;
 using MouseWheelEventHandler = System.Windows.Input.MouseWheelEventHandler;
 
-namespace WeeklyReminder;
+namespace Sidequest;
 
 /// <summary>
 /// Tray-resident host. There is no main window: the app lives in the notification
@@ -16,8 +16,8 @@ namespace WeeklyReminder;
 /// </summary>
 public partial class App : System.Windows.Application
 {
-    private const string MutexName = @"Local\WeeklyReminder.SingleInstance.v1";
-    private const string ShowEventName = @"Local\WeeklyReminder.ShowPopup.v1";
+    private const string MutexName = @"Local\Sidequest.SingleInstance.v1";
+    private const string ShowEventName = @"Local\Sidequest.ShowPopup.v1";
 
     private Mutex? _mutex;
     private EventWaitHandle? _showEvent;
@@ -111,7 +111,7 @@ public partial class App : System.Windows.Application
         })
         {
             IsBackground = true,
-            Name = "WeeklyReminder.ShowRequestListener",
+            Name = "Sidequest.ShowRequestListener",
         };
         listener.Start();
     }
@@ -121,7 +121,7 @@ public partial class App : System.Windows.Application
         _tray = new Forms.NotifyIcon
         {
             Icon = TrayIconFactory.Create(),
-            Text = "Weekly Reminder",
+            Text = "Sidequest",
             Visible = true,
             ContextMenuStrip = BuildTrayMenu(),
         };

@@ -2,8 +2,8 @@ using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using WeeklyReminder.Models;
-using WeeklyReminder.Services;
+using Sidequest.Models;
+using Sidequest.Services;
 
 // WinForms is referenced for NotifyIcon, so its implicit using collides with WPF's for
 // most of the drag-and-drop and media types. Alias them rather than qualifying each use.
@@ -21,7 +21,7 @@ using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using Point = System.Windows.Point;
 using VisualTreeHelper = System.Windows.Media.VisualTreeHelper;
 
-namespace WeeklyReminder.Views;
+namespace Sidequest.Views;
 
 public partial class EditorWindow : Window
 {
@@ -31,7 +31,7 @@ public partial class EditorWindow : Window
     /// payload, and TaskItem is not serializable, so the data silently never arrives.
     /// The drag never leaves this process, so a field is sufficient.
     /// </summary>
-    private const string ItemFormat = "WeeklyReminder.TaskItem";
+    private const string ItemFormat = "Sidequest.TaskItem";
 
     private readonly WeekPlan _plan;
     private readonly NotifyCollectionChangedEventHandler _itemsChanged;

@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 
-namespace WeeklyReminder.Models;
+namespace Sidequest.Models;
 
 /// <summary>The plan for one week, keyed by the Monday it starts on.</summary>
 public sealed class WeekPlan

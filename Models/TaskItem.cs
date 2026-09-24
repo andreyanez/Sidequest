@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace WeeklyReminder.Models;
+namespace Sidequest.Models;
 
 /// <summary>A single thing planned for the week.</summary>
 public sealed class TaskItem : INotifyPropertyChanged

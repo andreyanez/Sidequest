@@ -1,6 +1,6 @@
 using Microsoft.Win32;
 
-namespace WeeklyReminder.Services;
+namespace Sidequest.Services;
 
 /// <summary>
 /// Start-with-Windows via the per-user Run key. No elevation needed, and it is
@@ -9,7 +9,7 @@ namespace WeeklyReminder.Services;
 public static class AutoStart
 {
     private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    private const string ValueName = "WeeklyReminder";
+    private const string ValueName = "Sidequest";
 
     public static bool IsEnabled()
     {
