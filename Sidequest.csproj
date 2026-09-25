@@ -13,6 +13,9 @@
     <AssemblyName>Sidequest</AssemblyName>
     <!-- 5.8 shows this in the Settings footer as "Sidequest 0.1". -->
     <Version>0.1.0</Version>
+    <!-- This project lives at the repo root, so its default globs would otherwise
+         compile the test project's sources into the app as well. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);tests\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>

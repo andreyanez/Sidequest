@@ -45,6 +45,24 @@ public sealed class AppSettings
 
     public AppTheme Theme { get; set; } = AppTheme.Light;
 
+    // ---- 3's shape. The fields above that phase 2 deletes with the old screens
+    // (PopupTimes, ActiveDays, SnoozeMinutes, AutoCloseSeconds, LastFired) still exist
+    // only so the current UI keeps building while the new one is written.
+
+    /// <summary>"Sistema" in Apariencia: follow the Windows light/dark setting.</summary>
+    public bool FollowSystemTheme { get; set; }
+
+    /// <summary>
+    /// Whether the main panel is rolled up. Persisted on purpose, unlike the old popup's
+    /// collapsed state: the panel is a fixture, and it should be found as it was left.
+    /// </summary>
+    public bool Collapsed { get; set; }
+
+    /// <summary>Main panel position; replaces PopupLeft/PopupTop.</summary>
+    public double? MainLeft { get; set; }
+
+    public double? MainTop { get; set; }
+
     /// <summary>Null until chosen, so a first run can follow the Windows display language.</summary>
     public AppLanguage? Language { get; set; }
 

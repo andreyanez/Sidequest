@@ -76,6 +76,9 @@
     <sys:String x:Key="L_OneMinute">1 minuto</sys:String>
     <sys:String x:Key="L_TwoMinutes">2 minutos</sys:String>
 
+    <!-- Migración (D3). El resto de la tabla de la 7 reemplaza este archivo más adelante. -->
+    <sys:String x:Key="L_ImportedSidequest">Importados</sys:String>
+
     <!-- Tray menu -->
     <sys:String x:Key="L_TrayShow">Ver recordatorios</sys:String>
     <sys:String x:Key="L_TrayEdit">Editar esta semana…</sys:String>

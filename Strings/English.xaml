@@ -78,6 +78,9 @@
     <sys:String x:Key="L_OneMinute">1 minute</sys:String>
     <sys:String x:Key="L_TwoMinutes">2 minutes</sys:String>
 
+    <!-- Migration (D3). The rest of 7's table replaces this file in later phases. -->
+    <sys:String x:Key="L_ImportedSidequest">Imported</sys:String>
+
     <!-- Tray menu -->
     <sys:String x:Key="L_TrayShow">Show reminders</sys:String>
     <sys:String x:Key="L_TrayEdit">Edit this week…</sys:String>

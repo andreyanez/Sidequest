@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Threading;
 using System.Windows;
 using Sidequest.Models;
@@ -29,6 +31,9 @@ public partial class App : System.Windows.Application
     private SettingsWindow? _settingsWindow;
 
     public AppSettings Settings { get; private set; } = new();
+
+    /// <summary>The new model. Nothing renders it until phase 2 replaces the screens.</summary>
+    public ObservableCollection<SidequestProject> Projects { get; private set; } = new();
     public WeekPlan Plan { get; private set; } = new();
 
     public static new App Current => (App)System.Windows.Application.Current;
@@ -62,6 +67,14 @@ public partial class App : System.Windows.Application
         // Left null in settings deliberately: until a language is picked explicitly, the
         // app keeps following the Windows display language rather than freezing today's.
         LanguageService.Apply(Settings.Language ?? LanguageService.DetectFromSystem());
+        RedirectDataIfSandboxed();
+
+        // D3: one-time import of WeeklyReminder's data, after the language is known so
+        // the imported Sidequest gets a name the user can read. It is a no-op once
+        // Sidequest has data of its own, so it cannot overwrite anything.
+        LegacyMigration.Run(Settings, LanguageService.Get("L_ImportedSidequest"));
+        Projects = SidequestStore.Load();
+
         ThemeService.Apply(Settings.Theme);
 
         // The registry is the source of truth for autostart; it can be changed
@@ -99,6 +112,20 @@ public partial class App : System.Windows.Application
                     return;
             }
         }
+    }
+
+    /// <summary>
+    /// Points both stores at a sandbox when SIDEQUEST_DATA is set. WeeklyReminder is
+    /// still the app in daily use and the import renames its week.json, so a dev run
+    /// must not be able to reach the real folders. Unset in normal use.
+    /// </summary>
+    private static void RedirectDataIfSandboxed()
+    {
+        var sandbox = Environment.GetEnvironmentVariable("SIDEQUEST_DATA");
+        if (string.IsNullOrWhiteSpace(sandbox)) return;
+
+        SidequestStore.Directory = Path.Combine(sandbox, "Sidequest");
+        LegacyMigration.LegacyDirectory = Path.Combine(sandbox, "WeeklyReminder");
     }
 
     /// <summary>Relaunching the exe surfaces the popup rather than starting a second copy.</summary>
