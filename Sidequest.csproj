@@ -15,4 +15,11 @@
     <Version>0.1.0</Version>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Embedded so the app carries its own type and needs nothing installed. -->
+    <Resource Include="Fonts\*.ttf"/>
+    <!-- The OFL requires the licence to travel with the fonts. -->
+    <None Include="Fonts\OFL.txt" CopyToOutputDirectory="PreserveNewest"/>
+  </ItemGroup>
+
 </Project>
