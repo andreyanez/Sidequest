@@ -17,7 +17,11 @@ public static class Storage
         Converters = { new JsonStringEnumConverter() },
     };
 
-    public static string Directory { get; } = Path.Combine(
+    /// <summary>
+    /// Settable so a dev run can be sandboxed alongside SidequestStore. Without this the
+    /// settings half of the app keeps writing to the real folder while its data does not.
+    /// </summary>
+    public static string Directory { get; set; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "Sidequest");
 

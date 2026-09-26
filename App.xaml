@@ -15,6 +15,8 @@
                 <ResourceDictionary Source="Themes/Light.xaml"/>
                 <ResourceDictionary Source="Strings/English.xaml"/>
                 <ResourceDictionary Source="Icons/Icons.xaml"/>
+                <!-- After Icons: its styles reach the geometry with StaticResource. -->
+                <ResourceDictionary Source="Themes/Controls.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Text defaults are set on the window as inherited properties rather than
