@@ -4,6 +4,19 @@
     <!-- Every key here must also exist in Dark.xaml. Referenced with DynamicResource
          so a theme swap repaints open windows instead of needing a restart. -->
 
+    <!-- 4.2's tokens, named as the spec names them so the two can be read side by side.
+         The WeeklyReminder brushes below stay until phase 3 deletes the old screens. -->
+    <SolidColorBrush x:Key="Bg"      Color="#F6F6F4"/>
+    <SolidColorBrush x:Key="Surface" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Hover"   Color="#ECECE8"/>
+    <SolidColorBrush x:Key="Line"    Color="#E2E2DE"/>
+    <SolidColorBrush x:Key="Line2"   Color="#C4C4BE"/>
+    <SolidColorBrush x:Key="Text"    Color="#17181A"/>
+    <SolidColorBrush x:Key="Text2"   Color="#5B5F68"/>
+    <SolidColorBrush x:Key="Inv"     Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="Canvas"  Color="#EFEFEC"/>
+
+
     <SolidColorBrush x:Key="PageBrush"        Color="#F5F6F8"/>
     <SolidColorBrush x:Key="CardBrush"        Color="#FFFFFF"/>
     <SolidColorBrush x:Key="InputBrush"       Color="#FFFFFF"/>

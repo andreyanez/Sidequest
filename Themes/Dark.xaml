@@ -4,6 +4,18 @@
     <!-- Mirror of Light.xaml. Accent is lightened: the light-theme blue does not carry
          enough contrast against a dark background. -->
 
+    <!-- 4.2's tokens, named as the spec names them so the two can be read side by side.
+         The WeeklyReminder brushes below stay until phase 3 deletes the old screens. -->
+    <SolidColorBrush x:Key="Bg"      Color="#16171A"/>
+    <SolidColorBrush x:Key="Surface" Color="#1D1F23"/>
+    <SolidColorBrush x:Key="Hover"   Color="#202328"/>
+    <SolidColorBrush x:Key="Line"    Color="#2A2D33"/>
+    <SolidColorBrush x:Key="Line2"   Color="#3A3E46"/>
+    <SolidColorBrush x:Key="Text"    Color="#E8E9EC"/>
+    <SolidColorBrush x:Key="Text2"   Color="#9A9EA8"/>
+    <SolidColorBrush x:Key="Inv"     Color="#16171A"/>
+    <SolidColorBrush x:Key="Canvas"  Color="#111214"/>
+
     <SolidColorBrush x:Key="PageBrush"        Color="#1B1D21"/>
     <SolidColorBrush x:Key="CardBrush"        Color="#26282D"/>
     <SolidColorBrush x:Key="InputBrush"       Color="#2E3136"/>
