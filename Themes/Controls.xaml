@@ -174,16 +174,28 @@
                                 BorderBrush="{DynamicResource Line2}"
                                 Background="Transparent"
                                 SnapsToDevicePixels="True"/>
-                        <Path x:Name="Tick"
-                              Data="{StaticResource Icon.Check}"
-                              Stroke="{DynamicResource Inv}"
-                              StrokeThickness="2.25"
-                              StrokeStartLineCap="Round"
-                              StrokeEndLineCap="Round"
-                              StrokeLineJoin="Round"
-                              Stretch="Uniform"
-                              Margin="3.5"
-                              Visibility="Collapsed"/>
+                        <!-- The artboard's tick is a 12x12 svg on a 16-unit viewBox, so its
+                             2.25 stroke renders at 0.75 scale = 1.69 px, and the glyph fills
+                             only part of the 12. Stretching the Path to the box instead made
+                             it both larger and heavier, so the svg is reproduced exactly: a
+                             16x16 Grid gives the Viewbox the same unit square to scale from,
+                             which scales geometry and stroke together the way SVG does. -->
+                        <Viewbox x:Name="Tick"
+                                 Width="12"
+                                 Height="12"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 Visibility="Collapsed">
+                            <Grid Width="16" Height="16">
+                                <Path Data="{StaticResource Icon.Check}"
+                                      Stroke="{DynamicResource Inv}"
+                                      StrokeThickness="2.25"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round"
+                                      Stretch="None"/>
+                            </Grid>
+                        </Viewbox>
                         <Border x:Name="FocusRing"
                                 CornerRadius="12"
                                 BorderThickness="2"
@@ -204,6 +216,130 @@
                             <Setter TargetName="FocusRing" Property="Visibility" Value="Visible"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ============ Text fields (4.4) ============ ==========================
+         Surface, border Line, radius 10, padding 12, focus border Text - which is
+         FnObjetivo's notes field exactly.
+
+         FnSidequestNuevo's name field is deliberately NOT this: inside a theme-tinted
+         card it drops to Bg with a border in the Sidequest's colour, so it still reads
+         as a well against the tint. Phase 3 sets Background and BorderBrush locally on
+         top of this style rather than forking it. -->
+    <Style x:Key="Sq.TextBox" TargetType="TextBox">
+        <Setter Property="Background" Value="{DynamicResource Surface}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+        <Setter Property="CaretBrush" Value="{DynamicResource Text}"/>
+        <Setter Property="SelectionBrush" Value="{DynamicResource Text2}"/>
+        <Setter Property="Padding" Value="12"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="AllowDrop" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                        <!-- VerticalScrollBarVisibility is bound through so a multi-line
+                             field is not clipped to one line. -->
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      Margin="{TemplateBinding Padding}"
+                                      VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                      HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}"
+                                      Focusable="False"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <!-- IsKeyboardFocusWithin, not IsFocused: the caret lives in the
+                             inner ScrollViewer, so IsFocused misses a click into the text. -->
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                                <Condition Property="IsKeyboardFocusWithin" Value="False"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Line2}"/>
+                        </MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- The notes field in 5.3, at its 13 px size.
+
+         Not implemented: the artboard's 1.55 line box. A WPF TextBox has no LineHeight
+         at all (it is a Block property, and TextBox is not a Block), so line spacing
+         cannot be set on one - it falls out of the font's own metrics. 5.3 already
+         suggests a RichTextBox here for URL detection, and a RichTextBox can carry it on
+         its Paragraph; phase 4 picks that up when it builds the field for real. -->
+    <Style x:Key="Sq.TextBox.Notes" TargetType="TextBox" BasedOn="{StaticResource Sq.TextBox}">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="AcceptsReturn" Value="True"/>
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+    </Style>
+
+    <!-- ============ Scrollbar ============ ==================================
+         No artboard shows one - they are fixed-height mockups with nothing to scroll -
+         so there is no reference to match and this is only held to 4.2's tokens.
+         Deliberately slim and chromeless: no arrows, no track. -->
+    <Style x:Key="Sq.ScrollThumb" TargetType="Thumb">
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Border x:Name="Bd"
+                            Background="{DynamicResource Line2}"
+                            CornerRadius="3"
+                            Margin="3,2"/>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Text2}"/>
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Text2}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Sq.ScrollBar" TargetType="ScrollBar">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Width" Value="12"/>
+        <Setter Property="MinWidth" Value="12"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ScrollBar">
+                    <Grid Background="Transparent">
+                        <Track x:Name="PART_Track" Orientation="Vertical" IsDirectionReversed="True">
+                            <Track.Thumb>
+                                <Thumb Style="{StaticResource Sq.ScrollThumb}"/>
+                            </Track.Thumb>
+                            <!-- Page buttons are required by Track but carry no chrome. -->
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Command="ScrollBar.PageDownCommand" Opacity="0" Focusable="False" IsTabStop="False"/>
+                            </Track.IncreaseRepeatButton>
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Command="ScrollBar.PageUpCommand" Opacity="0" Focusable="False" IsTabStop="False"/>
+                            </Track.DecreaseRepeatButton>
+                        </Track>
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

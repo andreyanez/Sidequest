@@ -6,7 +6,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="60"/>
+            <!-- 61 = the 60 of 5.1 plus its 1px top border, as the artboard renders it. -->
+            <RowDefinition Height="61"/>
         </Grid.RowDefinitions>
 
         <!-- Header: 5.1 gives it 22/16/14 padding, 16 lateral per 4.3 -->
@@ -22,15 +23,30 @@
 
         <!-- Objectives. 12 lateral padding and a 6px gap between cards, per 4.3 -->
         <Grid Grid.Row="1">
+            <!-- Focusable=False for the same reason as the ItemsControl below: the
+                 ScrollViewer otherwise takes a stop of its own between the title bar and
+                 the first row. It still scrolls a focused row into view without it. -->
             <ScrollViewer x:Name="ListScroll"
+                          Focusable="False"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
-                          Padding="12,0,12,0">
-                <ItemsControl x:Name="ObjectiveList">
+                          Padding="12,0,12,0"
+                          KeyDown="List_KeyDown">
+                <!-- Scoped implicit style: the bars are built inside the ScrollViewer's
+                     own template, so a keyed style cannot be handed to them directly. -->
+                <ScrollViewer.Resources>
+                    <Style TargetType="ScrollBar" BasedOn="{StaticResource Sq.ScrollBar}"/>
+                </ScrollViewer.Resources>
+                <!-- Focusable=False: an ItemsControl takes a tab stop of its own by
+                     default, which put an inert stop before the first checkbox. -->
+                <ItemsControl x:Name="ObjectiveList" Focusable="False">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
+                            <!-- 52, not the 50 of 4.4: the artboard's rule is height:50 on a
+                                 content-box with a 1px border, so it renders 52. WPF counts
+                                 the border inside Height, so matching it means saying 52. -->
                             <Border x:Name="Card"
-                                    Height="50"
+                                    Height="52"
                                     Margin="0,0,0,6"
                                     Padding="14,0,8,0"
                                     CornerRadius="10"
@@ -45,10 +61,14 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
+                                    <!-- The label is a sibling TextBlock rather than the
+                                         box's content, so the name has to be set for it
+                                         or the box announces itself with no label. -->
                                     <CheckBox Grid.Column="0"
                                               Style="{StaticResource Sq.CheckBox}"
                                               VerticalAlignment="Center"
                                               Background="{Binding ThemeBrush}"
+                                              AutomationProperties.Name="{Binding Item.Text}"
                                               IsChecked="{Binding Item.Done, Mode=TwoWay}"
                                               Checked="Done_Changed"
                                               Unchecked="Done_Changed"/>
@@ -64,7 +84,7 @@
                                     <!-- Chip. The name is truncated rather than shortened: the model
                                          carries one name, and an abbreviation would be a second field. -->
                                     <Border Grid.Column="2"
-                                            Height="24"
+                                            Height="26"
                                             Padding="9,0"
                                             CornerRadius="999"
                                             Background="{DynamicResource Surface}"
@@ -89,11 +109,13 @@
                                                 Visibility="Collapsed">
                                         <Button Style="{StaticResource Sq.IconButton}"
                                                 ToolTip="{DynamicResource L_ReturnToSidequest}"
+                                                AutomationProperties.Name="{DynamicResource L_ReturnToSidequest}"
                                                 Click="Return_Click">
                                             <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Return}"/>
                                         </Button>
                                         <Button Style="{StaticResource Sq.IconButton}"
                                                 ToolTip="{DynamicResource L_DeleteObjective}"
+                                                AutomationProperties.Name="{DynamicResource L_DeleteObjective}"
                                                 Click="Delete_Click">
                                             <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Delete}"/>
                                         </Button>
@@ -107,6 +129,14 @@
                                     <Setter TargetName="ItemText" Property="TextDecorations" Value="Strikethrough"/>
                                 </DataTrigger>
                                 <Trigger SourceName="Card" Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Card" Property="Background" Value="{DynamicResource Hover}"/>
+                                    <Setter TargetName="Actions" Property="Visibility" Value="Visible"/>
+                                </Trigger>
+                                <!-- 5.1 reveals these on hover, which on its own leaves them
+                                     unreachable without a mouse: a collapsed element takes no
+                                     tab stop. Focusing the row's checkbox shows them first,
+                                     so Tab can then carry on into them. -->
+                                <Trigger SourceName="Card" Property="IsKeyboardFocusWithin" Value="True">
                                     <Setter TargetName="Card" Property="Background" Value="{DynamicResource Hover}"/>
                                     <Setter TargetName="Actions" Property="Visibility" Value="Visible"/>
                                 </Trigger>
@@ -127,6 +157,7 @@
                 <Button Style="{StaticResource Sq.PrimaryButton}"
                         HorizontalAlignment="Center"
                         Margin="0,14,0,0"
+                        AutomationProperties.Name="{DynamicResource L_Sidequests}"
                         Click="Sidequests_Click">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{DynamicResource L_Sidequests}" VerticalAlignment="Center"/>
@@ -140,10 +171,13 @@
 
         <!-- Footer -->
         <Border Grid.Row="2" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
-            <Grid Margin="12,0">
+            <!-- Asymmetric in the artboard: 12 left, 10 right, so the icon button's own
+                 padding brings its glyph to the same optical inset as the pill's text. -->
+            <Grid Margin="12,0,10,0">
                 <Button Style="{StaticResource Sq.PrimaryButton}"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
+                        AutomationProperties.Name="{DynamicResource L_Sidequests}"
                         Click="Sidequests_Click">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{DynamicResource L_Sidequests}" VerticalAlignment="Center"/>
@@ -157,6 +191,7 @@
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
                         ToolTip="{DynamicResource L_Settings}"
+                        AutomationProperties.Name="{DynamicResource L_Settings}"
                         Click="Settings_Click">
                     <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Settings}"/>
                 </Button>
