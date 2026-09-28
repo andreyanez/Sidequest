@@ -26,12 +26,18 @@ public static class SidequestPalette
         public const double SelectionFill = 0.08;   // relleno de forma seleccionada (Bitácora)
     }
 
-    // 4.2's values, with two light-mode corrections. The spec requires 4.5:1 for theme
-    // text on Bg and Surface, but as written Amber light #9A6B1F measured 4.32 on Bg and
-    // 3.65 on its own 14% header band, and Olive light #5F6B2A measured 4.47 on that band.
-    // Both are darkened by the smallest amount that clears 4.6:1 everywhere, preserving
-    // hue. Olive moves 3% and is imperceptible; Amber moves 16% and reads as a deeper
-    // gold in light mode. Revert these two and the palette stops meeting its own rule.
+    // 4.2's values, with two light-mode corrections.
+    //
+    // 4.2's contrast rule governs: where it and the colour table disagree, the table
+    // loses. As written, Amber light #9A6B1F measures 4.32 on Bg and 3.64 on its own 14%
+    // header band, and Olive light #5F6B2A measures 4.45 on that band. Both are darkened
+    // by the smallest amount that clears 4.5:1 everywhere, preserving hue: Olive moves 3%
+    // and is imperceptible, Amber moves 16% and reads as a deeper gold.
+    //
+    // The artboards use the spec's values, so this is the one place the build knowingly
+    // departs from them. ContrastTests enforces the rule over every theme, both app
+    // themes and all five surfaces a theme colour carries text on, so a colour cannot be
+    // changed back without the suite saying so.
     private static readonly Dictionary<SidequestTheme, (Color Dark, Color Light)> Table = new()
     {
         [SidequestTheme.Amber] = (Hex("#D4A24A"), Hex("#815A1A")),   // spec: #9A6B1F
