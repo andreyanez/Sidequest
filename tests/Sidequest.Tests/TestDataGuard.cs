@@ -5,7 +5,8 @@ using Sidequest.Services;
 namespace Sidequest.Tests;
 
 /// <summary>
-/// Repoints both stores away from the user's real data before a single test runs.
+/// Repoints every store - Sidequests, settings and the WeeklyReminder import - away from
+/// the user's real data before a single test runs.
 ///
 /// This exists because the suite once did reach them: with tests running in parallel,
 /// one test's cleanup restored the real %APPDATA% paths while another was mid-run, and
@@ -25,6 +26,7 @@ internal static class TestDataGuard
     internal static void RedirectAwayFromRealData()
     {
         SidequestStore.Directory = Path.Combine(SafeRoot, "Sidequest");
+        Storage.Directory = Path.Combine(SafeRoot, "Sidequest");
         LegacyMigration.LegacyDirectory = Path.Combine(SafeRoot, "WeeklyReminder");
     }
 }

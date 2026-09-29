@@ -33,41 +33,75 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- 4.4: the whole bar drags the window -->
-                <Grid Grid.Row="0" Background="Transparent" MouseLeftButtonDown="Drag_MouseLeftButtonDown">
-                    <TextBlock Text="{DynamicResource L_AppName}"
-                               Style="{StaticResource Sq.AppName}"
-                               VerticalAlignment="Center"
-                               Margin="14,0,0,0"/>
+                <!-- 4.4: the whole bar drags the window. Every artboard draws a 1px Line
+                     under it, and the 37 already counts it. -->
+                <Border Grid.Row="0"
+                        Background="Transparent"
+                        BorderBrush="{DynamicResource Line}"
+                        BorderThickness="0,0,0,1"
+                        MouseLeftButtonDown="Drag_MouseLeftButtonDown">
+                    <Grid>
+                        <!-- Main panel: the name on the left, the window's buttons on the right. -->
+                        <Grid x:Name="PanelBar">
+                            <TextBlock Text="{DynamicResource L_AppName}"
+                                       Style="{StaticResource AppName}"
+                                       VerticalAlignment="Center"
+                                       Margin="14,0,0,0"/>
 
-                    <StackPanel Orientation="Horizontal"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center"
-                                Margin="0,0,6,0">
-                        <ToggleButton x:Name="PinButton"
-                                      Style="{StaticResource Sq.IconToggle}"
-                                      ToolTip="{DynamicResource L_KeepOnTop}"
-                                      AutomationProperties.Name="{DynamicResource L_KeepOnTop}"
-                                      Checked="Pin_Changed"
-                                      Unchecked="Pin_Changed">
-                            <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Pin}"/>
-                        </ToggleButton>
-                        <Button Style="{StaticResource Sq.IconButton}"
-                                ToolTip="{DynamicResource L_Collapse}"
-                                AutomationProperties.Name="{DynamicResource L_Collapse}"
-                                Click="Collapse_Click">
-                            <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.ChevronUp}"/>
-                        </Button>
-                        <Button Style="{StaticResource Sq.IconButton}"
-                                ToolTip="{DynamicResource L_Close}"
-                                AutomationProperties.Name="{DynamicResource L_Close}"
-                                Click="Close_Click">
-                            <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Close}"/>
-                        </Button>
-                    </StackPanel>
-                </Grid>
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Center"
+                                        Margin="0,0,6,0">
+                                <ToggleButton x:Name="PinButton"
+                                              Style="{StaticResource IconToggle}"
+                                              ToolTip="{DynamicResource L_KeepOnTop}"
+                                              AutomationProperties.Name="{DynamicResource L_KeepOnTop}"
+                                              Checked="Pin_Changed"
+                                              Unchecked="Pin_Changed">
+                                    <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Pin}"/>
+                                </ToggleButton>
+                                <Button Style="{StaticResource IconButton}"
+                                        ToolTip="{DynamicResource L_Collapse}"
+                                        AutomationProperties.Name="{DynamicResource L_Collapse}"
+                                        Click="Collapse_Click">
+                                    <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.ChevronUp}"/>
+                                </Button>
+                                <Button Style="{StaticResource IconButton}"
+                                        ToolTip="{DynamicResource L_Close}"
+                                        AutomationProperties.Name="{DynamicResource L_Close}"
+                                        Click="Close_Click">
+                                    <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Close}"/>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
 
-                <!-- Panels 1-4 swap in here; phase 2 only ever hosts the main panel.
+                        <!-- Sub-panels (5.4-5.6): "‹ back" on the left, the name on the
+                             right, and no window buttons - the artboards draw none, so
+                             the panel is collapsed or closed from the main panel only. -->
+                        <Grid x:Name="SubBar" Visibility="Collapsed">
+                            <Button x:Name="BackButton"
+                                    Style="{StaticResource BackLink}"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Margin="6,0,0,0"
+                                    AutomationProperties.HelpText="{DynamicResource L_Back}"
+                                    Click="Back_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Back}"/>
+                                    <TextBlock x:Name="BackText" Margin="4,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <TextBlock Text="{DynamicResource L_AppName}"
+                                       Style="{StaticResource AppName}"
+                                       HorizontalAlignment="Right"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,14,0"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- Panels 1-4 swap in here, with no transition (5).
                      Focusable=False: a ContentControl is focusable by default and was
                      taking an inert tab stop between the title bar and the first row. -->
                 <ContentControl x:Name="ViewHost" Grid.Row="1" Focusable="False"/>
@@ -113,13 +147,13 @@
                             Orientation="Horizontal"
                             VerticalAlignment="Center"
                             Margin="6,0,6,0">
-                    <Button Style="{StaticResource Sq.IconButton}"
+                    <Button Style="{StaticResource IconButton}"
                             ToolTip="{DynamicResource L_Expand}"
                             AutomationProperties.Name="{DynamicResource L_Expand}"
                             Click="Collapse_Click">
                         <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.ChevronDown}"/>
                     </Button>
-                    <Button Style="{StaticResource Sq.IconButton}"
+                    <Button Style="{StaticResource IconButton}"
                             ToolTip="{DynamicResource L_Close}"
                             AutomationProperties.Name="{DynamicResource L_Close}"
                             Click="Close_Click">

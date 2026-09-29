@@ -1,0 +1,317 @@
+<UserControl x:Class="Sidequest.Views.SidequestView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Sidequest.Views">
+
+    <UserControl.Resources>
+        <!-- 5.6's "⋯" menu. Opened from code, placed under the button, right-aligned. -->
+        <ContextMenu x:Key="MoreMenu">
+            <MenuItem Header="{DynamicResource L_Rename}" Click="Rename_Click"/>
+            <MenuItem Header="{DynamicResource L_ChangeTheme}" Click="ChangeTheme_Click"/>
+            <Separator/>
+            <MenuItem Header="{DynamicResource L_DeleteSidequest}" Click="DeleteSidequest_Click"/>
+        </ContextMenu>
+
+        <!-- The three groups of 5.6, one template each. Rows are 6 apart, measured on
+             FnSidequest; the gap is a top margin so nothing trails the last row. -->
+
+        <!-- (1) In the panel: 50 as rendered, padding 14/10, the "Objetivo actual" pill
+             (24, C fill, 11/700 Inv) and no actions. -->
+        <DataTemplate DataType="{x:Type local:CurrentObjectiveRow}">
+            <Border Height="50"
+                    Margin="0,6,0,0"
+                    Padding="14,0,10,0"
+                    CornerRadius="10"
+                    Background="{DynamicResource Surface}"
+                    BorderBrush="{DynamicResource Line}"
+                    BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Item.Text}"
+                               Style="{StaticResource ItemText}"
+                               Margin="0,0,12,0"
+                               VerticalAlignment="Center"/>
+                    <Border Grid.Column="1"
+                            Height="24"
+                            Padding="10,0"
+                            CornerRadius="12"
+                            VerticalAlignment="Center"
+                            Background="{Binding ThemeBrush}">
+                        <TextBlock Text="{DynamicResource L_CurrentObjective}"
+                                   FontSize="11"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource Inv}"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <!-- (2) Pending: padding 14/8, "Enviar objetivo" on the right, and 5.6's delete
+             just left of it on hover. Hover fills the card, as FnSidequest's .row does. -->
+        <DataTemplate DataType="{x:Type local:PendingItemRow}">
+            <Border x:Name="Card"
+                    Height="50"
+                    Margin="0,6,0,0"
+                    Padding="14,0,8,0"
+                    CornerRadius="10"
+                    Background="{DynamicResource Surface}"
+                    BorderBrush="{DynamicResource Line}"
+                    BorderThickness="1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Item.Text}"
+                               Style="{StaticResource ItemText}"
+                               Margin="0,0,12,0"
+                               VerticalAlignment="Center"/>
+
+                    <Button x:Name="DeleteButton"
+                            Grid.Column="1"
+                            Style="{StaticResource IconButton}"
+                            Margin="0,0,4,0"
+                            VerticalAlignment="Center"
+                            Visibility="Collapsed"
+                            ToolTip="{DynamicResource L_DeleteItem}"
+                            AutomationProperties.Name="{DynamicResource L_DeleteItem}"
+                            AutomationProperties.HelpText="{Binding Item.Text}"
+                            Click="DeleteItem_Click">
+                        <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Delete}"/>
+                    </Button>
+
+                    <!-- The arrow is FnSidequest's 13px svg on a 16-unit box at stroke 2, so
+                         a 0.8125 scale carries geometry and stroke together (1.63px). -->
+                    <Button Grid.Column="2"
+                            Style="{StaticResource SendButton}"
+                            VerticalAlignment="Center"
+                            BorderBrush="{Binding SendBorderBrush}"
+                            Foreground="{Binding ThemeBrush}"
+                            AutomationProperties.Name="{DynamicResource L_SendObjective}"
+                            AutomationProperties.HelpText="{Binding Item.Text}"
+                            Click="Send_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{DynamicResource L_SendObjective}" VerticalAlignment="Center"/>
+                            <Path Style="{StaticResource IconPath}"
+                                  Data="{StaticResource Icon.ArrowRight}"
+                                  StrokeThickness="2"
+                                  Margin="6,0,0,0"
+                                  VerticalAlignment="Center">
+                                <Path.LayoutTransform>
+                                    <ScaleTransform ScaleX="0.8125" ScaleY="0.8125"/>
+                                </Path.LayoutTransform>
+                            </Path>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+            <DataTemplate.Triggers>
+                <Trigger SourceName="Card" Property="IsMouseOver" Value="True">
+                    <Setter TargetName="Card" Property="Background" Value="{DynamicResource Hover}"/>
+                    <Setter TargetName="DeleteButton" Property="Visibility" Value="Visible"/>
+                </Trigger>
+                <!-- As on the panel: a hover-only control takes no tab stop, so focus
+                     inside the row reveals it too. -->
+                <Trigger SourceName="Card" Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter TargetName="Card" Property="Background" Value="{DynamicResource Hover}"/>
+                    <Setter TargetName="DeleteButton" Property="Visibility" Value="Visible"/>
+                </Trigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <!-- (3) Completed: no card, 44 high, the bare tick then struck-through 14/400 in
+             Text2, 10 apart. The tick is only live where Done may be edited here. -->
+        <DataTemplate DataType="{x:Type local:CompletedItemRow}">
+            <Grid Height="44" Margin="0,6,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Style="{StaticResource DoneCheck}"
+                          Margin="14,0,0,0"
+                          VerticalAlignment="Center"
+                          Background="{Binding ThemeBrush}"
+                          IsChecked="{Binding Item.Done, Mode=TwoWay}"
+                          IsEnabled="{Binding CanUntick, Mode=OneTime}"
+                          AutomationProperties.Name="{Binding Item.Text}"
+                          Unchecked="Done_Unchecked"/>
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Item.Text}"
+                           Margin="10,0,14,0"
+                           FontSize="14"
+                           Foreground="{DynamicResource Text2}"
+                           TextDecorations="Strikethrough"
+                           TextTrimming="CharacterEllipsis"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- The band (4.4): margin 12, radius 12, C @ 14 %, padding 18/16/16, rows 14
+             apart. FnSidequest's third row, the Bitácora button, is left out in v1 (0). -->
+        <Border Grid.Row="0"
+                Margin="12,12,12,0"
+                Padding="16,18,16,16"
+                CornerRadius="12"
+                Background="{Binding BandBrush}">
+            <StackPanel>
+                <Grid Height="29">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Double-click or a long press renames in place (5.6). Transparent
+                         background so the whole line takes the press, not just the ink. -->
+                    <TextBlock x:Name="NameText"
+                               Style="{StaticResource Heading}"
+                               Text="{Binding Name}"
+                               Foreground="{Binding ThemeBrush}"
+                               Background="Transparent"
+                               TextTrimming="CharacterEllipsis"
+                               VerticalAlignment="Center"
+                               MouseLeftButtonDown="NameText_MouseLeftButtonDown"
+                               MouseLeftButtonUp="NameText_MouseReleased"
+                               MouseLeave="NameText_MouseReleased"/>
+                    <!-- -2 cancels TextBox's own text inset, so the title does not move
+                         when editing starts. -->
+                    <TextBox x:Name="NameEdit"
+                             Style="{StaticResource InlineEdit}"
+                             Margin="-2,0,0,0"
+                             Visibility="Collapsed"
+                             FontSize="22"
+                             FontWeight="Bold"
+                             MaxLength="60"
+                             Foreground="{Binding ThemeBrush}"
+                             CaretBrush="{Binding ThemeBrush}"
+                             BorderBrush="{Binding EditLineBrush}"
+                             AutomationProperties.Name="{DynamicResource L_Name}"
+                             KeyDown="NameEdit_KeyDown"
+                             LostKeyboardFocus="NameEdit_LostKeyboardFocus"/>
+
+                    <!-- "⋯" in C at rest, Text on hover, as FnSidequest's .ib. The colour is
+                         a style setter, not a local value, so the template's hover wins. -->
+                    <Button x:Name="MoreButton"
+                            Grid.Column="1"
+                            Margin="12,0,0,0"
+                            VerticalAlignment="Center"
+                            ToolTip="{DynamicResource L_MoreOptions}"
+                            AutomationProperties.Name="{DynamicResource L_MoreOptions}"
+                            Click="More_Click">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource IconButton}">
+                                <Setter Property="Foreground" Value="{Binding ThemeBrush}"/>
+                            </Style>
+                        </Button.Style>
+                        <Path Style="{StaticResource IconPath.Filled}" Data="{StaticResource Icon.MoreOptions}"/>
+                    </Button>
+                </Grid>
+
+                <!-- Progress: a 6px bar on C @ 25 % and the count in C, 12 apart. -->
+                <Grid Height="16" Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid Height="6"
+                          VerticalAlignment="Center"
+                          AutomationProperties.Name="{Binding ProgressName}">
+                        <Border CornerRadius="3" Background="{Binding TrackBrush}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{Binding DoneWidth}"/>
+                                <ColumnDefinition Width="{Binding RestWidth}"/>
+                            </Grid.ColumnDefinitions>
+                            <Border CornerRadius="3" Background="{Binding ThemeBrush}"/>
+                        </Grid>
+                    </Grid>
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding Counter}"
+                               Style="{StaticResource Muted}"
+                               Foreground="{Binding ThemeBrush}"
+                               Margin="12,0,0,0"
+                               VerticalAlignment="Center"/>
+                </Grid>
+
+                <!-- "Cambiar tema" opens the same picker as 5.5 here, in place. No artboard
+                     shows it. The arrow keys preview live; Enter keeps, Escape reverts. -->
+                <ListBox x:Name="ThemePicker"
+                         Style="{StaticResource SwatchPicker}"
+                         Visibility="Collapsed"
+                         Margin="0,14,0,0"
+                         AutomationProperties.Name="{DynamicResource L_ChangeTheme}"
+                         SelectionChanged="ThemePicker_SelectionChanged"
+                         PreviewMouseLeftButtonUp="ThemePicker_PreviewMouseLeftButtonUp"
+                         KeyDown="ThemePicker_KeyDown"
+                         LostKeyboardFocus="ThemePicker_LostKeyboardFocus"/>
+            </StackPanel>
+        </Border>
+
+        <!-- The items. 12 from the band to the first row: 6 of padding plus the row's 6. -->
+        <ScrollViewer x:Name="ListScroll"
+                      Grid.Row="1"
+                      Focusable="False"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Padding="12,6,12,0">
+            <ItemsControl x:Name="ItemList" Focusable="False" KeyDown="ItemList_KeyDown"/>
+        </ScrollViewer>
+
+        <!-- Footer, 10/12/14: "+ Añadir item", which becomes a field in place (5.6). -->
+        <Border Grid.Row="2" Padding="12,10,12,14">
+            <Grid>
+                <Button x:Name="AddButton"
+                        Style="{StaticResource DashedPillButton}"
+                        AutomationProperties.Name="{DynamicResource L_AddItem}"
+                        Click="AddButton_Click">
+                    <!-- FnSidequest's plus is 14px at stroke 2 on a 16-unit box: 0.875. -->
+                    <StackPanel Orientation="Horizontal">
+                        <Path Style="{StaticResource IconPath}"
+                              Data="{StaticResource Icon.Plus}"
+                              StrokeThickness="2"
+                              VerticalAlignment="Center">
+                            <Path.LayoutTransform>
+                                <ScaleTransform ScaleX="0.875" ScaleY="0.875"/>
+                            </Path.LayoutTransform>
+                        </Path>
+                        <TextBlock Text="{DynamicResource L_AddItem}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- The open field keeps the button's 44 and 4.4's field look, with its
+                     text on the same line as the items' above it (x 28). A hint stands in
+                     for a placeholder, which WPF's TextBox does not have. -->
+                <Grid x:Name="AddField" Visibility="Collapsed">
+                    <TextBox x:Name="AddBox"
+                             Style="{StaticResource TextBox.Line}"
+                             Height="44"
+                             Padding="12,0"
+                             MaxLength="120"
+                             AutomationProperties.Name="{DynamicResource L_AddItem}"
+                             KeyDown="AddBox_KeyDown"
+                             TextChanged="AddBox_TextChanged"
+                             LostKeyboardFocus="AddBox_LostKeyboardFocus"/>
+                    <TextBlock x:Name="AddHint"
+                               Text="{DynamicResource L_AddItem}"
+                               IsHitTestVisible="False"
+                               Margin="15,0,0,0"
+                               VerticalAlignment="Center"
+                               FontSize="14"
+                               Foreground="{DynamicResource Text2}"/>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

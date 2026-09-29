@@ -6,15 +6,12 @@ using Sidequest.Models;
 using Sidequest.Services;
 using Sidequest.Views;
 using Forms = System.Windows.Forms;
-using ComboBox = System.Windows.Controls.ComboBox;
-using MouseWheelEventArgs = System.Windows.Input.MouseWheelEventArgs;
-using MouseWheelEventHandler = System.Windows.Input.MouseWheelEventHandler;
 
 namespace Sidequest;
 
 /// <summary>
-/// Tray-resident host. There is no main window: the app lives in the notification
-/// area and opens windows on demand.
+/// Tray-resident host. The main panel is a fixture that opens on launch (D1), but closing
+/// it only hides it: the app lives in the notification area until Quit.
 /// </summary>
 public partial class App : System.Windows.Application
 {
@@ -26,15 +23,9 @@ public partial class App : System.Windows.Application
     private Forms.NotifyIcon? _tray;
     private MainWindow? _mainWindow;
 
-    private PopupWindow? _popup;
-    private EditorWindow? _editor;
-    private SettingsWindow? _settingsWindow;
-
     public AppSettings Settings { get; private set; } = new();
 
-    /// <summary>The new model. Nothing renders it until phase 2 replaces the screens.</summary>
     public ObservableCollection<SidequestProject> Projects { get; private set; } = new();
-    public WeekPlan Plan { get; private set; } = new();
 
     public static new App Current => (App)System.Windows.Application.Current;
 
@@ -55,18 +46,12 @@ public partial class App : System.Windows.Application
 
         ListenForShowRequests();
 
-        EventManager.RegisterClassHandler(
-            typeof(ComboBox),
-            UIElement.PreviewMouseWheelEvent,
-            new MouseWheelEventHandler(OnComboBoxPreviewMouseWheel));
-
         // First, before anything reads a file: settings were otherwise loaded from the
         // real folder and only then redirected, so a sandboxed run silently started from
         // the wrong settings.
         RedirectDataIfSandboxed();
 
         Settings = Storage.LoadSettings();
-        Plan = Storage.LoadWeek();
 
         // Before any window is created, so nothing flashes in the wrong theme or language.
         // Left null in settings deliberately: until a language is picked explicitly, the
@@ -92,31 +77,18 @@ public partial class App : System.Windows.Application
         _mainWindow = new MainWindow();
         _mainWindow.ShowPanel();
 
-        OpenRequestedWindow(e.Args);
+        OpenRequestedView(e.Args);
     }
 
     /// <summary>
-    /// Opens a window straight from the command line, so a given screen can be brought
-    /// up without navigating the tray menu. Only honoured by the first instance; a
-    /// relaunch while running always just surfaces the popup.
+    /// Opens a screen straight from the command line, so it can be checked without
+    /// clicking through to it. Only honoured by the first instance; a relaunch while
+    /// running always just brings the panel back.
     /// </summary>
-    private void OpenRequestedWindow(string[] args)
+    private void OpenRequestedView(string[] args)
     {
-        foreach (var arg in args)
-        {
-            switch (arg.ToLowerInvariant())
-            {
-                case "--edit":
-                    ShowEditor();
-                    return;
-                case "--settings":
-                    ShowSettings();
-                    return;
-                case "--popup":
-                    ShowPopup();
-                    return;
-            }
-        }
+        if (args.Any(a => a.Equals("--sidequests", StringComparison.OrdinalIgnoreCase)))
+            ShowSidequests();
     }
 
     /// <summary>
@@ -134,7 +106,7 @@ public partial class App : System.Windows.Application
         LegacyMigration.LegacyDirectory = Path.Combine(sandbox, "WeeklyReminder");
     }
 
-    /// <summary>Relaunching the exe surfaces the popup rather than starting a second copy.</summary>
+    /// <summary>Relaunching the exe brings the panel back rather than starting a second copy.</summary>
     private void ListenForShowRequests()
     {
         var listener = new Thread(() =>
@@ -173,129 +145,28 @@ public partial class App : System.Windows.Application
     }
 
     /// <summary>
-    /// A closed WPF ComboBox consumes the mouse wheel and steps its selection, so
-    /// scrolling the Settings page with the pointer over a dropdown silently changed the
-    /// setting. Swallow the wheel while the drop-down is shut and hand the event to the
-    /// parent instead, so the page still scrolls. An open drop-down keeps normal
-    /// behaviour, since scrolling its list is what you would expect.
+    /// 5.9's menu. "Ajustes…" joins it with the settings window in phase 5; until then it
+    /// is left out rather than shown doing nothing.
     /// </summary>
-    private static void OnComboBoxPreviewMouseWheel(object sender, MouseWheelEventArgs e)
-    {
-        if (sender is not ComboBox combo || combo.IsDropDownOpen) return;
-
-        e.Handled = true;
-
-        if (combo.Parent is not UIElement parent) return;
-
-        parent.RaiseEvent(new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta)
-        {
-            RoutedEvent = UIElement.MouseWheelEvent,
-            Source = combo,
-        });
-    }
-
     private Forms.ContextMenuStrip BuildTrayMenu()
     {
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add(LanguageService.Get("L_TrayShow"), null, (_, _) => ShowPanel());
-        menu.Items.Add(LanguageService.Get("L_TrayEdit"), null, (_, _) => ShowEditor());
-        menu.Items.Add(LanguageService.Get("L_TraySettings"), null, (_, _) => ShowSettings());
-        menu.Items.Add(LanguageService.Get("L_TrayResetPosition"), null, (_, _) => ResetPopupPosition());
+        menu.Items.Add(LanguageService.Get("L_TraySidequests"), null, (_, _) => ShowSidequests());
+        menu.Items.Add(LanguageService.Get("L_TrayResetPosition"), null, (_, _) => _mainWindow?.ResetPosition());
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add(LanguageService.Get("L_TrayQuit"), null, (_, _) => Shutdown());
         return menu;
     }
 
-    /// <summary>Brings the main panel back. Replaces ShowPopup as the app's front door.</summary>
+    /// <summary>The app's front door: the tray, a relaunch, a double-click on the icon.</summary>
     public void ShowPanel() => _mainWindow?.ShowPanel();
 
-    public void ShowPopup()
+    /// <summary>The tray's "Sidequests…": the panel, opened on the list (5.4).</summary>
+    private void ShowSidequests()
     {
-        if (Plan.RollForwardToCurrentWeek())
-            Storage.SaveWeek(Plan);
-
-        if (_popup is { IsLoaded: true })
-        {
-            _popup.Activate();
-            return;
-        }
-
-        _popup = new PopupWindow(Plan, Settings);
-        _popup.Closed += (_, _) =>
-        {
-            Storage.SaveWeek(Plan);
-            _popup = null;
-        };
-        // Snooze went with the scheduler (D1); the old popup is unreachable from the tray
-        // now and goes away entirely in phase 3.
-        _popup.SnoozeRequested += () => { };
-
-        // The popup is topmost, so it steps aside while another window is in use and
-        // comes back once that window is done with.
-        _popup.EditRequested += () => ShowEditor(returnToPopup: true);
-        _popup.SettingsRequested += () => ShowSettings(returnToPopup: true);
-
-        _popup.Show();
-    }
-
-    /// <summary>Pushes the keep-on-top setting to a popup that is already open.</summary>
-    public void ApplyKeepOnTop()
-    {
-        if (_popup is { IsLoaded: true })
-            _popup.Topmost = Settings.KeepOnTop;
-    }
-
-    /// <summary>Forgets a dragged position and shows the popup back in the corner.</summary>
-    private void ResetPopupPosition()
-    {
-        Settings.PopupLeft = null;
-        Settings.PopupTop = null;
-        Storage.SaveSettings(Settings);
-
-        _popup?.Close();
-        ShowPopup();
-    }
-
-    /// <param name="returnToPopup">
-    /// Reopen the reminder list once this window closes. Set when the editor was
-    /// reached from the popup, so the popup is restored rather than left dismissed.
-    /// </param>
-    public void ShowEditor(bool returnToPopup = false)
-    {
-        if (_editor is { IsLoaded: true })
-        {
-            _editor.Activate();
-            return;
-        }
-
-        _editor = new EditorWindow(Plan);
-        _editor.Closed += (_, _) =>
-        {
-            Storage.SaveWeek(Plan);
-            _editor = null;
-            if (returnToPopup) ShowPopup();
-        };
-        _editor.Show();
-    }
-
-    /// <param name="returnToPopup">See <see cref="ShowEditor"/>.</param>
-    public void ShowSettings(bool returnToPopup = false)
-    {
-        if (_settingsWindow is { IsLoaded: true })
-        {
-            _settingsWindow.Activate();
-            return;
-        }
-
-        _settingsWindow = new SettingsWindow(Settings);
-        _settingsWindow.Closed += (_, _) =>
-        {
-            Storage.SaveSettings(Settings);
-            AutoStart.Set(Settings.StartWithWindows);
-            _settingsWindow = null;
-            if (returnToPopup) ShowPopup();
-        };
-        _settingsWindow.Show();
+        ShowPanel();
+        _mainWindow?.ShowSidequests();
     }
 
     protected override void OnExit(ExitEventArgs e)

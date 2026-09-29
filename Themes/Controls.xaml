@@ -1,9 +1,10 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Sidequest's own controls, per 4.1 and 4.4. Keyed rather than implicit because the
-         WeeklyReminder screens still rely on the implicit styles in App.xaml until phase 3
-         deletes them; once they are gone these can drop the Sq. prefix and become implicit.
+    <!-- Sidequest's controls, per 4.1 and 4.4. Where a type has one look - CheckBox,
+         TextBox, ScrollBar, ContextMenu, ToolTip - the style is implicit. Where it has
+         several - the button kinds, the text styles - each is keyed and named for what it
+         is, and a view asks for it by name.
 
          Not implemented: the letter-spacing 4.1 asks for (-0.02em on 22/700, +0.06em on
          section labels). WPF has no such property on TextBlock and the workarounds all
@@ -11,43 +12,82 @@
 
     <!-- ============ Typography (4.1) ============ -->
 
-    <Style x:Key="Sq.Heading" TargetType="TextBlock">
+    <Style x:Key="Heading" TargetType="TextBlock">
         <Setter Property="FontSize" Value="22"/>
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Foreground" Value="{DynamicResource Text}"/>
         <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
     </Style>
 
-    <Style x:Key="Sq.ItemText" TargetType="TextBlock">
+    <Style x:Key="ItemText" TargetType="TextBlock">
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="FontWeight" Value="Medium"/>
         <Setter Property="Foreground" Value="{DynamicResource Text}"/>
         <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
     </Style>
 
-    <Style x:Key="Sq.Muted" TargetType="TextBlock">
+    <Style x:Key="Muted" TargetType="TextBlock">
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
     </Style>
 
     <!-- 11/600 uppercase. The spec also wants +0.06em tracking here; see the note above. -->
-    <Style x:Key="Sq.SectionLabel" TargetType="TextBlock">
+    <Style x:Key="SectionLabel" TargetType="TextBlock">
         <Setter Property="FontSize" Value="11"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
     </Style>
 
-    <Style x:Key="Sq.AppName" TargetType="TextBlock" BasedOn="{StaticResource Sq.SectionLabel}"/>
+    <Style x:Key="AppName" TargetType="TextBlock" BasedOn="{StaticResource SectionLabel}"/>
+
+    <!-- ============ Focus rings ============ ================================
+         4.4 gives the checkbox a 2px Text ring; every other control uses the same ring,
+         shaped to its own corners, instead of WPF's dotted rectangle. Drawn 1px clear
+         of the control, as CheckBox already does. Keyboard focus only - WPF shows
+         focus visuals for keyboard navigation, never for a click. -->
+    <Style x:Key="Focus.Pill">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-3" CornerRadius="999" BorderThickness="2"
+                            BorderBrush="{DynamicResource Text}" SnapsToDevicePixels="True"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Focus.R8">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-3" CornerRadius="11" BorderThickness="2"
+                            BorderBrush="{DynamicResource Text}" SnapsToDevicePixels="True"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Focus.R12">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-3" CornerRadius="15" BorderThickness="2"
+                            BorderBrush="{DynamicResource Text}" SnapsToDevicePixels="True"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
     <!-- ============ Buttons (4.4) ============ -->
 
     <!-- 28x28, radius 8. Text2 at rest, Text on hover, per 4.3. -->
-    <Style x:Key="Sq.IconButton" TargetType="Button">
+    <Style x:Key="IconButton" TargetType="Button">
         <Setter Property="Width" Value="28"/>
         <Setter Property="Height" Value="28"/>
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
         <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.R8}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -66,11 +106,12 @@
     </Style>
 
     <!-- The pin reads as active with a Hover fill and Text icon, so it needs a toggle. -->
-    <Style x:Key="Sq.IconToggle" TargetType="ToggleButton">
+    <Style x:Key="IconToggle" TargetType="ToggleButton">
         <Setter Property="Width" Value="28"/>
         <Setter Property="Height" Value="28"/>
         <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
         <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.R8}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
@@ -93,7 +134,7 @@
     </Style>
 
     <!-- Pill 36, filled with Text, label in Inv. At most one per screen (4.4). -->
-    <Style x:Key="Sq.PrimaryButton" TargetType="Button">
+    <Style x:Key="PrimaryButton" TargetType="Button">
         <Setter Property="Height" Value="36"/>
         <Setter Property="Padding" Value="16,0"/>
         <Setter Property="FontSize" Value="13"/>
@@ -101,6 +142,7 @@
         <Setter Property="Foreground" Value="{DynamicResource Inv}"/>
         <Setter Property="Background" Value="{DynamicResource Text}"/>
         <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.Pill}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -116,6 +158,12 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="Opacity" Value="0.88"/>
                         </Trigger>
+                        <!-- 5.5's Crear is disabled until the name has text. No artboard
+                             shows the state, so it only dims. -->
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.4"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -123,13 +171,14 @@
     </Style>
 
     <!-- Pill 34, Surface with a Line2 border; the border goes to Text on hover. -->
-    <Style x:Key="Sq.SecondaryButton" TargetType="Button">
+    <Style x:Key="SecondaryButton" TargetType="Button">
         <Setter Property="Height" Value="34"/>
         <Setter Property="Padding" Value="14,0"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="FontWeight" Value="Medium"/>
         <Setter Property="Foreground" Value="{DynamicResource Text}"/>
         <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.Pill}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -152,11 +201,188 @@
         </Setter>
     </Style>
 
+    <!-- The sub-panel title bar's "‹ Panel principal". Measured on FnSidequests: 28 high,
+         padding 4 left and 8 right, radius 8, 12/400 in Text2, a 4px gap after the
+         chevron. Hover as .ib: Hover fill, Text. -->
+    <Style x:Key="BackLink" TargetType="Button">
+        <Setter Property="Height" Value="28"/>
+        <Setter Property="Padding" Value="4,0,8,0"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.R8}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="8"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Hover}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- The Sidequest chip on an objective card (4.4, 5.1): click opens the Sidequest.
+         FnMain gives it no hover state - its inline colour outranks a:hover - so only the
+         cursor says it is clickable. The text colour is the Sidequest's, set per card. -->
+    <Style x:Key="Chip" TargetType="Button">
+        <Setter Property="Height" Value="26"/>
+        <Setter Property="Padding" Value="9,0"/>
+        <Setter Property="Background" Value="{DynamicResource Surface}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.Pill}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="999"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- A Sidequest in the list (4.4, 5.4). Tint and border are the Sidequest's own, so
+         the list sets Background and BorderBrush per button; hover takes the border to
+         Text, as FnSidequests' .cta:hover does. The content - name, counter, progress -
+         comes from the list's item template, full or compact. -->
+    <Style x:Key="SidequestButton" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.R12}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 4.4's dashed button. WPF borders cannot dash, so the outline is a Rectangle.
+         Measured on the artboards, Chrome draws both dashes as 3 on, 2 off. -->
+    <!-- "+ Nuevo Sidequest" (5.4): 50 as rendered (48 content-box plus the border),
+         radius 12, 1px, 14/500. The rectangle's radius is taken at the stroke's centre. -->
+    <Style x:Key="DashedButton" TargetType="Button">
+        <Setter Property="Height" Value="50"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.R12}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="12"/>
+                        <Rectangle Stroke="{DynamicResource Line2}" StrokeThickness="1"
+                                   StrokeDashArray="3 2" RadiusX="11.5" RadiusY="11.5"
+                                   SnapsToDevicePixels="True"/>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Hover}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- "+ Añadir item" (5.6): FnSidequest draws this one as a 44px pill with a 1.5px
+         dash and 13/700 text. Dash lengths are in stroke widths, so 2 on 1.33 off is the
+         same 3/2 pattern at 1.5px. -->
+    <Style x:Key="DashedPillButton" TargetType="Button" BasedOn="{StaticResource DashedButton}">
+        <Setter Property="Height" Value="44"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.Pill}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="999"/>
+                        <Rectangle Stroke="{DynamicResource Line2}" StrokeThickness="1.5"
+                                   StrokeDashArray="2 1.333" RadiusX="21.25" RadiusY="21.25"/>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Hover}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- "Enviar objetivo" (4.4, 5.6). A 30px pill - FnSidequest draws it as a <button>,
+         which is border-box, so the 1.5px border sits inside the 30. Border C @ 55% and
+         text in C are the Sidequest's, set per row; hover takes the border to Text. -->
+    <Style x:Key="SendButton" TargetType="Button">
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Padding" Value="12,0"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.Pill}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="1.5"
+                            CornerRadius="999"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ============ Checkbox (4.4) ============ ============================
          18px, radius 6, 1.5px Line2. When checked it fills with the Sidequest's own
          colour, which differs per row - so the fill comes from Background rather than a
          fixed brush, and each card supplies it. -->
-    <Style x:Key="Sq.CheckBox" TargetType="CheckBox">
+    <Style TargetType="CheckBox">
         <Setter Property="Background" Value="{DynamicResource Text}"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Focusable" Value="True"/>
@@ -229,7 +455,7 @@
          card it drops to Bg with a border in the Sidequest's colour, so it still reads
          as a well against the tint. Phase 3 sets Background and BorderBrush locally on
          top of this style rather than forking it. -->
-    <Style x:Key="Sq.TextBox" TargetType="TextBox">
+    <Style TargetType="TextBox">
         <Setter Property="Background" Value="{DynamicResource Surface}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -249,9 +475,13 @@
                             CornerRadius="10"
                             SnapsToDevicePixels="True">
                         <!-- VerticalScrollBarVisibility is bound through so a multi-line
-                             field is not clipped to one line. -->
+                             field is not clipped to one line.
+
+                             No Margin="{TemplateBinding Padding}" here, in this or any
+                             TextBox template: TextBox applies its own Padding to the text
+                             inside PART_ContentHost, so binding it as well indents the text
+                             twice. Measured on 5.5's name field, it put the text 26px in. -->
                         <ScrollViewer x:Name="PART_ContentHost"
-                                      Margin="{TemplateBinding Padding}"
                                       VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
                                       HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}"
                                       Focusable="False"/>
@@ -285,27 +515,353 @@
          cannot be set on one - it falls out of the font's own metrics. 5.3 already
          suggests a RichTextBox here for URL detection, and a RichTextBox can carry it on
          its Paragraph; phase 4 picks that up when it builds the field for real. -->
-    <Style x:Key="Sq.TextBox.Notes" TargetType="TextBox" BasedOn="{StaticResource Sq.TextBox}">
+    <Style x:Key="TextBox.Notes" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="TextWrapping" Value="Wrap"/>
         <Setter Property="AcceptsReturn" Value="True"/>
         <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
     </Style>
 
+    <!-- A single-line field at a fixed height with its text centred: FnSidequestNuevo's
+         name field is a border-box <input>, 40 high, 12 in from its border. -->
+    <Style x:Key="TextBox.Line" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+        <Setter Property="Height" Value="40"/>
+        <!-- 10, not the artboard's 12: TextBox insets its text a further 2px of its own. -->
+        <Setter Property="Padding" Value="10,0"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Focusable="False"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                                <Condition Property="IsKeyboardFocusWithin" Value="False"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Line2}"/>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- The name field in 5.5's form. Inside the theme-tinted card it drops to Bg so it
+         still reads as a well, and focus takes its border to the Sidequest's colour rather
+         than Text (4.4). That colour differs per Sidequest, so the form passes it in as
+         Tag: at rest the border is Line like any field, and Tag is what focus shows. -->
+    <Style x:Key="TextBox.Themed" TargetType="TextBox" BasedOn="{StaticResource TextBox.Line}">
+        <Setter Property="Background" Value="{DynamicResource Bg}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Focusable="False"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush"
+                                    Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"/>
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                                <Condition Property="IsKeyboardFocusWithin" Value="False"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Line2}"/>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- In-place rename of a Sidequest's title (5.6). No artboard shows it, so it keeps the
+         title exactly where it was and only adds an underline in the Sidequest's colour to
+         say it is editable. Font and colours are set by the view to match the title. -->
+    <Style x:Key="InlineEdit" TargetType="TextBox">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1.5"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      VerticalAlignment="Center"
+                                      HorizontalScrollBarVisibility="Hidden"
+                                      VerticalScrollBarVisibility="Hidden"
+                                      Focusable="False"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ============ Theme picker (5.5) ============ =========================
+         A ListBox, so single selection, arrow keys and a single tab stop come for free,
+         and a screen reader hears a list with the chosen theme selected. 30px swatches,
+         radius 10, 10 apart; the selected one is ringed 2px in Text at 2px, which is
+         FnSidequestNuevo's outline, and the row's 2px padding is the room it needs.
+         Keyboard focus adds a second ring outside it, since the first only says which
+         one is chosen. Each item supplies Brush and Label. -->
+    <Style x:Key="Focus.Swatch">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-7" CornerRadius="17" BorderThickness="2"
+                            BorderBrush="{DynamicResource Text2}" SnapsToDevicePixels="True"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Swatch" TargetType="ListBoxItem">
+        <Setter Property="Width" Value="30"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Margin" Value="0,0,10,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.Swatch}"/>
+        <Setter Property="AutomationProperties.Name" Value="{Binding Label}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Grid>
+                        <Border CornerRadius="10" Background="{Binding Brush}"/>
+                        <Border x:Name="Ring"
+                                Margin="-4"
+                                CornerRadius="14"
+                                BorderThickness="2"
+                                BorderBrush="{DynamicResource Text}"
+                                Visibility="Collapsed"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SwatchPicker" TargetType="ListBox">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="2"/>
+        <Setter Property="SelectionMode" Value="Single"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource Swatch}"/>
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBox">
+                    <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                        <ItemsPresenter/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ============ Tooltips ============ ====================================
+         The icon buttons' names. WPF shows a tooltip on keyboard focus as well as hover,
+         in fixed light chrome that ignores the theme - glaring on the dark panel. No
+         artboard shows one, so it takes 4.2's tokens. Implicit, so every ToolTip="..."
+         gets it; a popup inherits nothing, so the font is set here. -->
+    <Style TargetType="ToolTip">
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="HasDropShadow" Value="False"/>
+        <Setter Property="FontFamily" Value="{DynamicResource AppFont}"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToolTip">
+                    <Border Background="{DynamicResource Surface}"
+                            BorderBrush="{DynamicResource Line2}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="8,4">
+                        <ContentPresenter/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ============ Menus ============ =======================================
+         5.6's "⋯" menu, and the Cut/Copy/Paste menu of every text field, which would
+         otherwise come up in WPF's light chrome. A popup is not in its window's visual
+         tree, so nothing is inherited: font, size and colours are all set here. The
+         margin is room for the shadow; the "⋯" menu's placement accounts for it. No
+         artboard shows a menu, so it is held to 4.2's tokens and 4.3's radii.
+
+         Entries and separators are styled inside it, so they reach only menu items. -->
+    <Style TargetType="ContextMenu">
+        <Style.Resources>
+            <Style TargetType="MenuItem">
+                <Setter Property="OverridesDefaultStyle" Value="True"/>
+                <Setter Property="Height" Value="32"/>
+                <Setter Property="Padding" Value="10,0"/>
+                <Setter Property="FontWeight" Value="Medium"/>
+                <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="MenuItem">
+                            <Border x:Name="Bd" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter ContentSource="Header" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <!-- Highlight follows both the pointer and the arrow keys, so
+                                     it doubles as the keyboard focus indicator. -->
+                                <Trigger Property="IsHighlighted" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Hover}"/>
+                                </Trigger>
+                                <!-- A text field's Cut or Paste with nothing to act on. -->
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+                                    <Setter Property="Cursor" Value="Arrow"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Keyed, not implicit: a menu hands its separators this style by resource
+                 reference, which outranks an implicit one. -->
+            <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="Separator">
+                <Setter Property="OverridesDefaultStyle" Value="True"/>
+                <Setter Property="Focusable" Value="False"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Separator">
+                            <Border Height="1" Margin="6,4" Background="{DynamicResource Line}"/>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Style.Resources>
+
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="HasDropShadow" Value="False"/>
+        <Setter Property="FontFamily" Value="{DynamicResource AppFont}"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Border Margin="10,2,10,14"
+                            Padding="4"
+                            MinWidth="176"
+                            CornerRadius="10"
+                            Background="{DynamicResource Surface}"
+                            BorderBrush="{DynamicResource Line2}"
+                            BorderThickness="1">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.28" Color="#000000"/>
+                        </Border.Effect>
+                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ============ Completed item (5.6) ============ =======================
+         No box: FnSidequest's bare 14px tick in the Sidequest's colour, which arrives as
+         Background the way CheckBox takes its fill. The svg is 14px on a 16-unit
+         viewBox, so its 2.5 stroke lands at 2.19 - reproduced with the same Viewbox trick.
+         Only clickable where 5.6 lets Done be edited; the view disables it otherwise. -->
+    <Style x:Key="DoneCheck" TargetType="CheckBox">
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Focusable" Value="True"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Grid Width="14" Height="14" Background="Transparent">
+                        <Viewbox Width="14" Height="14">
+                            <Grid Width="16" Height="16">
+                                <Path Data="{StaticResource Icon.Check}"
+                                      Stroke="{TemplateBinding Background}"
+                                      StrokeThickness="2.5"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round"
+                                      Stretch="None"/>
+                            </Grid>
+                        </Viewbox>
+                        <Border x:Name="FocusRing"
+                                Margin="-5"
+                                CornerRadius="12"
+                                BorderThickness="2"
+                                BorderBrush="{DynamicResource Text}"
+                                Visibility="Collapsed"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="FocusRing" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Cursor" Value="Arrow"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ============ Scrollbar ============ ==================================
          No artboard shows one - they are fixed-height mockups with nothing to scroll -
          so there is no reference to match and this is only held to 4.2's tokens.
-         Deliberately slim and chromeless: no arrows, no track. -->
-    <Style x:Key="Sq.ScrollThumb" TargetType="Thumb">
+         Deliberately slim and chromeless: no arrows, no track. Implicit, so it also
+         reaches the scroll viewers inside text fields. -->
+    <Style x:Key="ScrollThumb" TargetType="Thumb">
         <Setter Property="OverridesDefaultStyle" Value="True"/>
         <Setter Property="IsTabStop" Value="False"/>
+        <!-- The inset from the bar's edges: 3 across it and 2 along it, so the two
+             orientations pass it swapped. -->
+        <Setter Property="Padding" Value="3,2"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
                     <Border x:Name="Bd"
                             Background="{DynamicResource Line2}"
                             CornerRadius="3"
-                            Margin="3,2"/>
+                            Margin="{TemplateBinding Padding}"/>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Text2}"/>
@@ -319,7 +875,7 @@
         </Setter>
     </Style>
 
-    <Style x:Key="Sq.ScrollBar" TargetType="ScrollBar">
+    <Style TargetType="ScrollBar">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Width" Value="12"/>
         <Setter Property="MinWidth" Value="12"/>
@@ -329,7 +885,7 @@
                     <Grid Background="Transparent">
                         <Track x:Name="PART_Track" Orientation="Vertical" IsDirectionReversed="True">
                             <Track.Thumb>
-                                <Thumb Style="{StaticResource Sq.ScrollThumb}"/>
+                                <Thumb Style="{StaticResource ScrollThumb}"/>
                             </Track.Thumb>
                             <!-- Page buttons are required by Track but carry no chrome. -->
                             <Track.IncreaseRepeatButton>
@@ -343,6 +899,34 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <!-- No screen scrolls sideways, but a text field that stops wrapping can. -->
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter Property="Width" Value="Auto"/>
+                <Setter Property="MinWidth" Value="0"/>
+                <Setter Property="Height" Value="12"/>
+                <Setter Property="MinHeight" Value="12"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ScrollBar">
+                            <Grid Background="Transparent">
+                                <Track x:Name="PART_Track" Orientation="Horizontal">
+                                    <Track.Thumb>
+                                        <Thumb Style="{StaticResource ScrollThumb}" Padding="2,3"/>
+                                    </Track.Thumb>
+                                    <Track.IncreaseRepeatButton>
+                                        <RepeatButton Command="ScrollBar.PageRightCommand" Opacity="0" Focusable="False" IsTabStop="False"/>
+                                    </Track.IncreaseRepeatButton>
+                                    <Track.DecreaseRepeatButton>
+                                        <RepeatButton Command="ScrollBar.PageLeftCommand" Opacity="0" Focusable="False" IsTabStop="False"/>
+                                    </Track.DecreaseRepeatButton>
+                                </Track>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
 </ResourceDictionary>

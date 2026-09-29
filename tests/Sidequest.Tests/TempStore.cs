@@ -5,13 +5,14 @@ using Sidequest.Services;
 namespace Sidequest.Tests;
 
 /// <summary>
-/// Redirects both stores at a throwaway folder for the life of a test and puts them back
+/// Redirects every store at a throwaway folder for the life of a test and puts them back
 /// afterwards. Every test that touches storage must use this: the defaults point at the
 /// user's real %APPDATA%, and the migration renames files there.
 /// </summary>
 public sealed class TempStore : IDisposable
 {
     private readonly string _previousStore;
+    private readonly string _previousSettings;
     private readonly string _previousLegacy;
 
     public string Root { get; }
@@ -28,15 +29,18 @@ public sealed class TempStore : IDisposable
         Directory.CreateDirectory(LegacyDirectory);
 
         _previousStore = SidequestStore.Directory;
+        _previousSettings = Storage.Directory;
         _previousLegacy = LegacyMigration.LegacyDirectory;
 
         SidequestStore.Directory = StoreDirectory;
+        Storage.Directory = StoreDirectory;
         LegacyMigration.LegacyDirectory = LegacyDirectory;
     }
 
     public void Dispose()
     {
         SidequestStore.Directory = _previousStore;
+        Storage.Directory = _previousSettings;
         LegacyMigration.LegacyDirectory = _previousLegacy;
 
         try { Directory.Delete(Root, recursive: true); }

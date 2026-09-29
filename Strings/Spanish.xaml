@@ -2,98 +2,75 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
 
-    <!-- Mirror of English.xaml. Every key there must exist here too. -->
+    <!-- Cada clave de aquí debe existir también en English.xaml (ResourceParityTests lo
+         comprueba). Desde XAML se usan con DynamicResource y desde código con
+         LanguageService.Get / Format. Las claves que terminan en Fmt llevan {0}.
 
-    <!-- Popup -->
-    <sys:String x:Key="L_ThisWeek">Esta semana</sys:String>
-    <sys:String x:Key="L_PopupEmpty">Aún no hay nada en la lista.</sys:String>
-    <sys:String x:Key="L_AddSomeItems">Añadir elementos</sys:String>
-    <sys:String x:Key="L_Collapse">Contraer</sys:String>
-    <sys:String x:Key="L_Expand">Expandir</sys:String>
-    <sys:String x:Key="L_Dismiss">Cerrar</sys:String>
-    <sys:String x:Key="L_Edit">Editar</sys:String>
-    <sys:String x:Key="L_DoneCountFmt">{0} de {1} hechos</sys:String>
-    <sys:String x:Key="L_NothingOnList">No hay nada en la lista</sys:String>
-    <sys:String x:Key="L_SnoozeFmt">Posponer {0} min</sys:String>
-    <sys:String x:Key="L_ClosesInFmt">Se cierra en {0} s</sys:String>
+         Son las claves de la 7, añadidas a medida que llega cada pantalla; las pocas que no
+         están en la 7 van al final, marcadas. -->
 
-    <!-- Editor -->
-    <sys:String x:Key="L_ThisWeeksList">Lista de esta semana</sys:String>
-    <sys:String x:Key="L_Add">Añadir</sys:String>
-    <sys:String x:Key="L_DoneTooltip">Hecho</sys:String>
-    <sys:String x:Key="L_Weekly">Semanal</sys:String>
-    <sys:String x:Key="L_WeeklyTooltip">Mantener este elemento la próxima semana en vez de borrarlo</sys:String>
-    <sys:String x:Key="L_DragToReorder">Arrastra para reordenar</sys:String>
-    <sys:String x:Key="L_Remove">Eliminar</sys:String>
-    <sys:String x:Key="L_EditorEmpty">Aún no hay elementos — añade el primero arriba.</sys:String>
-    <sys:String x:Key="L_ClearCompleted">Borrar completados</sys:String>
-    <sys:String x:Key="L_DragHint">Arrastra ⋮⋮ para reordenar</sys:String>
-    <sys:String x:Key="L_PopupTimes">Horarios…</sys:String>
-    <sys:String x:Key="L_Done">Listo</sys:String>
-
-    <!-- Confirmation -->
-    <sys:String x:Key="L_ConfirmTitle">Confirmar</sys:String>
-    <sys:String x:Key="L_Cancel">Cancelar</sys:String>
-    <sys:String x:Key="L_RemoveItemQ">¿Eliminar este elemento?</sys:String>
-    <sys:String x:Key="L_RemoveRepeatsNote">Este se repite cada semana; al eliminarlo dejará de volver.</sys:String>
-    <sys:String x:Key="L_RemoveCompletedOneQ">¿Eliminar el elemento completado?</sys:String>
-    <sys:String x:Key="L_RemoveCompletedManyQFmt">¿Eliminar {0} elementos completados?</sys:String>
-    <sys:String x:Key="L_RemoveAll">Eliminar todos</sys:String>
-
-    <!-- Settings -->
-    <sys:String x:Key="L_SettingsTitle">Sidequest — Ajustes</sys:String>
-    <sys:String x:Key="L_Settings">Ajustes</sys:String>
-    <sys:String x:Key="L_WhenItPopsUp">Cuándo aparece</sys:String>
-    <sys:String x:Key="L_TimesHelp">Al menos dos al día. Añade los que quieras.</sys:String>
-    <sys:String x:Key="L_AddTime">Añadir hora</sys:String>
-    <sys:String x:Key="L_TimeHintDefault">Escribe una hora como 09:00 y pulsa Enter.</sys:String>
-    <sys:String x:Key="L_TimeUnreadableFmt">No se pudo leer "{0}" como hora. Prueba 09:00 o 7:30 pm.</sys:String>
-    <sys:String x:Key="L_TimeDuplicateFmt">{0} ya está en la lista.</sys:String>
-    <sys:String x:Key="L_TimeAddedFmt">Añadido {0}.</sys:String>
-    <sys:String x:Key="L_TimeRemovedFmt">Eliminado {0}.</sys:String>
-    <sys:String x:Key="L_TimeMinimumFmt">Se requieren al menos {0} horas al día.</sys:String>
-    <sys:String x:Key="L_OnWhichDays">En qué días</sys:String>
-    <sys:String x:Key="L_DaysHint">Mantén al menos un día seleccionado.</sys:String>
-    <sys:String x:Key="L_Behaviour">Comportamiento</sys:String>
-    <sys:String x:Key="L_SnoozeFor">Posponer</sys:String>
-    <sys:String x:Key="L_ClosePopupAfter">Cerrar la ventana tras</sys:String>
-    <sys:String x:Key="L_KeepOnTop">Mantener sobre otras ventanas</sys:String>
-    <sys:String x:Key="L_KeepOnTopHelp">Desactivado, el recordatorio queda detrás de lo que estés usando.</sys:String>
-    <sys:String x:Key="L_Appearance">Apariencia</sys:String>
-    <sys:String x:Key="L_DarkMode">Modo oscuro</sys:String>
-    <sys:String x:Key="L_DarkModeHelp">Se aplica al instante, en todas las ventanas.</sys:String>
-    <sys:String x:Key="L_Language">Idioma</sys:String>
-    <sys:String x:Key="L_Startup">Inicio</sys:String>
-    <sys:String x:Key="L_OpenOnStartup">Abrir al iniciar sesión</sys:String>
-    <sys:String x:Key="L_StartupHelp">Añade una entrada de usuario en la clave Run. No requiere permisos de administrador.</sys:String>
-    <sys:String x:Key="L_PreviewPopup">Vista previa</sys:String>
-
-    <!-- Duration choices -->
-    <sys:String x:Key="L_MinutesFmt">{0} minutos</sys:String>
-    <sys:String x:Key="L_OneHour">1 hora</sys:String>
-    <sys:String x:Key="L_Never">Nunca</sys:String>
-    <sys:String x:Key="L_SecondsFmt">{0} segundos</sys:String>
-    <sys:String x:Key="L_OneMinute">1 minuto</sys:String>
-    <sys:String x:Key="L_TwoMinutes">2 minutos</sys:String>
-
-    <!-- Claves de la 7, añadidas conforme aparece cada pantalla. -->
+    <!-- Comunes y barra de título -->
     <sys:String x:Key="L_AppName">Sidequest</sys:String>
-    <sys:String x:Key="L_Close">Cerrar</sys:String>
+    <sys:String x:Key="L_Back">Volver</sys:String>
+    <sys:String x:Key="L_MainPanel">Panel principal</sys:String>
     <sys:String x:Key="L_Sidequests">Sidequests</sys:String>
     <sys:String x:Key="L_CounterFmt">{0} / {1}</sys:String>
+    <sys:String x:Key="L_Collapse">Contraer</sys:String>
+    <sys:String x:Key="L_Expand">Expandir</sys:String>
+    <sys:String x:Key="L_KeepOnTop">Mantener encima de otras apps</sys:String>
+    <sys:String x:Key="L_Close">Cerrar</sys:String>
+    <sys:String x:Key="L_Cancel">Cancelar</sys:String>
+    <sys:String x:Key="L_Settings">Ajustes</sys:String>
+
+    <!-- Panel principal (5.1) -->
     <sys:String x:Key="L_PanelEmpty">Sin objetivos. Entra a un Sidequest y envía uno.</sys:String>
     <sys:String x:Key="L_ReturnToSidequest">Devolver al Sidequest</sys:String>
     <sys:String x:Key="L_DeleteObjective">Eliminar objetivo</sys:String>
     <sys:String x:Key="L_DeleteObjectiveQ">¿Eliminar este objetivo? También se borra de su Sidequest.</sys:String>
 
-    <!-- Migración (D3). El resto de la tabla de la 7 reemplaza este archivo más adelante. -->
-    <sys:String x:Key="L_ImportedSidequest">Importados</sys:String>
+    <!-- Lista y nuevo Sidequest (5.4, 5.5) -->
+    <sys:String x:Key="L_ActiveFmt">{0} activos</sys:String>
+    <sys:String x:Key="L_NewSidequest">Nuevo Sidequest</sys:String>
+    <sys:String x:Key="L_Name">Nombre</sys:String>
+    <sys:String x:Key="L_Theme">Tema</sys:String>
+    <sys:String x:Key="L_Create">Crear</sys:String>
+    <sys:String x:Key="L_Theme_Amber">Ámbar</sys:String>
+    <sys:String x:Key="L_Theme_Teal">Turquesa</sys:String>
+    <sys:String x:Key="L_Theme_Indigo">Índigo</sys:String>
+    <sys:String x:Key="L_Theme_Coral">Coral</sys:String>
+    <sys:String x:Key="L_Theme_Olive">Oliva</sys:String>
+    <sys:String x:Key="L_Theme_Plum">Ciruela</sys:String>
+    <sys:String x:Key="L_Theme_Steel">Acero</sys:String>
+    <sys:String x:Key="L_Theme_Slate">Grafito</sys:String>
 
-    <!-- Tray menu -->
-    <sys:String x:Key="L_TrayShow">Ver recordatorios</sys:String>
-    <sys:String x:Key="L_TrayEdit">Editar esta semana…</sys:String>
-    <sys:String x:Key="L_TraySettings">Ajustes…</sys:String>
+    <!-- Detalle del Sidequest (5.6) -->
+    <sys:String x:Key="L_ItemsFmt">{0} / {1} items</sys:String>
+    <sys:String x:Key="L_CurrentObjective">Objetivo actual</sys:String>
+    <sys:String x:Key="L_SendObjective">Enviar objetivo</sys:String>
+    <sys:String x:Key="L_AddItem">Añadir item</sys:String>
+    <sys:String x:Key="L_DeleteItem">Eliminar item</sys:String>
+    <sys:String x:Key="L_MoreOptions">Más opciones</sys:String>
+    <sys:String x:Key="L_Rename">Renombrar</sys:String>
+    <sys:String x:Key="L_ChangeTheme">Cambiar tema</sys:String>
+    <sys:String x:Key="L_DeleteSidequest">Eliminar Sidequest</sys:String>
+    <!-- La 7 añade "y su Bitácora": vuelve con la v1.1, que es cuando existe. -->
+    <sys:String x:Key="L_DeleteSidequestQ">¿Eliminar "{0}" con sus {1} items?</sys:String>
+
+    <!-- Bandeja (5.9). "Ajustes…" llega con la ventana de ajustes en la fase 5. -->
+    <sys:String x:Key="L_TrayShow">Mostrar panel</sys:String>
+    <sys:String x:Key="L_TraySidequests">Sidequests…</sys:String>
     <sys:String x:Key="L_TrayResetPosition">Restablecer posición</sys:String>
     <sys:String x:Key="L_TrayQuit">Salir</sys:String>
+
+    <!-- Migración (D3) -->
+    <sys:String x:Key="L_ImportedSidequest">Importados</sys:String>
+
+    <!-- No están en la 7: el título de la ventana de confirmación, los singulares y la
+         pregunta de borrar un item. -->
+    <sys:String x:Key="L_ConfirmTitle">Confirmar</sys:String>
+    <sys:String x:Key="L_ActiveOneFmt">{0} activo</sys:String>
+    <sys:String x:Key="L_DeleteItemQ">¿Eliminar este item?</sys:String>
+    <sys:String x:Key="L_DeleteSidequestOneQ">¿Eliminar "{0}" con su único item?</sys:String>
+    <sys:String x:Key="L_DeleteSidequestEmptyQ">¿Eliminar "{0}"?</sys:String>
 
 </ResourceDictionary>

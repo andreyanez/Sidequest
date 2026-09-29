@@ -2,9 +2,11 @@
 
 > **This README still describes WeeklyReminder, the app Sidequest is replacing.**
 > The rebuild is under way on the `sidequest` branch; what is being built is specified
-> in [`docs/design-spec.md`](docs/design-spec.md). Sections below describe behaviour
-> that is on its way out — the scheduler, the weekly rollover and the popup most of all.
-> This file gets rewritten once the new screens land.
+> in [`docs/design-spec.md`](docs/design-spec.md), and where it stands is in
+> [`docs/dev-notes.md`](docs/dev-notes.md). On that branch the scheduler, the weekly
+> rollover, the popup, the editor and the old settings window described below are already
+> gone, and so are the `--popup`, `--edit` and `--settings` switches. This file gets
+> rewritten once the new screens have all landed.
 
 A small tray-resident Windows app that pops up a reminder window showing what you
 planned for the week. Runs entirely locally; no accounts, no network.
