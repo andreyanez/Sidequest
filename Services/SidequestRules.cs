@@ -65,6 +65,20 @@ public static class SidequestRules
         return true;
     }
 
+    /// <summary>
+    /// 5.3's notes: plain text, at most 500 characters, addresses included. Lines are kept
+    /// as "\n", which is how the counter counts them. Returns whether anything changed.
+    /// </summary>
+    public static bool SetNotes(SidequestItem item, string notes)
+    {
+        var text = notes.Replace("\r\n", "\n");
+        if (text.Length > SidequestItem.MaxNotesLength) text = text[..SidequestItem.MaxNotesLength];
+        if (text == item.Notes) return false;
+
+        item.Notes = text;
+        return true;
+    }
+
     /// <summary>A new pending item at the end of its Sidequest (D7).</summary>
     public static SidequestItem AddItem(SidequestProject project, string text)
     {

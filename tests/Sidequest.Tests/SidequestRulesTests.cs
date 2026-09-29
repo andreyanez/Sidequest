@@ -99,6 +99,19 @@ public class SidequestRulesTests
     }
 
     [Fact]
+    public void SetNotes_KeepsLinesAsNewlines_AndStopsAtFiveHundred()
+    {
+        var item = new SidequestItem();
+
+        Assert.True(SidequestRules.SetNotes(item, "uno\r\ndos"));
+        Assert.Equal("uno\ndos", item.Notes);
+        Assert.False(SidequestRules.SetNotes(item, "uno\ndos"));
+
+        SidequestRules.SetNotes(item, new string('x', 600));
+        Assert.Equal(SidequestItem.MaxNotesLength, item.Notes.Length);
+    }
+
+    [Fact]
     public void AddItem_IsPending_AtTheEndOfItsSidequest()
     {
         var project = Project(SidequestTheme.Teal, 0, Item("a", 0), Item("b", 7));

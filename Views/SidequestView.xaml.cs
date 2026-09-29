@@ -176,6 +176,7 @@ public partial class SidequestView : UserControl
 
         var index = PendingItems().IndexOf(row.Item);
         _project.Items.Remove(row.Item);
+        Attachments.ReleaseMedia(new[] { row.Item }, App.Current.Projects);
         Save();
         Refresh();
         FocusPendingNear(index);
@@ -437,6 +438,7 @@ public partial class SidequestView : UserControl
             return;
 
         App.Current.Projects.Remove(_project);
+        Attachments.ReleaseMedia(_project.Items, App.Current.Projects);
         Save();
         _shell.ShowSidequests();
     }

@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:views="clr-namespace:Sidequest.Views">
 
     <!-- Sidequest's controls, per 4.1 and 4.4. Where a type has one look - CheckBox,
          TextBox, ScrollBar, ContextMenu, ToolTip - the style is implicit. Where it has
@@ -9,6 +10,10 @@
          Not implemented: the letter-spacing 4.1 asks for (-0.02em on 22/700, +0.06em on
          section labels). WPF has no such property on TextBlock and the workarounds all
          cost more than the effect is worth. -->
+
+    <!-- Pills (4.4) are half their height round; see PillRadiusConverter for why
+         the artboards' 999 cannot be copied as it is. -->
+    <views:PillRadiusConverter x:Key="PillRadius"/>
 
     <!-- ============ Typography (4.1) ============ -->
 
@@ -49,7 +54,7 @@
         <Setter Property="Control.Template">
             <Setter.Value>
                 <ControlTemplate>
-                    <Border Margin="-3" CornerRadius="999" BorderThickness="2"
+                    <Border Margin="-3" CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource PillRadius}}" BorderThickness="2"
                             BorderBrush="{DynamicResource Text}" SnapsToDevicePixels="True"/>
                 </ControlTemplate>
             </Setter.Value>
@@ -72,6 +77,30 @@
             <Setter.Value>
                 <ControlTemplate>
                     <Border Margin="-3" CornerRadius="15" BorderThickness="2"
+                            BorderBrush="{DynamicResource Text}" SnapsToDevicePixels="True"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Focus.R10">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-3" CornerRadius="13" BorderThickness="2"
+                            BorderBrush="{DynamicResource Text}" SnapsToDevicePixels="True"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- A row inside a list box, whose corners are the list's: the ring sits just inside
+         the row rather than 3px out, where the list would cut it off. -->
+    <Style x:Key="Focus.Inset">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="1" CornerRadius="8" BorderThickness="2"
                             BorderBrush="{DynamicResource Text}" SnapsToDevicePixels="True"/>
                 </ControlTemplate>
             </Setter.Value>
@@ -146,7 +175,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="999">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource PillRadius}}">
                         <StackPanel Orientation="Horizontal"
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
@@ -186,7 +215,7 @@
                             Background="{DynamicResource Surface}"
                             BorderBrush="{DynamicResource Line2}"
                             BorderThickness="1"
-                            CornerRadius="999">
+                            CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource PillRadius}}">
                         <ContentPresenter HorizontalAlignment="Center"
                                           VerticalAlignment="Center"
                                           Margin="{TemplateBinding Padding}"/>
@@ -246,7 +275,7 @@
                     <Border Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="1"
-                            CornerRadius="999"
+                            CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource PillRadius}}"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter VerticalAlignment="Center"/>
                     </Border>
@@ -330,7 +359,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Grid>
-                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="999"/>
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource PillRadius}}"/>
                         <Rectangle Stroke="{DynamicResource Line2}" StrokeThickness="1.5"
                                    StrokeDashArray="2 1.333" RadiusX="21.25" RadiusY="21.25"/>
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -364,13 +393,157 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="1.5"
-                            CornerRadius="999"
+                            CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource PillRadius}}"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ============ Objective detail (5.3) ============ =====================
+
+         Text that opens something: the objective's title on a panel card. FnMain draws it
+         as a plain <a>, so there is no chrome; a:hover takes it to Text2, which the card
+         applies to its own TextBlock, since that text sets its colour itself. -->
+    <Style x:Key="TextButton" TargetType="Button">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.R8}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}">
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- A linked file, the whole 42px row: click opens it (5.3). FnObjetivo gives the row no
+         hover state, so only the cursor says so. The separator under it is the list's. -->
+    <Style x:Key="FileRowButton" TargetType="Button" BasedOn="{StaticResource TextButton}">
+        <Setter Property="Height" Value="42"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.Inset}"/>
+    </Style>
+
+    <!-- "+ Vincular archivo", the last row of the list: 42 high, 12 in, 13px in Text2; hover
+         as .ib, a Hover fill and Text. Disabled at five files (5.3). -->
+    <Style x:Key="ListActionButton" TargetType="Button">
+        <Setter Property="Height" Value="42"/>
+        <Setter Property="Padding" Value="12,0"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.Inset}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Hover}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.45"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- An image cell: the thumbnail fills a 66px box, radius 10, with a Line border (5.3).
+         The thumbnail arrives as Background; content is only shown when there is none,
+         for an image whose copy has gone missing. -->
+    <Style x:Key="ImageCellButton" TargetType="Button">
+        <Setter Property="Height" Value="66"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.R10}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{DynamicResource Surface}"
+                            BorderBrush="{DynamicResource Line}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                        <Grid>
+                            <Border CornerRadius="9" Background="{TemplateBinding Background}"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- The "+" cell: FnObjetivo's 1px dashed Line2 at radius 10; hover as .ib. -->
+    <Style x:Key="DashedCell" TargetType="Button">
+        <Setter Property="Height" Value="66"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.R10}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="10"/>
+                        <Rectangle x:Name="Dash" Stroke="{DynamicResource Line2}" StrokeThickness="1"
+                                   StrokeDashArray="3 2" RadiusX="9.5" RadiusY="9.5" SnapsToDevicePixels="True"/>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Hover}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                        <!-- An image dragged over the panel (5.3): the cell it will land in. -->
+                        <Trigger Property="Tag" Value="DropTarget">
+                            <Setter TargetName="Dash" Property="Stroke" Value="{DynamicResource Text}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- "Quitar" on a thumbnail, shown on hover or focus. It sits on the picture itself, so
+         it carries its own solid Surface disc to stay legible on any image. -->
+    <Style x:Key="OverlayButton" TargetType="Button">
+        <Setter Property="Width" Value="22"/>
+        <Setter Property="Height" Value="22"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.Pill}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{DynamicResource Surface}"
+                            BorderBrush="{DynamicResource Line2}"
+                            BorderThickness="1"
+                            CornerRadius="11">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -508,20 +681,6 @@
         </Setter>
     </Style>
 
-    <!-- The notes field in 5.3, at its 13 px size.
-
-         Not implemented: the artboard's 1.55 line box. A WPF TextBox has no LineHeight
-         at all (it is a Block property, and TextBox is not a Block), so line spacing
-         cannot be set on one - it falls out of the font's own metrics. 5.3 already
-         suggests a RichTextBox here for URL detection, and a RichTextBox can carry it on
-         its Paragraph; phase 4 picks that up when it builds the field for real. -->
-    <Style x:Key="TextBox.Notes" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-        <Setter Property="FontSize" Value="13"/>
-        <Setter Property="TextWrapping" Value="Wrap"/>
-        <Setter Property="AcceptsReturn" Value="True"/>
-        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
-    </Style>
-
     <!-- A single-line field at a fixed height with its text centred: FnSidequestNuevo's
          name field is a border-box <input>, 40 high, 12 in from its border. -->
     <Style x:Key="TextBox.Line" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
@@ -615,6 +774,58 @@
                                       VerticalScrollBarVisibility="Hidden"
                                       Focusable="False"/>
                     </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 5.3's notes: one plain-text field whose web addresses show as links in the
+         Sidequest's colour. A RichTextBox rather than a TextBox, for two reasons: its
+         document can carry FnObjetivo's 1.55 line height, which a TextBox cannot, and its
+         links stay live while it is being edited. The view builds the document; this is
+         the frame: Surface, a Line border that goes to Text on focus, radius 10, a fixed
+         148 as rendered. As with TextBox, Padding is applied by the control itself. The
+         document's PagePadding must be 0 as well, and set on the document the control
+         already has: a RichTextBox gives any document assigned to it a 5px page padding
+         each side, overriding whatever the document said. -->
+    <Style x:Key="NotesBox" TargetType="RichTextBox">
+        <Setter Property="Background" Value="{DynamicResource Surface}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+        <Setter Property="CaretBrush" Value="{DynamicResource Text}"/>
+        <Setter Property="SelectionBrush" Value="{DynamicResource Text2}"/>
+        <Setter Property="Padding" Value="12"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Height" Value="148"/>
+        <Setter Property="AcceptsReturn" Value="True"/>
+        <Setter Property="IsDocumentEnabled" Value="True"/>
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RichTextBox">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="10"
+                            SnapsToDevicePixels="True">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                      Focusable="False"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                                <Condition Property="IsKeyboardFocusWithin" Value="False"/>
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Line2}"/>
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

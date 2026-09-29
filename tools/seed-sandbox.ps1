@@ -75,6 +75,36 @@ $impuestos = Project 'Impuestos 2026' 'Coral' 3 @(
 
 $dir = Join-Path $Sandbox 'Sidequest'
 New-Item -ItemType Directory -Force -Path $dir | Out-Null
+
+# FnObjetivo's objective: its notes (129 characters, as the artboard counts them), one
+# linked file and three images. The file is real, in the sandbox, so it does not show as
+# missing; the images are drawn here and put straight into media\, as an import would.
+$cotizar = $mudanza.Items[0]
+$cotizar.Notes = "Pedir cotización a 3 empresas. Confirmar embalaje y seguro.`nhttps://transportes.example/cotizar`nhttps://hojas.example/comparativa"
+
+$linked = Join-Path $Sandbox 'files\Mudanza\inventario-cajas.xlsx'
+New-Item -ItemType Directory -Force -Path (Split-Path $linked) | Out-Null
+Set-Content -LiteralPath $linked -Value '' -Encoding UTF8
+$cotizar.Files = @($linked)
+
+Add-Type -AssemblyName System.Drawing
+$media = Join-Path $dir 'media'
+New-Item -ItemType Directory -Force -Path $media | Out-Null
+$names = @()
+foreach ($pair in @(@('#4FB5A8', '#1D2D2E'), @('#D4A24A', '#2B2419'), @('#8B93E6', '#1F2033'))) {
+    $bmp = New-Object System.Drawing.Bitmap 480, 360
+    $g = [System.Drawing.Graphics]::FromImage($bmp)
+    $rect = New-Object System.Drawing.Rectangle 0, 0, 480, 360
+    $brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush $rect,
+        ([System.Drawing.ColorTranslator]::FromHtml($pair[0])), ([System.Drawing.ColorTranslator]::FromHtml($pair[1])), 45
+    $g.FillRectangle($brush, $rect)
+    $name = ([guid]::NewGuid().ToString('N')) + '.png'
+    $bmp.Save((Join-Path $media $name), [System.Drawing.Imaging.ImageFormat]::Png)
+    $brush.Dispose(); $g.Dispose(); $bmp.Dispose()
+    $names += $name
+}
+$cotizar.Images = $names
+
 $json = ConvertTo-Json @($portafolio, $mudanza, $curso, $impuestos) -Depth 8
 Set-Content -LiteralPath (Join-Path $dir 'sidequests.json') -Value $json -Encoding UTF8
 

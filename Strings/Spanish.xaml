@@ -56,6 +56,16 @@
     <!-- La 7 añade "y su Bitácora": vuelve con la v1.1, que es cuando existe. -->
     <sys:String x:Key="L_DeleteSidequestQ">¿Eliminar "{0}" con sus {1} items?</sys:String>
 
+    <!-- Detalle del objetivo (5.3) -->
+    <sys:String x:Key="L_NotesAndLinks">Notas y enlaces</sys:String>
+    <sys:String x:Key="L_LocalFiles">Archivos locales</sys:String>
+    <sys:String x:Key="L_LinkFile">Vincular archivo</sys:String>
+    <sys:String x:Key="L_UnlinkFile">Desvincular archivo</sys:String>
+    <sys:String x:Key="L_FileMissing">No se encuentra el archivo</sys:String>
+    <sys:String x:Key="L_Images">Imágenes</sys:String>
+    <sys:String x:Key="L_AddImage">Añadir imagen</sys:String>
+    <sys:String x:Key="L_RemoveImage">Quitar imagen</sys:String>
+
     <!-- Bandeja (5.9). "Ajustes…" llega con la ventana de ajustes en la fase 5. -->
     <sys:String x:Key="L_TrayShow">Mostrar panel</sys:String>
     <sys:String x:Key="L_TraySidequests">Sidequests…</sys:String>
@@ -72,5 +82,7 @@
     <sys:String x:Key="L_DeleteItemQ">¿Eliminar este item?</sys:String>
     <sys:String x:Key="L_DeleteSidequestOneQ">¿Eliminar "{0}" con su único item?</sys:String>
     <sys:String x:Key="L_DeleteSidequestEmptyQ">¿Eliminar "{0}"?</sys:String>
+    <!-- El nombre de una miniatura para un lector de pantalla. -->
+    <sys:String x:Key="L_ImageFmt">Imagen {0}</sys:String>
 
 </ResourceDictionary>
