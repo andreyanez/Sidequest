@@ -72,6 +72,17 @@ public partial class PanelView : UserControl
     internal void FocusSidequestsButton() =>
         Dispatcher.BeginInvoke(() => SidequestsButton.Focus(), System.Windows.Threading.DispatcherPriority.Loaded);
 
+    /// <summary>Back from an objective's detail: focus on its title, where the user left.</summary>
+    internal void FocusObjective(SidequestItem item) =>
+        Dispatcher.BeginInvoke(() => FocusObjectiveNow(item), System.Windows.Threading.DispatcherPriority.Loaded);
+
+    /// <summary>5.1: the title opens the objective's detail.</summary>
+    private void ItemText_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: ObjectiveRow row })
+            _shell.ShowObjective(row.Item, row.Project);
+    }
+
     /// <summary>The collapsed row shows the same date and counter, so both are shared.</summary>
     internal static string FullDateText() => FullDate(DateTime.Today);
 
@@ -130,10 +141,41 @@ public partial class PanelView : UserControl
     {
         if (sender is not FrameworkElement { DataContext: ObjectiveRow row }) return;
 
+        var index = RowIndex(row);
         SidequestRules.ReturnToSidequest(row.Item);
 
         Save();
         Refresh();
+        FocusRowNear(index);
+    }
+
+    private int RowIndex(ObjectiveRow row) =>
+        (ObjectiveList.ItemsSource as List<ObjectiveRow>)?.FindIndex(r => r.Item == row.Item) ?? 0;
+
+    /// <summary>
+    /// After a row leaves - returned or deleted - focus goes to the objective that took its
+    /// place, or the one before it, or the Sidequests button: rebuilding the list would
+    /// otherwise drop it back at the top of the window.
+    /// </summary>
+    private void FocusRowNear(int index) =>
+        Dispatcher.BeginInvoke(() =>
+        {
+            var rows = ObjectiveList.ItemsSource as List<ObjectiveRow>;
+            if (rows is not { Count: > 0 })
+            {
+                SidequestsButton.Focus();
+                return;
+            }
+
+            FocusObjectiveNow(rows[Math.Clamp(index, 0, rows.Count - 1)].Item);
+        }, System.Windows.Threading.DispatcherPriority.Loaded);
+
+    private void FocusObjectiveNow(SidequestItem item)
+    {
+        var title = VisualTree.FindDescendant<System.Windows.Controls.Button>(ObjectiveList,
+            b => b.Name == "ItemButton" && b.DataContext is ObjectiveRow row && row.Item == item);
+        if (title is not null) title.Focus();
+        else SidequestsButton.Focus();
     }
 
     /// <summary>5.1: the chip opens its Sidequest.</summary>
@@ -176,9 +218,12 @@ public partial class PanelView : UserControl
                 confirmLabel: LanguageService.Get("L_DeleteObjective")))
             return;
 
+        var index = RowIndex(row);
         row.Project.Items.Remove(row.Item);
+        Attachments.ReleaseMedia(new[] { row.Item }, App.Current.Projects);
         Save();
         Refresh();
+        FocusRowNear(index);
     }
 
     private void Sidequests_Click(object sender, RoutedEventArgs e) => _shell.ShowSidequests();

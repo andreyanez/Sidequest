@@ -65,6 +65,9 @@ in dev-notes. They attach only to a build from this repo.
   `IconPath` style, which takes its stroke from `Foreground`.
 - **TextBox templates** must not bind their content host's `Margin` to `Padding`:
   TextBox applies `Padding` itself, so binding it indents the text twice.
+- **Pills** take their radius from `PillRadiusConverter` (half the height), never
+  `CornerRadius="999"`. The artboards' 999 is a pill in CSS, but in WPF it makes an
+  ellipse.
 - **Windows** set `Style="{StaticResource AppWindow}"` explicitly. They are frameless
   (`WindowStyle="None"` with `AllowsTransparency`) with a radius-12 root `Border`.
 - **Keyboard and screen readers.**

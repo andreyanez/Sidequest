@@ -67,13 +67,19 @@
                                               Checked="Done_Changed"
                                               Unchecked="Done_Changed"/>
 
-                                    <!-- Click opens the objective's detail; that view arrives in phase 4. -->
-                                    <TextBlock x:Name="ItemText"
-                                               Grid.Column="1"
-                                               Margin="12,0,12,0"
-                                               VerticalAlignment="Center"
-                                               Style="{StaticResource ItemText}"
-                                               Text="{Binding Item.Text}"/>
+                                    <!-- The title opens the objective's detail (5.1, 5.3). A
+                                         button, so the keyboard reaches it too; FnMain draws a
+                                         plain link that goes to Text2 on hover. -->
+                                    <Button x:Name="ItemButton"
+                                            Grid.Column="1"
+                                            Margin="12,0,12,0"
+                                            Style="{StaticResource TextButton}"
+                                            AutomationProperties.Name="{Binding Item.Text}"
+                                            Click="ItemText_Click">
+                                        <TextBlock x:Name="ItemText"
+                                                   Style="{StaticResource ItemText}"
+                                                   Text="{Binding Item.Text}"/>
+                                    </Button>
 
                                     <!-- Chip: opens the Sidequest (5.1). A button, so the
                                          keyboard reaches it too. The name is truncated rather
@@ -121,6 +127,9 @@
                                     <Setter TargetName="ItemText" Property="Foreground" Value="{DynamicResource Text2}"/>
                                     <Setter TargetName="ItemText" Property="TextDecorations" Value="Strikethrough"/>
                                 </DataTrigger>
+                                <Trigger SourceName="ItemButton" Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="ItemText" Property="Foreground" Value="{DynamicResource Text2}"/>
+                                </Trigger>
                                 <Trigger SourceName="Card" Property="IsMouseOver" Value="True">
                                     <Setter TargetName="Card" Property="Background" Value="{DynamicResource Hover}"/>
                                     <Setter TargetName="Actions" Property="Visibility" Value="Visible"/>

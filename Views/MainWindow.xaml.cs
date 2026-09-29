@@ -77,14 +77,21 @@ public partial class MainWindow : Window
 
     /// <summary>
     /// Back to the main panel, rebuilt from the model since a sub-panel may have sent,
-    /// deleted or ticked things. Focus returns to the button that left it.
+    /// deleted or ticked things. Focus returns to what left it: the objective that was
+    /// opened, or else the Sidequests button.
     /// </summary>
-    public void ShowMainPanel()
+    public void ShowMainPanel(SidequestItem? focus = null)
     {
         Navigate(_panel, backKey: null, back: null);
         _panel.Refresh();
-        _panel.FocusSidequestsButton();
+
+        if (focus is not null) _panel.FocusObjective(focus);
+        else _panel.FocusSidequestsButton();
     }
+
+    /// <summary>5.3, reached from an objective's title on the panel, and back to it.</summary>
+    public void ShowObjective(SidequestItem item, SidequestProject project) =>
+        Navigate(new ObjectiveView(this, item, project), "L_MainPanel", () => ShowMainPanel(item));
 
     /// <param name="focus">The Sidequest to put keyboard focus on, when coming back from it.</param>
     public void ShowSidequests(SidequestProject? focus = null)
@@ -97,7 +104,7 @@ public partial class MainWindow : Window
             Storage.SaveSettings(App.Current.Settings);
         }
 
-        Navigate(new SidequestsView(this, focus), "L_MainPanel", ShowMainPanel);
+        Navigate(new SidequestsView(this, focus), "L_MainPanel", () => ShowMainPanel());
     }
 
     /// <param name="justCreated">Opens the add-item field straight away, since an empty

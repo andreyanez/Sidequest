@@ -7,10 +7,11 @@ records decisions that are not visible in the code.
 Current branch: `sidequest`. WeeklyReminder stays installed and in daily use until
 phase 6 completes.
 
-**Status:** phases 0–3 are done: renames, font, palette and icons; data and import;
+**Status:** phases 0–4 are done: renames, font, palette and icons; data and import;
 shell and main panel; navigation, the Sidequests list, the new-Sidequest form and the
-Sidequest detail. WeeklyReminder's screens are gone from this branch. Next is phase 4,
-the objective detail (§5.3).
+Sidequest detail; the objective detail with its notes, files and images.
+WeeklyReminder's screens are gone from this branch. Next is phase 5, the settings
+window and the tray (§5.8, §5.9).
 
 ---
 
@@ -49,7 +50,7 @@ on an 18px box clamps to a circle, and every bordered box is 2px larger than its
 
 | Script | What it is for |
 | --- | --- |
-| `tools/seed-sandbox.ps1` | Fills a sandbox with the artboards' four Sidequests and six panel objectives |
+| `tools/seed-sandbox.ps1` | Fills a sandbox with the artboards' four Sidequests, six panel objectives, and `FnObjetivo`'s notes, file and images |
 | `tools/run-sandbox.ps1` | Reseeds the sandbox and launches the build in a given theme and language, at a fixed position |
 | `tools/render-artboard.ps1` | Renders an artboard to PNG at 1:1 with headless Edge |
 | `tools/capture-window.ps1` | Screenshots the app's own window rect (never the whole desktop) |
@@ -81,6 +82,10 @@ advance to a whole pixel and WPF has no letter-spacing. A string that exactly fi
 Chrome can therefore ellipsize in the app ("Cambiar dirección de servicios" in
 `FnSidequest` does). None of this is a layout error, and chasing it cost a phase 3
 session an hour.
+
+Look at shapes as well as measuring boxes. Through phases 2 and 3 every pill rendered as
+an ellipse, whose bounding box is the same as a pill's, so no measurement caught it; a 4x
+zoom of one chip did at once.
 
 Three traps, all of which produced confident wrong answers before:
 
@@ -159,6 +164,49 @@ Where the artboards and §5 left something open, or disagree:
   margin to `Padding`, which TextBox already applies itself, so field text was indented
   twice. Nothing used those styles until now.
 
+### Phase 4
+
+- **The notes are a `RichTextBox`**, rebuilt from plain text: one paragraph per line, with
+  every http(s) address a link in the Sidequest's colour. New addresses turn into links
+  when the field is left, as §5.3 says. The counter counts a line break as one character:
+  `FnObjetivo`'s "129 / 500" is exactly its three lines and two breaks.
+- **Opening links.** Ctrl+click opens a link, and so does a plain click while the field
+  doesn't have focus (§5.3). **Ctrl+Enter** opens the address under the caret, which is
+  the keyboard's way in; the spec doesn't give one. Only http and https ever open.
+- **The 500 cap has two layers.** A `RichTextBox` has no `MaxLength`. Keystrokes, Enter and
+  pastes are held to the room left. The field also queues typed characters and applies
+  them in batches, so fast typing got past that check by five, and whatever lands over
+  500 is trimmed from just before the caret. Pastes arrive as plain text.
+- **Image copies are deleted** when their image is removed, and when their objective or
+  Sidequest is deleted. There is deliberately no sweep for unreferenced files. A
+  quarantined `sidequests.json` loads as empty, and a sweep would then delete every image.
+- **Things no artboard shows:**
+  - "Quitar" on a thumbnail is a small disc in its corner, shown on hover or focus.
+  - An image dragged over the panel lights up the "+" cell it will land in.
+  - A file row opens its file on click but has no hover state, since `FnObjetivo` draws
+    none. A file that has gone reads in Text2, with "No se encuentra el archivo" as its
+    tooltip.
+- **String not in §7:** `L_ImageFmt` ("Imagen 2"), the thumbnails' accessible names.
+- **The panel's objective titles are buttons** now (§5.1), turning Text2 on hover as
+  `FnMain`'s `a:hover` does. Back from the detail, focus returns to that title. After a
+  delete or a return on the panel, focus moves to the next objective instead of dropping
+  to the window.
+- **The objective view uses layout rounding.** Its 19px title sits on a 24.7px line,
+  which left everything below it on fractional pixels, where 1px borders smeared across
+  two rows. Chrome snaps boxes to whole pixels when it paints; `UseLayoutRounding` does
+  the same.
+- **Fixed on the way:**
+  - Every pill in the app rendered as an ellipse. The artboards write
+    `border-radius: 999px`, which CSS scales down evenly, but WPF scales it separately
+    along each side. `PillRadiusConverter` gives half the height instead.
+  - A `RichTextBox` gives any document assigned to it a 5px page padding each side,
+    whatever the document says. The notes set it on the document the field already
+    owns.
+- **Not checked live:** opening a link, a file or an image, since each would launch an
+  app on the desktop; dragging an image in; and paste truncation, which would overwrite
+  the clipboard. The first three are one-line shell calls. An oversized paste that got
+  past its own check would meet the same trim that stopped fast typing, which is checked.
+
 ## Known deviations from the spec
 
 - **The import does not carry over WeeklyReminder's settings** (§3 step 3). Accepted on
@@ -170,9 +218,6 @@ Where the artboards and §5 left something open, or disagree:
   +0.06em on section labels; measured on the artboard that is −0.44px and +0.66px. WPF has
   no letter-spacing property, and the workaround is an attached behaviour that rebuilds
   text as per-character `Run`s.
-- **The notes field has no line-height.** §5.3's artboard uses a 1.55 line box. A WPF
-  `TextBox` cannot carry one (`LineHeight` is a `Block` property). §5.3 already suggests a
-  `RichTextBox` for URL detection, which can, so phase 4 should use that.
 - **The artboards disagree with each other on button radius.** `FnMain` and `FnSidequest`
   use pills (`999`); `FnSidequestNuevo` uses `10` and `FnAjustes` uses `5`. The built
   styles are pills, matching §4.4 and the two panel screens. That includes

@@ -133,7 +133,7 @@
                 <Border Grid.Column="1"
                         Height="22"
                         Padding="9,0"
-                        CornerRadius="999"
+                        CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource PillRadius}}"
                         VerticalAlignment="Center"
                         Background="{DynamicResource Text}">
                     <TextBlock x:Name="CollapsedCounter"
