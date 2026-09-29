@@ -15,15 +15,22 @@ namespace Sidequest.Services;
 /// </summary>
 public static class SidequestPalette
 {
-    /// <summary>Alpha values from 4.2, named for where each one is used.</summary>
+    /// <summary>
+    /// Alpha values from 4.2, named for where each one is used. The last three are not
+    /// in 4.2 at all; the artboards introduce them, and the artboards win.
+    /// </summary>
     public static class Alpha
     {
         public const double HeaderTint = 0.14;      // banda de cabecera
         public const double ListTint = 0.09;        // botón de Sidequest en la lista
         public const double ListBorder = 0.34;      // borde de ese botón
-        public const double ProgressTrack = 0.25;   // pista de progreso
+        public const double ProgressTrack = 0.25;   // pista de progreso (banda de cabecera)
         public const double SendBorder = 0.55;      // borde de "Enviar objetivo"
         public const double SelectionFill = 0.08;   // relleno de forma seleccionada (Bitácora)
+
+        public const double ListProgressTrack = 0.20;  // FnSidequests: la pista en la lista es 20, no 25
+        public const double FormTint = 0.07;           // FnSidequestNuevo: tarjeta del formulario
+        public const double FormBorder = 0.40;         // FnSidequestNuevo: su borde
     }
 
     // 4.2's values, with two light-mode corrections.

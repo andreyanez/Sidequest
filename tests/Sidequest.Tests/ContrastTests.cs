@@ -43,16 +43,21 @@ public class ContrastTests
 
         var bg = tokens["Bg"];
         var surface = tokens["Surface"];
+        var hover = tokens["Hover"];
         var inv = tokens["Inv"];
 
         // Chip text, Sidequest name, "Enviar objetivo", progress labels.
         AssertContrast(c, bg, app, theme, "on Bg");
         AssertContrast(c, surface, app, theme, "on Surface");
 
+        // "Enviar objetivo" stays in C while its row takes the Hover fill (5.6).
+        AssertContrast(c, hover, app, theme, "on Hover");
+
         // The tinted surfaces are the tight ones: the text sits on a wash of its own
         // colour, which narrows the gap rather than widening it.
         AssertContrast(c, Composite(c, SidequestPalette.Alpha.HeaderTint, bg), app, theme, "on its 14% header band");
         AssertContrast(c, Composite(c, SidequestPalette.Alpha.ListTint, bg), app, theme, "on its 9% list tint");
+        AssertContrast(c, Composite(c, SidequestPalette.Alpha.FormTint, bg), app, theme, "on its 7% new-Sidequest form");
 
         // Reversed out: the "Objetivo actual" pill is Inv text on a solid theme fill.
         AssertContrast(inv, c, app, theme, "Inv on the theme fill");
@@ -117,7 +122,7 @@ public class ContrastTests
                 Convert.ToByte(value.Substring(5, 2), 16));
         }
 
-        foreach (var required in new[] { "Bg", "Surface", "Inv" })
+        foreach (var required in new[] { "Bg", "Surface", "Hover", "Inv" })
             Assert.True(tokens.ContainsKey(required), $"{required} missing from {Path.GetFileName(path)}");
 
         return tokens;

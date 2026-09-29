@@ -1,7 +1,13 @@
 using System.Windows;
+using System.Windows.Automation;
+using Sidequest.Models;
 using Sidequest.Services;
+using DispatcherPriority = System.Windows.Threading.DispatcherPriority;
+using FocusNavigationDirection = System.Windows.Input.FocusNavigationDirection;
 using MouseButtonEventArgs = System.Windows.Input.MouseButtonEventArgs;
 using MouseButtonState = System.Windows.Input.MouseButtonState;
+using TextBlock = System.Windows.Controls.TextBlock;
+using TraversalRequest = System.Windows.Input.TraversalRequest;
 
 namespace Sidequest.Views;
 
@@ -20,8 +26,9 @@ public partial class MainWindow : Window
     /// <summary>5.1: the panel grows until this much of the work area is left.</summary>
     private const double ScreenPadding = 48;
 
-    private readonly PanelView _panel = new();
+    private readonly PanelView _panel;
     private readonly Action _refresh;
+    private Action? _back;
     private bool _restoring;
 
     public MainWindow()
@@ -29,6 +36,8 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         MaxHeight = Math.Max(MinHeight, SystemParameters.WorkArea.Height - ScreenPadding);
+
+        _panel = new PanelView(this);
         ViewHost.Content = _panel;
 
         _restoring = true;
@@ -50,7 +59,11 @@ public partial class MainWindow : Window
         };
     }
 
-    /// <summary>Brings the panel back without rebuilding it, so nothing is lost.</summary>
+    /// <summary>
+    /// The app's front door (tray, relaunch). Brings the window back without navigating:
+    /// it is only ever hidden from the main panel, since sub-panels have no close button,
+    /// and a visible sub-panel may be holding something half-typed.
+    /// </summary>
     public void ShowPanel()
     {
         _panel.Refresh();
@@ -59,6 +72,65 @@ public partial class MainWindow : Window
         if (!IsVisible) Show();
         Activate();
     }
+
+    // ---- Navigation (5) --------------------------------------------------------------
+
+    /// <summary>
+    /// Back to the main panel, rebuilt from the model since a sub-panel may have sent,
+    /// deleted or ticked things. Focus returns to the button that left it.
+    /// </summary>
+    public void ShowMainPanel()
+    {
+        Navigate(_panel, backKey: null, back: null);
+        _panel.Refresh();
+        _panel.FocusSidequestsButton();
+    }
+
+    /// <param name="focus">The Sidequest to put keyboard focus on, when coming back from it.</param>
+    public void ShowSidequests(SidequestProject? focus = null)
+    {
+        // The tray's "Sidequests…" can arrive while the panel is rolled up, and the list
+        // lives in the expanded panel.
+        if (App.Current.Settings.Collapsed)
+        {
+            ApplyCollapsed(false, pinBottomEdge: true);
+            Storage.SaveSettings(App.Current.Settings);
+        }
+
+        Navigate(new SidequestsView(this, focus), "L_MainPanel", ShowMainPanel);
+    }
+
+    /// <param name="justCreated">Opens the add-item field straight away, since an empty
+    /// Sidequest's next step is always its first item.</param>
+    public void ShowSidequest(SidequestProject project, bool justCreated = false) =>
+        Navigate(new SidequestView(this, project, justCreated), "L_Sidequests", () => ShowSidequests(project));
+
+    private void Navigate(FrameworkElement view, string? backKey, Action? back)
+    {
+        _back = back;
+        ViewHost.Content = view;
+
+        var isSubPanel = backKey is not null;
+        PanelBar.Visibility = isSubPanel ? Visibility.Collapsed : Visibility.Visible;
+        SubBar.Visibility = isSubPanel ? Visibility.Visible : Visibility.Collapsed;
+
+        if (isSubPanel)
+        {
+            BackText.SetResourceReference(TextBlock.TextProperty, backKey);
+            BackButton.SetResourceReference(AutomationProperties.NameProperty, backKey);
+        }
+
+        // Keyboard focus would otherwise stay on a control that has just left the tree,
+        // and the next Tab would start from the top of the window. A view that wants a
+        // particular control focused does so on Loaded, which runs before this.
+        Dispatcher.BeginInvoke(DispatcherPriority.Input, () =>
+        {
+            if (ViewHost.Content == view && !view.IsKeyboardFocusWithin)
+                view.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+        });
+    }
+
+    private void Back_Click(object sender, RoutedEventArgs e) => _back?.Invoke();
 
     // ---- Title bar ----------------------------------------------------------------
 
@@ -127,6 +199,17 @@ public partial class MainWindow : Window
     }
 
     // ---- Position -----------------------------------------------------------------
+
+    /// <summary>The tray's "Restablecer posición": forget the dragged spot, back to the corner.</summary>
+    public void ResetPosition()
+    {
+        App.Current.Settings.MainLeft = null;
+        App.Current.Settings.MainTop = null;
+        Storage.SaveSettings(App.Current.Settings);
+
+        RestorePosition();
+        ShowPanel();
+    }
 
     private void RestorePosition()
     {

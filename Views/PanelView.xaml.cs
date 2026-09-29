@@ -13,19 +13,29 @@ namespace Sidequest.Views;
 
 public partial class PanelView : UserControl
 {
+    private readonly MainWindow _shell;
     private readonly Action _refresh;
 
-    public PanelView()
+    public PanelView(MainWindow shell)
     {
         InitializeComponent();
+        _shell = shell;
 
         // A theme switch changes every Sidequest's colour, and a language switch changes
         // the weekday and date. Both are resolved in code, so both need a rebuild.
+        //
+        // Subscribed on Loaded rather than once in the constructor: navigating to a
+        // sub-panel unloads this view, and it has to hear about switches again when it
+        // comes back. Unsubscribing first keeps a second Loaded from doubling up.
         _refresh = Refresh;
-        ThemeService.Changed += _refresh;
-        LanguageService.Changed += _refresh;
-
-        Loaded += (_, _) => Refresh();
+        Loaded += (_, _) =>
+        {
+            ThemeService.Changed -= _refresh;
+            LanguageService.Changed -= _refresh;
+            ThemeService.Changed += _refresh;
+            LanguageService.Changed += _refresh;
+            Refresh();
+        };
         Unloaded += (_, _) =>
         {
             ThemeService.Changed -= _refresh;
@@ -57,6 +67,10 @@ public partial class PanelView : UserControl
         ListScroll.Visibility = rows.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         CounterText.Visibility = rows.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
     }
+
+    /// <summary>Where keyboard focus lands on coming back: the button that left.</summary>
+    internal void FocusSidequestsButton() =>
+        Dispatcher.BeginInvoke(() => SidequestsButton.Focus(), System.Windows.Threading.DispatcherPriority.Loaded);
 
     /// <summary>The collapsed row shows the same date and counter, so both are shared.</summary>
     internal static string FullDateText() => FullDate(DateTime.Today);
@@ -116,17 +130,23 @@ public partial class PanelView : UserControl
     {
         if (sender is not FrameworkElement { DataContext: ObjectiveRow row }) return;
 
-        // Returning keeps Done: 1 says the item goes back to its Sidequest as it stands.
-        row.Item.InPanel = false;
-        row.Item.PanelIndex = null;
+        SidequestRules.ReturnToSidequest(row.Item);
 
         Save();
         Refresh();
     }
 
+    /// <summary>5.1: the chip opens its Sidequest.</summary>
+    private void Chip_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: ObjectiveRow row }) return;
+
+        _shell.ShowSidequest(row.Project);
+    }
+
     /// <summary>
     /// Supr on a focused row deletes it, which 8 asks for: tabbing to the delete button is
-    /// possible but slow, since every row carries three stops.
+    /// possible but slow, since every row carries several stops.
     /// </summary>
     private void List_KeyDown(object sender, KeyEventArgs e)
     {
@@ -161,9 +181,9 @@ public partial class PanelView : UserControl
         Refresh();
     }
 
-    // Phase 3 adds the Sidequests list, phase 5 the settings window. Until then these
-    // are deliberately inert rather than half-wired.
-    private void Sidequests_Click(object sender, RoutedEventArgs e) { }
+    private void Sidequests_Click(object sender, RoutedEventArgs e) => _shell.ShowSidequests();
 
+    // Phase 5 adds the settings window. Until then this is deliberately inert rather
+    // than half-wired.
     private void Settings_Click(object sender, RoutedEventArgs e) { }
 }

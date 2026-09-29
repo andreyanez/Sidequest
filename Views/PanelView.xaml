@@ -13,12 +13,12 @@
         <!-- Header: 5.1 gives it 22/16/14 padding, 16 lateral per 4.3 -->
         <StackPanel Grid.Row="0" Margin="16,22,16,14">
             <Grid>
-                <TextBlock x:Name="WeekdayText" Style="{StaticResource Sq.SectionLabel}"/>
+                <TextBlock x:Name="WeekdayText" Style="{StaticResource SectionLabel}"/>
                 <TextBlock x:Name="CounterText"
-                           Style="{StaticResource Sq.Muted}"
+                           Style="{StaticResource Muted}"
                            HorizontalAlignment="Right"/>
             </Grid>
-            <TextBlock x:Name="DateText" Style="{StaticResource Sq.Heading}" Margin="0,2,0,0"/>
+            <TextBlock x:Name="DateText" Style="{StaticResource Heading}" Margin="0,2,0,0"/>
         </StackPanel>
 
         <!-- Objectives. 12 lateral padding and a 6px gap between cards, per 4.3 -->
@@ -32,11 +32,6 @@
                           HorizontalScrollBarVisibility="Disabled"
                           Padding="12,0,12,0"
                           KeyDown="List_KeyDown">
-                <!-- Scoped implicit style: the bars are built inside the ScrollViewer's
-                     own template, so a keyed style cannot be handed to them directly. -->
-                <ScrollViewer.Resources>
-                    <Style TargetType="ScrollBar" BasedOn="{StaticResource Sq.ScrollBar}"/>
-                </ScrollViewer.Resources>
                 <!-- Focusable=False: an ItemsControl takes a tab stop of its own by
                      default, which put an inert stop before the first checkbox. -->
                 <ItemsControl x:Name="ObjectiveList" Focusable="False">
@@ -65,7 +60,6 @@
                                          box's content, so the name has to be set for it
                                          or the box announces itself with no label. -->
                                     <CheckBox Grid.Column="0"
-                                              Style="{StaticResource Sq.CheckBox}"
                                               VerticalAlignment="Center"
                                               Background="{Binding ThemeBrush}"
                                               AutomationProperties.Name="{Binding Item.Text}"
@@ -78,19 +72,18 @@
                                                Grid.Column="1"
                                                Margin="12,0,12,0"
                                                VerticalAlignment="Center"
-                                               Style="{StaticResource Sq.ItemText}"
+                                               Style="{StaticResource ItemText}"
                                                Text="{Binding Item.Text}"/>
 
-                                    <!-- Chip. The name is truncated rather than shortened: the model
-                                         carries one name, and an abbreviation would be a second field. -->
-                                    <Border Grid.Column="2"
-                                            Height="26"
-                                            Padding="9,0"
-                                            CornerRadius="999"
-                                            Background="{DynamicResource Surface}"
-                                            BorderBrush="{DynamicResource Line}"
-                                            BorderThickness="1"
-                                            VerticalAlignment="Center">
+                                    <!-- Chip: opens the Sidequest (5.1). A button, so the
+                                         keyboard reaches it too. The name is truncated rather
+                                         than shortened: the model carries one name, and an
+                                         abbreviation would be a second field. -->
+                                    <Button Grid.Column="2"
+                                            Style="{StaticResource Chip}"
+                                            VerticalAlignment="Center"
+                                            AutomationProperties.Name="{Binding ProjectName}"
+                                            Click="Chip_Click">
                                         <TextBlock Text="{Binding ProjectName}"
                                                    Foreground="{Binding ThemeBrush}"
                                                    FontSize="11"
@@ -98,7 +91,7 @@
                                                    VerticalAlignment="Center"
                                                    MaxWidth="96"
                                                    TextTrimming="CharacterEllipsis"/>
-                                    </Border>
+                                    </Button>
 
                                     <!-- 5.1: both appear on hover only -->
                                     <StackPanel x:Name="Actions"
@@ -107,13 +100,13 @@
                                                 Margin="4,0,-6,0"
                                                 VerticalAlignment="Center"
                                                 Visibility="Collapsed">
-                                        <Button Style="{StaticResource Sq.IconButton}"
+                                        <Button Style="{StaticResource IconButton}"
                                                 ToolTip="{DynamicResource L_ReturnToSidequest}"
                                                 AutomationProperties.Name="{DynamicResource L_ReturnToSidequest}"
                                                 Click="Return_Click">
                                             <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Return}"/>
                                         </Button>
-                                        <Button Style="{StaticResource Sq.IconButton}"
+                                        <Button Style="{StaticResource IconButton}"
                                                 ToolTip="{DynamicResource L_DeleteObjective}"
                                                 AutomationProperties.Name="{DynamicResource L_DeleteObjective}"
                                                 Click="Delete_Click">
@@ -150,11 +143,11 @@
                         Visibility="Collapsed"
                         VerticalAlignment="Center"
                         Margin="28,0,28,12">
-                <TextBlock Style="{StaticResource Sq.Muted}"
+                <TextBlock Style="{StaticResource Muted}"
                            Text="{DynamicResource L_PanelEmpty}"
                            TextWrapping="Wrap"
                            TextAlignment="Center"/>
-                <Button Style="{StaticResource Sq.PrimaryButton}"
+                <Button Style="{StaticResource PrimaryButton}"
                         HorizontalAlignment="Center"
                         Margin="0,14,0,0"
                         AutomationProperties.Name="{DynamicResource L_Sidequests}"
@@ -174,7 +167,8 @@
             <!-- Asymmetric in the artboard: 12 left, 10 right, so the icon button's own
                  padding brings its glyph to the same optical inset as the pill's text. -->
             <Grid Margin="12,0,10,0">
-                <Button Style="{StaticResource Sq.PrimaryButton}"
+                <Button x:Name="SidequestsButton"
+                        Style="{StaticResource PrimaryButton}"
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
                         AutomationProperties.Name="{DynamicResource L_Sidequests}"
@@ -187,7 +181,7 @@
                     </StackPanel>
                 </Button>
 
-                <Button Style="{StaticResource Sq.IconButton}"
+                <Button Style="{StaticResource IconButton}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
                         ToolTip="{DynamicResource L_Settings}"

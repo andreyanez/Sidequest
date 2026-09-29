@@ -1,0 +1,180 @@
+using System.Collections.Generic;
+using System.Linq;
+using Sidequest.Models;
+using Sidequest.Services;
+using Xunit;
+
+namespace Sidequest.Tests;
+
+public class SidequestRulesTests
+{
+    private static SidequestProject Project(SidequestTheme theme, int sortIndex = 0, params SidequestItem[] items)
+    {
+        var project = new SidequestProject { Name = theme.ToString(), Theme = theme, SortIndex = sortIndex };
+        foreach (var item in items) project.Items.Add(item);
+        return project;
+    }
+
+    private static SidequestItem Item(string text, int sortIndex, bool done = false, int? panelIndex = null) => new()
+    {
+        Text = text,
+        SortIndex = sortIndex,
+        Done = done,
+        InPanel = panelIndex is not null,
+        PanelIndex = panelIndex,
+    };
+
+    // ---- 5.5: default theme -------------------------------------------------------
+
+    [Fact]
+    public void DefaultTheme_IsTheFirstOneNoSidequestUses()
+    {
+        // FnSidequestNuevo's own case: four Sidequests on the first four themes, so Olive.
+        var existing = new[]
+        {
+            Project(SidequestTheme.Amber), Project(SidequestTheme.Teal),
+            Project(SidequestTheme.Indigo), Project(SidequestTheme.Coral),
+        };
+
+        Assert.Equal(SidequestTheme.Olive, SidequestRules.DefaultTheme(existing));
+    }
+
+    [Fact]
+    public void DefaultTheme_FillsAGap_BeforeGoingPastTheLastUsed()
+    {
+        var existing = new[] { Project(SidequestTheme.Amber), Project(SidequestTheme.Indigo) };
+
+        Assert.Equal(SidequestTheme.Teal, SidequestRules.DefaultTheme(existing));
+    }
+
+    [Fact]
+    public void DefaultTheme_IsAmber_WhenAllEightAreTaken()
+    {
+        var existing = System.Enum.GetValues<SidequestTheme>().Select(t => Project(t)).ToList();
+
+        Assert.Equal(SidequestTheme.Amber, SidequestRules.DefaultTheme(existing));
+    }
+
+    [Fact]
+    public void DefaultTheme_IsAmber_ForTheFirstSidequest()
+    {
+        Assert.Equal(SidequestTheme.Amber, SidequestRules.DefaultTheme(new List<SidequestProject>()));
+    }
+
+    // ---- Creating and renaming ------------------------------------------------------
+
+    [Fact]
+    public void Create_GoesAfterTheHighestSortIndex_NotTheCount()
+    {
+        // After a deletion the count and the indexes part ways; D7 says indexes only grow.
+        var projects = new List<SidequestProject> { Project(SidequestTheme.Amber, 0), Project(SidequestTheme.Teal, 5) };
+
+        var created = SidequestRules.Create(projects, "Nuevo", SidequestTheme.Plum);
+
+        Assert.Equal(6, created.SortIndex);
+        Assert.Same(created, projects.Last());
+        Assert.Equal(SidequestTheme.Plum, created.Theme);
+    }
+
+    [Fact]
+    public void Create_TrimsTheName_AndHoldsItToSixtyCharacters()
+    {
+        var projects = new List<SidequestProject>();
+
+        Assert.Equal("Renovar pasaporte", SidequestRules.Create(projects, "  Renovar pasaporte  ", SidequestTheme.Amber).Name);
+        Assert.Equal(SidequestProject.MaxNameLength, SidequestRules.Create(projects, new string('x', 80), SidequestTheme.Amber).Name.Length);
+    }
+
+    [Fact]
+    public void Rename_RefusesABlankName_AndKeepsTheOldOne()
+    {
+        var project = Project(SidequestTheme.Teal);
+        project.Name = "Mudanza";
+
+        Assert.False(SidequestRules.Rename(project, "   "));
+        Assert.Equal("Mudanza", project.Name);
+
+        Assert.True(SidequestRules.Rename(project, " Mudanza de piso "));
+        Assert.Equal("Mudanza de piso", project.Name);
+    }
+
+    [Fact]
+    public void AddItem_IsPending_AtTheEndOfItsSidequest()
+    {
+        var project = Project(SidequestTheme.Teal, 0, Item("a", 0), Item("b", 7));
+
+        var added = SidequestRules.AddItem(project, "  c  ");
+
+        Assert.Equal("c", added.Text);
+        Assert.Equal(8, added.SortIndex);
+        Assert.False(added.Done);
+        Assert.False(added.InPanel);
+        Assert.Equal(ItemGroup.Pending, SidequestRules.GroupOf(added));
+    }
+
+    // ---- 1: objectives ----------------------------------------------------------------
+
+    [Fact]
+    public void SendToPanel_GoesAfterEveryObjective_InEverySidequest()
+    {
+        var sending = Item("new", 3);
+        var projects = new[]
+        {
+            Project(SidequestTheme.Amber, 0, Item("a", 0, panelIndex: 4)),
+            Project(SidequestTheme.Teal, 1, Item("b", 0, panelIndex: 9), sending),
+        };
+
+        SidequestRules.SendToPanel(sending, projects);
+
+        Assert.True(sending.InPanel);
+        Assert.Equal(10, sending.PanelIndex);
+    }
+
+    [Fact]
+    public void SendToPanel_StartsAtZero_OnAnEmptyPanel()
+    {
+        var sending = Item("first", 0);
+
+        SidequestRules.SendToPanel(sending, new[] { Project(SidequestTheme.Amber, 0, sending) });
+
+        Assert.Equal(0, sending.PanelIndex);
+    }
+
+    [Fact]
+    public void ReturnToSidequest_LeavesThePanel_AndKeepsDone()
+    {
+        var item = Item("done", 0, done: true, panelIndex: 2);
+
+        SidequestRules.ReturnToSidequest(item);
+
+        Assert.False(item.InPanel);
+        Assert.Null(item.PanelIndex);
+        Assert.True(item.Done);
+    }
+
+    // ---- 5.6: the detail's order -----------------------------------------------------
+
+    [Fact]
+    public void DetailOrder_IsCurrent_ThenPending_ThenCompleted_BySortIndexWithinEach()
+    {
+        var project = Project(SidequestTheme.Teal, 0,
+            Item("pending late", 5),
+            Item("completed", 1, done: true),
+            Item("current", 4, panelIndex: 0),
+            Item("pending early", 2),
+            // Ticked but still in the panel: FnSidequest lists it with the completed ones.
+            Item("ticked objective", 0, done: true, panelIndex: 1));
+
+        var order = SidequestRules.DetailOrder(project).Select(i => i.Text);
+
+        Assert.Equal(new[] { "current", "pending early", "pending late", "ticked objective", "completed" }, order);
+    }
+
+    [Fact]
+    public void CanUntickInDetail_OnlyForCompletedItemsOutsideThePanel()
+    {
+        Assert.True(SidequestRules.CanUntickInDetail(Item("done", 0, done: true)));
+        Assert.False(SidequestRules.CanUntickInDetail(Item("done in panel", 0, done: true, panelIndex: 0)));
+        Assert.False(SidequestRules.CanUntickInDetail(Item("pending", 0)));
+    }
+}

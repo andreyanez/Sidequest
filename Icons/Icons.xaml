@@ -24,6 +24,14 @@
         <Setter Property="Stroke" Value="{Binding (TextElement.Foreground), RelativeSource={RelativeSource Self}}"/>
     </Style>
 
+    <!-- The one exception to "stroked, never filled": FnSidequest draws "⋯" as three
+         solid dots (fill="currentColor", no stroke). Stroking the same circles would
+         turn them into rings. -->
+    <Style x:Key="IconPath.Filled" TargetType="Path" BasedOn="{StaticResource IconPath}">
+        <Setter Property="StrokeThickness" Value="0"/>
+        <Setter Property="Fill" Value="{Binding (TextElement.Foreground), RelativeSource={RelativeSource Self}}"/>
+    </Style>
+
     <!-- ============ v1 ============ -->
 
     <!-- Navigation and window chrome -->

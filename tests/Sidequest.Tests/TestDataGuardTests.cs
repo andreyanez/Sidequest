@@ -19,9 +19,11 @@ public class TestDataGuardTests
     public void StoresNeverPointAtRealAppData()
     {
         Assert.StartsWith(Path.GetTempPath(), SidequestStore.Directory, StringComparison.OrdinalIgnoreCase);
+        Assert.StartsWith(Path.GetTempPath(), Storage.Directory, StringComparison.OrdinalIgnoreCase);
         Assert.StartsWith(Path.GetTempPath(), LegacyMigration.LegacyDirectory, StringComparison.OrdinalIgnoreCase);
 
         Assert.DoesNotContain(RealAppData, SidequestStore.Directory, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(RealAppData, Storage.Directory, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain(RealAppData, LegacyMigration.LegacyDirectory, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -31,9 +33,11 @@ public class TestDataGuardTests
         using (var temp = new TempStore())
         {
             Assert.Equal(temp.StoreDirectory, SidequestStore.Directory);
+            Assert.Equal(temp.StoreDirectory, Storage.Directory);
         }
 
         Assert.DoesNotContain(RealAppData, SidequestStore.Directory, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain(RealAppData, Storage.Directory, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain(RealAppData, LegacyMigration.LegacyDirectory, StringComparison.OrdinalIgnoreCase);
     }
 }
