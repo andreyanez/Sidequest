@@ -10,7 +10,12 @@
         AllowsTransparency="True"
         Background="Transparent"
         ShowInTaskbar="False"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        FocusManager.FocusedElement="{Binding ElementName=ConfirmButton}">
+
+    <!-- Focus starts on the default button, as a Windows message box's does: Enter answers
+         the question either way, and the ring shows which way it will go. WPF only draws
+         the ring after keyboard input, so opening the dialog with the mouse shows none. -->
 
     <!-- No artboard shows this dialog, so it is held to 4.2-4.4 and the panel it sits on:
          the same Bg card, radius 12 and Line2 frame as MainWindow (6), the subject in a

@@ -12,16 +12,29 @@
 
         <!-- Header: 5.1 gives it 22/16/14 padding, 16 lateral per 4.3 -->
         <StackPanel Grid.Row="0" Margin="16,22,16,14">
+            <!-- FnMain sets the weekday on the counter's baseline. Both top-aligned, the
+                 11px weekday would sit a pixel above the 12px counter, the difference in
+                 their ascents. -->
             <Grid>
-                <TextBlock x:Name="WeekdayText" Style="{StaticResource SectionLabel}"/>
+                <TextBlock x:Name="WeekdayText" Style="{StaticResource SectionLabel}" Margin="0,1,0,0"/>
                 <TextBlock x:Name="CounterText"
                            Style="{StaticResource Muted}"
                            HorizontalAlignment="Right"/>
             </Grid>
-            <TextBlock x:Name="DateText" Style="{StaticResource Heading}" Margin="0,2,0,0"/>
+            <!-- FnMain puts the date 6 below the weekday on a 1.15 line (25.3), the one
+                 heading in the artboards not on its font's natural line (28.6). CSS centres
+                 the natural line in the shorter one, so the text starts 1.67 above the
+                 line's box and runs 1.67 past it; the margins do the same, in the whole
+                 pixels Chrome paints (layout rounding would round 4.33 and -1.67 apart,
+                 but their sum as one). WPF's own LineHeight would scale the baseline
+                 instead, and set the date a pixel high. -->
+            <TextBlock x:Name="DateText"
+                       Style="{StaticResource Heading}"
+                       Margin="0,4,0,-2"/>
         </StackPanel>
 
-        <!-- Objectives. 12 lateral padding and a 6px gap between cards, per 4.3 -->
+        <!-- Objectives. 12 lateral padding and a 6px gap between cards, per 4.3, and 12
+             above the first card, as FnMain's list pads its top -->
         <Grid Grid.Row="1">
             <!-- Focusable=False for the same reason as the ItemsControl below: the
                  ScrollViewer otherwise takes a stop of its own between the title bar and
@@ -30,7 +43,7 @@
                           Focusable="False"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
-                          Padding="12,0,12,0"
+                          Padding="12,12,12,0"
                           KeyDown="List_KeyDown">
                 <!-- Focusable=False: an ItemsControl takes a tab stop of its own by
                      default, which put an inert stop before the first checkbox. -->
@@ -99,14 +112,16 @@
                                                    TextTrimming="CharacterEllipsis"/>
                                     </Button>
 
-                                    <!-- 5.1: both appear on hover only -->
+                                    <!-- 5.1: both appear on hover only. 12 after the chip and
+                                         2 apart, as FnMain spaces them. -->
                                     <StackPanel x:Name="Actions"
                                                 Grid.Column="3"
                                                 Orientation="Horizontal"
-                                                Margin="4,0,-6,0"
+                                                Margin="12,0,0,0"
                                                 VerticalAlignment="Center"
                                                 Visibility="Collapsed">
                                         <Button Style="{StaticResource IconButton}"
+                                                Margin="0,0,2,0"
                                                 ToolTip="{DynamicResource L_ReturnToSidequest}"
                                                 AutomationProperties.Name="{DynamicResource L_ReturnToSidequest}"
                                                 Click="Return_Click">
@@ -156,7 +171,8 @@
                            Text="{DynamicResource L_PanelEmpty}"
                            TextWrapping="Wrap"
                            TextAlignment="Center"/>
-                <Button Style="{StaticResource PrimaryButton}"
+                <Button x:Name="EmptySidequestsButton"
+                        Style="{StaticResource PrimaryButton}"
                         HorizontalAlignment="Center"
                         Margin="0,14,0,0"
                         AutomationProperties.Name="{DynamicResource L_Sidequests}"
@@ -173,8 +189,7 @@
 
         <!-- Footer -->
         <Border Grid.Row="2" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
-            <!-- Asymmetric in the artboard: 12 left, 10 right, so the icon button's own
-                 padding brings its glyph to the same optical inset as the pill's text. -->
+            <!-- Asymmetric, as FnMain pads it: 12 left, 10 right. -->
             <Grid Margin="12,0,10,0">
                 <Button x:Name="SidequestsButton"
                         Style="{StaticResource PrimaryButton}"
@@ -190,7 +205,7 @@
                     </StackPanel>
                 </Button>
 
-                <Button Style="{StaticResource IconButton}"
+                <Button Style="{StaticResource RoundIconButton}"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
                         ToolTip="{DynamicResource L_Settings}"

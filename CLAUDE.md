@@ -1,7 +1,8 @@
 # Sidequest
 
-A tray-resident Windows app (WPF, .NET 8) that replaces WeeklyReminder. The rebuild
-happens on the `sidequest` branch; `main` still holds WeeklyReminder.
+A tray-resident Windows app (WPF, .NET 8) that replaced WeeklyReminder. The rebuild
+happens on the `sidequest` branch; `main` still holds WeeklyReminder. Since 2026-09-30
+Sidequest is installed in `%LOCALAPPDATA%\Sidequest\` and in daily use.
 
 ## Read before starting work
 
@@ -13,12 +14,16 @@ happens on the `sidequest` branch; `main` still holds WeeklyReminder.
    older v0.1 order with different numbering, so go by §0.
 3. **`docs/design/reference/*.html`**: the artboards. A screen is done when it matches
    its artboard 1:1 in both themes and both languages, and every §5 interaction works
-   from the keyboard (Tab, Enter, Escape, Delete) as well as the mouse.
+   from the keyboard (Tab, Enter, Escape, Delete) as well as the mouse. Only `FnMain`
+   has a light artboard (`FnMainClaro`); `tools/render-artboard.ps1 -Light` renders the
+   others light from §4.2's table.
 
 ## Rules
 
-- **Never run the app against real data.** WeeklyReminder is still in daily use, and
-  the import renames its `week.json`. Every dev run sets `SIDEQUEST_DATA` (see Commands).
+- **Never run the app against real data.** `%APPDATA%\Sidequest\` holds the Sidequests
+  in daily use. Every dev run sets `SIDEQUEST_DATA` (see Commands), which also gives it a
+  single-instance lock of its own, so it runs beside the installed copy. Never stop,
+  replace or drive the installed copy without being asked.
 - **Keep the test guards.** `TestDataGuard` and the disabled parallelism in
   `AssemblyInfo.cs` exist because the suite once migrated live data. Every test that
   touches storage goes through `TempStore`.
