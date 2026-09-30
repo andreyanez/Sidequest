@@ -17,9 +17,6 @@ public partial class PanelView : UserControl
     private readonly MainWindow _shell;
     private readonly Action _refresh;
 
-    /// <summary>Which "Sidequests →" was used to leave, when the empty panel shows two.</summary>
-    private Button? _leftBy;
-
     public PanelView(MainWindow shell)
     {
         InitializeComponent();
@@ -71,26 +68,21 @@ public partial class PanelView : UserControl
         ListScroll.Visibility = rows.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         CounterText.Visibility = rows.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-        // With no Sidequests at all, the empty state's "Sidequests →" is the only way on,
-        // and the footer's would be a second primary button beside it (4.4 allows one).
-        SidequestsButton.Visibility = App.Current.Projects.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        // The empty state carries its own "Sidequests →" (5.1), so the footer's gives way
+        // to it: 4.4 allows one primary button per screen.
+        SidequestsButton.Visibility = rows.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
     }
 
-    /// <summary>Where keyboard focus lands on coming back: the button that left.</summary>
+    /// <summary>
+    /// Where keyboard focus lands on coming back: the "Sidequests →" on screen, which is
+    /// the one that left unless the panel filled or emptied in the meantime.
+    /// </summary>
     internal void FocusSidequestsButton() =>
         Dispatcher.BeginInvoke(() => SidequestsEntry().Focus(), System.Windows.Threading.DispatcherPriority.Loaded);
 
-    /// <summary>
-    /// The "Sidequests →" to focus: the one last used if it is still shown, else whichever
-    /// is. The footer's is hidden while there are no Sidequests, and the empty state's
-    /// while there are objectives.
-    /// </summary>
-    private Button SidequestsEntry()
-    {
-        var emptyShown = EmptyState.Visibility == Visibility.Visible;
-        if (_leftBy == EmptySidequestsButton && emptyShown) return EmptySidequestsButton;
-        return SidequestsButton.Visibility == Visibility.Visible ? SidequestsButton : EmptySidequestsButton;
-    }
+    /// <summary>The empty state's "Sidequests →" while it shows, the footer's otherwise.</summary>
+    private Button SidequestsEntry() =>
+        EmptyState.Visibility == Visibility.Visible ? EmptySidequestsButton : SidequestsButton;
 
     /// <summary>Back from an objective's detail: focus on its title, where the user left.</summary>
     internal void FocusObjective(SidequestItem item) =>
@@ -246,11 +238,7 @@ public partial class PanelView : UserControl
         FocusRowNear(index);
     }
 
-    private void Sidequests_Click(object sender, RoutedEventArgs e)
-    {
-        _leftBy = sender as Button;
-        _shell.ShowSidequests();
-    }
+    private void Sidequests_Click(object sender, RoutedEventArgs e) => _shell.ShowSidequests();
 
     private void Settings_Click(object sender, RoutedEventArgs e) => App.Current.ShowSettings();
 }

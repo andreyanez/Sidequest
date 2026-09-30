@@ -284,11 +284,10 @@ Where the artboards and §5 left something open, or disagree:
   17.5, which Chrome and WPF round opposite ways.
 - **`ConfirmDialog` opens with focus on its default button**, as a Windows message box
   does, so the ring shows what Enter will do. It shows only after keyboard input.
-- **The empty panel hides the footer's "Sidequests →" while there are no Sidequests**
-  (the user's call, 2026-09-30). §5.1 puts that button under the empty-state text as
-  well, and §4.4 allows one primary button per screen. With Sidequests but nothing on the
-  panel, as right after the import, both show, as §5.1 says. Coming back from the list,
-  focus goes to whichever of the two was used to leave.
+- **The empty panel hides the footer's "Sidequests →"** (the user's call, 2026-09-30).
+  §5.1 puts that button under the empty-state text as well, and §4.4 allows one primary
+  button per screen, so only one ever shows: the empty state's while the panel is
+  empty, the footer's otherwise. Coming back from the list, focus goes to that one.
 - **The keyboard, checked through UIA:** every focusable control on every screen has a
   name, the hover-only actions come up for keyboard focus, and the focus ring is `Text`
   in both themes.
