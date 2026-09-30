@@ -7,11 +7,12 @@ records decisions that are not visible in the code.
 Current branch: `sidequest`. WeeklyReminder stays installed and in daily use until
 phase 6 completes.
 
-**Status:** phases 0–4 are done: renames, font, palette and icons; data and import;
+**Status:** phases 0–5 are done: renames, font, palette and icons; data and import;
 shell and main panel; navigation, the Sidequests list, the new-Sidequest form and the
-Sidequest detail; the objective detail with its notes, files and images.
-WeeklyReminder's screens are gone from this branch. Next is phase 5, the settings
-window and the tray (§5.8, §5.9).
+Sidequest detail; the objective detail with its notes, files and images; the settings
+window and the tray. WeeklyReminder's screens are gone from this branch. Next is
+phase 6: the light-theme and keyboard pass over every screen, then the switch from
+WeeklyReminder.
 
 ---
 
@@ -32,6 +33,11 @@ dotnet build; Start-Process .\bin\Debug\net8.0-windows\Sidequest.exe
 
 It is read **first** in `OnStartup`, before settings are loaded — an earlier ordering bug
 had a sandboxed run reading real settings and writing them back.
+
+The sandbox covers "Abrir al iniciar el equipo" too: under `SIDEQUEST_DATA`, and in the
+test suite, `AutoStart` keeps on/off in a file instead of the `Run` key. A dev build
+registered there would start at the next sign-in without the sandbox, on real data,
+with the import ready to rename `week.json`.
 
 The test suite does not rely on the variable. `tests/Sidequest.Tests/TestDataGuard.cs`
 redirects every store (Sidequests, settings, the import's source) from a
@@ -207,6 +213,33 @@ Where the artboards and §5 left something open, or disagree:
   the clipboard. The first three are one-line shell calls. An oversized paste that got
   past its own check would meet the same trim that stopped fast typing, which is checked.
 
+### Phase 5
+
+- **From `FnAjustes`, where it differs from §4:**
+  - "Ajustes" is 22/600.
+  - The segmented options are radius 5, with the chosen one 13/600.
+  - The switches have no hover state.
+  - A row's title and description act as its switch's label, so clicking them flips it.
+- **Language names are written in their own language** (Español, English), so they have
+  no string keys.
+- **"Sistema" follows Windows while the app runs.** It reads Windows' light/dark setting
+  for apps, and a change to it repaints every window at once.
+- **The tray icon** is §5.9's rounded square with the "S" cut out of it, in 4.2's Text.
+  Its colour follows the **taskbar's** light/dark setting rather than the app's.
+  Windows keeps the two apart, and a light app theme often sits on a dark taskbar,
+  where a dark icon would vanish. It is drawn at the notification area's own size, so
+  it isn't scaled down into a blur. The Settings window's taskbar button uses the same
+  mark.
+- **Settings opens centred on the panel's screen**, not on the panel: centred on a panel
+  in its usual corner, a 720px window would hang off the edge. Its "‹ Panel principal"
+  closes it and brings the panel back. As in the sub-panels, Escape does nothing.
+- **The panel's pin and "siempre visible" are one setting**, and each follows the other
+  through `App.SettingsChanged`.
+- **Not checked live:** the tray menu, which WinForms draws outside the app's windows;
+  a Tab walk through Settings, skipped because the machine was in use (UIA's order of
+  its controls was checked instead); and a real `Run` key write, which only happens
+  outside the sandbox.
+
 ## Known deviations from the spec
 
 - **The import does not carry over WeeklyReminder's settings** (§3 step 3). Accepted on
@@ -247,12 +280,9 @@ The cleanup is done, and the phases after it build on what it left:
   strings. The schedule fields left `AppSettings` too. A settings file that still
   carries them loads fine, since unknown JSON properties are skipped, and `StorageTests`
   holds that. `LegacyMigration` never used the old classes, so the import is untouched.
-- **There is no settings screen until phase 5.** Theme and language come from
-  `settings.json`, which `tools/run-sandbox.ps1` writes. The panel's gear stays inert, and
-  the tray leaves out "Ajustes…" rather than showing an entry that does nothing.
-- **The tray has 5.9's other entries.** Mostrar panel, Sidequests… and Restablecer
-  posición, which now resets the panel's position. `--sidequests` opens the list from the
-  command line.
+- **The tray has all of 5.9's entries**, "Ajustes…" since phase 5. "Restablecer
+  posición" resets the panel's position. `--sidequests` and `--settings` open those
+  screens from the command line, and `tools/run-sandbox.ps1 -AppArgs` passes them.
 - **Styles have no prefix.** A type with one look has an implicit style: `CheckBox`,
   `TextBox`, `ScrollBar` (both orientations, so text fields' own scroll viewers match),
   `ContextMenu` (with its entries, so text fields' Cut/Copy/Paste menu is themed too)

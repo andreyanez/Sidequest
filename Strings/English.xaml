@@ -66,9 +66,24 @@
     <sys:String x:Key="L_AddImage">Add image</sys:String>
     <sys:String x:Key="L_RemoveImage">Remove image</sys:String>
 
-    <!-- Tray (5.9). "Settings…" arrives with the settings window in phase 5. -->
+    <!-- Settings (5.8). Language names are written in their own language, with no key. -->
+    <sys:String x:Key="L_Appearance">Appearance</sys:String>
+    <sys:String x:Key="L_AppearanceHelp">Theme for every panel</sys:String>
+    <sys:String x:Key="L_Light">Light</sys:String>
+    <sys:String x:Key="L_Dark">Dark</sys:String>
+    <sys:String x:Key="L_System">System</sys:String>
+    <sys:String x:Key="L_Language">Language</sys:String>
+    <sys:String x:Key="L_LanguageHelp">Changes the interface only, not your content</sys:String>
+    <sys:String x:Key="L_OpenOnStartup">Open at startup</sys:String>
+    <sys:String x:Key="L_OpenOnStartupHelp">Sidequest opens when your PC starts</sys:String>
+    <sys:String x:Key="L_AlwaysVisible">Main panel always visible</sys:String>
+    <sys:String x:Key="L_AlwaysVisibleHelp">Stays above other applications</sys:String>
+    <sys:String x:Key="L_VersionFmt">Sidequest {0}</sys:String>
+
+    <!-- Tray (5.9) -->
     <sys:String x:Key="L_TrayShow">Show panel</sys:String>
     <sys:String x:Key="L_TraySidequests">Sidequests…</sys:String>
+    <sys:String x:Key="L_TraySettings">Settings…</sys:String>
     <sys:String x:Key="L_TrayResetPosition">Reset position</sys:String>
     <sys:String x:Key="L_TrayQuit">Quit</sys:String>
 

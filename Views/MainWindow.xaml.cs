@@ -164,6 +164,18 @@ public partial class MainWindow : Window
         App.Current.Settings.KeepOnTop = PinButton.IsChecked == true;
         Topmost = App.Current.Settings.KeepOnTop;
         Storage.SaveSettings(App.Current.Settings);
+
+        // Settings shows the same choice as a switch.
+        App.Current.NotifySettingsChanged();
+    }
+
+    /// <summary>Settings changed "siempre visible" (5.8): the panel follows, pin included.</summary>
+    public void SyncKeepOnTop()
+    {
+        _restoring = true;
+        PinButton.IsChecked = App.Current.Settings.KeepOnTop;
+        Topmost = App.Current.Settings.KeepOnTop;
+        _restoring = false;
     }
 
     private void Collapse_Click(object sender, RoutedEventArgs e)

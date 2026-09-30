@@ -16,6 +16,8 @@ param(
     [ValidateSet('Spanish', 'English')][string]$Language = 'Spanish',
     # Start with no Sidequests at all, for the empty states.
     [switch]$Empty,
+    # Passed to the app, e.g. '--settings' or '--sidequests' to open a screen directly.
+    [string[]]$AppArgs = @(),
     [string]$Sandbox = (Join-Path $env:TEMP 'sq-sandbox')
 )
 
@@ -48,7 +50,8 @@ else { & (Join-Path $PSScriptRoot 'seed-sandbox.ps1') -Sandbox $Sandbox | Out-Nu
 } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $data 'settings.json') -Encoding UTF8
 
 $env:SIDEQUEST_DATA = $Sandbox
-$p = Start-Process -FilePath $exe -PassThru
+$p = if ($AppArgs.Count -gt 0) { Start-Process -FilePath $exe -ArgumentList $AppArgs -PassThru }
+     else { Start-Process -FilePath $exe -PassThru }
 Start-Sleep -Milliseconds 2500
 if ($p.HasExited) { throw "Sidequest exited at once (code $($p.ExitCode))" }
 Write-Output "Sidequest $($p.Id) on $Sandbox ($Theme, $Language)"
