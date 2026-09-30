@@ -4,9 +4,9 @@ Working notes for the Sidequest rebuild. The design is in
 [`design-spec.md`](design-spec.md); this file covers how to run and check the thing, and
 records decisions that are not visible in the code.
 
-Current branch: `sidequest`. Since 2026-09-30 Sidequest is installed in
-`%LOCALAPPDATA%\Sidequest\` and in daily use, and WeeklyReminder is retired (see "The
-switchover" under Phase 6).
+Current branch: `main`, which the rebuild's `sidequest` branch was merged into on
+2026-09-30. Since that day Sidequest is installed in `%LOCALAPPDATA%\Sidequest\` and in
+daily use, and WeeklyReminder is retired (see "The switchover" under Phase 6).
 
 **Status:** phases 0–6 are done: renames, font, palette and icons; data and import;
 shell and main panel; navigation, the Sidequests list, the new-Sidequest form and the

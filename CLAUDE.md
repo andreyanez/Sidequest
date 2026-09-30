@@ -1,8 +1,9 @@
 # Sidequest
 
-A tray-resident Windows app (WPF, .NET 8) that replaced WeeklyReminder. The rebuild
-happens on the `sidequest` branch; `main` still holds WeeklyReminder. Since 2026-09-30
-Sidequest is installed in `%LOCALAPPDATA%\Sidequest\` and in daily use.
+A tray-resident Windows app (WPF, .NET 8) that replaced WeeklyReminder. The rebuild,
+done on the `sidequest` branch, was merged into `main` on 2026-09-30, and work goes on
+from `main`. Since that day Sidequest is installed in `%LOCALAPPDATA%\Sidequest\` and
+in daily use.
 
 ## Read before starting work
 
