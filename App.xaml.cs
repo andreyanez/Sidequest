@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Windows;
 using Sidequest.Models;
@@ -45,8 +47,8 @@ public partial class App : System.Windows.Application
     {
         base.OnStartup(e);
 
-        _mutex = new Mutex(initiallyOwned: true, MutexName, out bool isFirstInstance);
-        _showEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ShowEventName);
+        _mutex = new Mutex(initiallyOwned: true, InstanceName(MutexName), out bool isFirstInstance);
+        _showEvent = new EventWaitHandle(false, EventResetMode.AutoReset, InstanceName(ShowEventName));
 
         if (!isFirstInstance)
         {
@@ -122,15 +124,37 @@ public partial class App : System.Windows.Application
         previous?.Dispose();
     }
 
+    /// <summary>The folder SIDEQUEST_DATA names, or null in normal use.</summary>
+    private static string? Sandbox()
+    {
+        var sandbox = Environment.GetEnvironmentVariable("SIDEQUEST_DATA");
+        return string.IsNullOrWhiteSpace(sandbox) ? null : Path.GetFullPath(sandbox);
+    }
+
     /// <summary>
-    /// Points both stores at a sandbox when SIDEQUEST_DATA is set. WeeklyReminder is
-    /// still the app in daily use and the import renames its week.json, so a dev run
-    /// must not be able to reach the real folders. Unset in normal use.
+    /// The single-instance names, kept apart per sandbox: a dev run then starts beside the
+    /// installed copy instead of handing its launch over to it, while two launches on one
+    /// sandbox still find each other. The hash has to be stable across processes, which
+    /// string.GetHashCode is not.
+    /// </summary>
+    private static string InstanceName(string name)
+    {
+        var sandbox = Sandbox();
+        if (sandbox is null) return name;
+
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(sandbox.TrimEnd('\\').ToUpperInvariant()));
+        return $"{name}.{Convert.ToHexString(hash, 0, 6)}";
+    }
+
+    /// <summary>
+    /// Points both stores at a sandbox when SIDEQUEST_DATA is set. The real folders hold
+    /// the Sidequests in daily use, and the import renames WeeklyReminder's week.json, so
+    /// a dev run must not be able to reach them. Unset in normal use.
     /// </summary>
     private static void RedirectDataIfSandboxed()
     {
-        var sandbox = Environment.GetEnvironmentVariable("SIDEQUEST_DATA");
-        if (string.IsNullOrWhiteSpace(sandbox)) return;
+        var sandbox = Sandbox();
+        if (sandbox is null) return;
 
         SidequestStore.Directory = Path.Combine(sandbox, "Sidequest");
         Storage.Directory = Path.Combine(sandbox, "Sidequest");
@@ -161,7 +185,8 @@ public partial class App : System.Windows.Application
         _tray = new Forms.NotifyIcon
         {
             Icon = TrayIconFactory.Create(),
-            Text = "Sidequest",
+            // A sandboxed copy can run beside the installed one, so it names its folder.
+            Text = Sandbox() is { } sandbox ? $"Sidequest ({Path.GetFileName(sandbox.TrimEnd('\\'))})" : "Sidequest",
             Visible = true,
             ContextMenuStrip = BuildTrayMenu(),
         };

@@ -63,6 +63,35 @@ public class ContrastTests
         AssertContrast(inv, c, app, theme, "Inv on the theme fill");
     }
 
+    /// <summary>
+    /// The neutral pairs every screen is built from, in both themes: Text and Text2 on each
+    /// surface they appear on - a hovered row, a well, the page - and Inv on the Text fill
+    /// of the primary button and the chosen segment.
+    /// </summary>
+    [Theory]
+    [InlineData(AppTheme.Dark)]
+    [InlineData(AppTheme.Light)]
+    public void NeutralTextIsLegibleEverywhere(AppTheme app)
+    {
+        var t = Tokens(app);
+
+        foreach (var surface in new[] { "Bg", "Surface", "Hover" })
+        {
+            AssertNeutral(t["Text"], t[surface], app, $"Text on {surface}");
+            AssertNeutral(t["Text2"], t[surface], app, $"Text2 on {surface}");
+        }
+
+        AssertNeutral(t["Inv"], t["Text"], app, "Inv on a Text fill");
+    }
+
+    private static void AssertNeutral(Color foreground, Color background, AppTheme app, string what)
+    {
+        var ratio = Ratio(foreground, background);
+        Assert.True(ratio >= Required,
+            $"{what} in {app}: {Hex(foreground)} on {Hex(background)} is "
+            + $"{ratio.ToString("0.00", CultureInfo.InvariantCulture)}:1, below {Required}:1.");
+    }
+
     private static void AssertContrast(
         Color foreground, Color background, AppTheme app, SidequestTheme theme, string where)
     {

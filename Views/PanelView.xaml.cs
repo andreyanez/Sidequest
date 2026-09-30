@@ -5,6 +5,7 @@ using Sidequest.Services;
 
 // WinForms is referenced for NotifyIcon, so its implicit using collides with WPF's.
 using UserControl = System.Windows.Controls.UserControl;
+using Button = System.Windows.Controls.Button;
 using Key = System.Windows.Input.Key;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Keyboard = System.Windows.Input.Keyboard;
@@ -15,6 +16,9 @@ public partial class PanelView : UserControl
 {
     private readonly MainWindow _shell;
     private readonly Action _refresh;
+
+    /// <summary>Which "Sidequests →" was used to leave, when the empty panel shows two.</summary>
+    private Button? _leftBy;
 
     public PanelView(MainWindow shell)
     {
@@ -66,11 +70,27 @@ public partial class PanelView : UserControl
         EmptyState.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         ListScroll.Visibility = rows.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         CounterText.Visibility = rows.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+
+        // With no Sidequests at all, the empty state's "Sidequests →" is the only way on,
+        // and the footer's would be a second primary button beside it (4.4 allows one).
+        SidequestsButton.Visibility = App.Current.Projects.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
     }
 
     /// <summary>Where keyboard focus lands on coming back: the button that left.</summary>
     internal void FocusSidequestsButton() =>
-        Dispatcher.BeginInvoke(() => SidequestsButton.Focus(), System.Windows.Threading.DispatcherPriority.Loaded);
+        Dispatcher.BeginInvoke(() => SidequestsEntry().Focus(), System.Windows.Threading.DispatcherPriority.Loaded);
+
+    /// <summary>
+    /// The "Sidequests →" to focus: the one last used if it is still shown, else whichever
+    /// is. The footer's is hidden while there are no Sidequests, and the empty state's
+    /// while there are objectives.
+    /// </summary>
+    private Button SidequestsEntry()
+    {
+        var emptyShown = EmptyState.Visibility == Visibility.Visible;
+        if (_leftBy == EmptySidequestsButton && emptyShown) return EmptySidequestsButton;
+        return SidequestsButton.Visibility == Visibility.Visible ? SidequestsButton : EmptySidequestsButton;
+    }
 
     /// <summary>Back from an objective's detail: focus on its title, where the user left.</summary>
     internal void FocusObjective(SidequestItem item) =>
@@ -163,7 +183,7 @@ public partial class PanelView : UserControl
             var rows = ObjectiveList.ItemsSource as List<ObjectiveRow>;
             if (rows is not { Count: > 0 })
             {
-                SidequestsButton.Focus();
+                SidequestsEntry().Focus();
                 return;
             }
 
@@ -175,7 +195,7 @@ public partial class PanelView : UserControl
         var title = VisualTree.FindDescendant<System.Windows.Controls.Button>(ObjectiveList,
             b => b.Name == "ItemButton" && b.DataContext is ObjectiveRow row && row.Item == item);
         if (title is not null) title.Focus();
-        else SidequestsButton.Focus();
+        else SidequestsEntry().Focus();
     }
 
     /// <summary>5.1: the chip opens its Sidequest.</summary>
@@ -226,7 +246,11 @@ public partial class PanelView : UserControl
         FocusRowNear(index);
     }
 
-    private void Sidequests_Click(object sender, RoutedEventArgs e) => _shell.ShowSidequests();
+    private void Sidequests_Click(object sender, RoutedEventArgs e)
+    {
+        _leftBy = sender as Button;
+        _shell.ShowSidequests();
+    }
 
     private void Settings_Click(object sender, RoutedEventArgs e) => App.Current.ShowSettings();
 }

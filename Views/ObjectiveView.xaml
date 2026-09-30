@@ -2,7 +2,6 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Sidequest.Views"
-             UseLayoutRounding="True"
              AllowDrop="True"
              PreviewDragOver="View_PreviewDragOver"
              PreviewDragLeave="View_PreviewDragLeave"

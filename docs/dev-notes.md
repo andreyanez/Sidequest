@@ -4,23 +4,24 @@ Working notes for the Sidequest rebuild. The design is in
 [`design-spec.md`](design-spec.md); this file covers how to run and check the thing, and
 records decisions that are not visible in the code.
 
-Current branch: `sidequest`. WeeklyReminder stays installed and in daily use until
-phase 6 completes.
+Current branch: `sidequest`. Since 2026-09-30 Sidequest is installed in
+`%LOCALAPPDATA%\Sidequest\` and in daily use, and WeeklyReminder is retired (see "The
+switchover" under Phase 6).
 
-**Status:** phases 0–5 are done: renames, font, palette and icons; data and import;
+**Status:** phases 0–6 are done: renames, font, palette and icons; data and import;
 shell and main panel; navigation, the Sidequests list, the new-Sidequest form and the
 Sidequest detail; the objective detail with its notes, files and images; the settings
-window and the tray. WeeklyReminder's screens are gone from this branch. Next is
-phase 6: the light-theme and keyboard pass over every screen, then the switch from
-WeeklyReminder.
+window and the tray; the light-theme and keyboard pass, short of a live Tab walk; and
+the switch from WeeklyReminder. v1 is complete. Next are the tweaks the user has
+collected from using it, then phase 7, the Bitácora (v1.1).
 
 ---
 
 ## Run against a sandbox, never your real data
 
-`%APPDATA%\Sidequest\` is live data, and the WeeklyReminder import (**D3**) renames
-`week.json` in `%APPDATA%\WeeklyReminder\` as a side effect. A dev run must not be able
-to reach either.
+`%APPDATA%\Sidequest\` is live data: the Sidequests the installed copy works on every
+day. `%APPDATA%\WeeklyReminder\` holds the retired app's files, kept for a rollback. A
+dev run must not be able to reach either.
 
 Set `SIDEQUEST_DATA` to a scratch folder and `App.RedirectDataIfSandboxed()` repoints
 both stores under it:
@@ -34,10 +35,15 @@ dotnet build; Start-Process .\bin\Debug\net8.0-windows\Sidequest.exe
 It is read **first** in `OnStartup`, before settings are loaded — an earlier ordering bug
 had a sandboxed run reading real settings and writing them back.
 
+A sandboxed run also has a single-instance lock of its own, named after its folder, so
+it starts beside the installed copy instead of handing its launch to it. Its tray icon's
+tooltip names the folder: "Sidequest (sq-sandbox)". The tools attach only to a copy
+started from inside the repo, never to the installed one.
+
 The sandbox covers "Abrir al iniciar el equipo" too: under `SIDEQUEST_DATA`, and in the
 test suite, `AutoStart` keeps on/off in a file instead of the `Run` key. A dev build
-registered there would start at the next sign-in without the sandbox, on real data,
-with the import ready to rename `week.json`.
+registered there would start at the next sign-in without the sandbox, on real data, in
+place of the installed copy, whose entry has the same name.
 
 The test suite does not rely on the variable. `tests/Sidequest.Tests/TestDataGuard.cs`
 redirects every store (Sidequests, settings, the import's source) from a
@@ -57,10 +63,11 @@ on an 18px box clamps to a circle, and every bordered box is 2px larger than its
 | Script | What it is for |
 | --- | --- |
 | `tools/seed-sandbox.ps1` | Fills a sandbox with the artboards' four Sidequests, six panel objectives, and `FnObjetivo`'s notes, file and images |
-| `tools/run-sandbox.ps1` | Reseeds the sandbox and launches the build in a given theme and language, at a fixed position |
-| `tools/render-artboard.ps1` | Renders an artboard to PNG at 1:1 with headless Edge |
-| `tools/capture-window.ps1` | Screenshots the app's own window rect (never the whole desktop) |
+| `tools/run-sandbox.ps1` | Reseeds the sandbox and launches the build in a given theme and language, at a fixed position; `-Collapsed` starts on the one-row panel, `-Exe .\publish\Sidequest.exe` a Release build. It stops only the copy it started, never a trial run of the same build |
+| `tools/render-artboard.ps1` | Renders an artboard to PNG at 1:1 with headless Edge; `-Light` renders any of them in the light theme |
+| `tools/capture-window.ps1` | Screenshots the window rect of a copy started from the repo (never the desktop, never the installed copy); `-Untitled` takes a popup, such as the "⋯" menu |
 | `tools/compare-ink.ps1` | Where each element is drawn, artboard vs app, to the pixel (or per-row, for text) |
+| `tools/compare-colours.ps1` | Where the fills disagree, artboard vs app, grouped by colour pair: the wrong token, where the layout already matches |
 | `tools/uia-do.ps1` | Invokes, focuses, selects or types into a control by its accessible name |
 | `tools/send-keys.ps1` | Real keystrokes to whichever window can take them, the dialog when one is up |
 | `tools/tab-walk.ps1` | Presses Tab and reports what really has focus each time |
@@ -93,7 +100,8 @@ Look at shapes as well as measuring boxes. Through phases 2 and 3 every pill ren
 an ellipse, whose bounding box is the same as a pill's, so no measurement caught it; a 4x
 zoom of one chip did at once.
 
-Three traps, all of which produced confident wrong answers before:
+Four traps. The first three produced confident wrong answers before; the fourth
+hijacks the keyboard of whoever is using the machine:
 
 - **Foreground stealing.** `SetForegroundWindow` fails silently when another process owns
   the last input, and the keystrokes go to that app instead. `tab-walk.ps1` borrows the
@@ -107,6 +115,12 @@ Three traps, all of which produced confident wrong answers before:
   keystrokes reach a window a real user cannot type into. That is how a test sent an
   item to the panel while its delete confirmation was still open. Send keys to the
   enabled window, which is the dialog whenever one is up.
+- **A dialog takes the keyboard.** `ShowDialog` activates the app, so opening
+  `ConfirmDialog` through UIA pulls keyboard focus from whatever the person at the
+  machine is typing into, and their Enter would answer it. Cancel it straight away and
+  stop the sandbox copy, which hands focus back. Captures don't have this problem:
+  `capture-window.ps1` doesn't foreground a topmost window, and `run-sandbox.ps1` keeps
+  the panel on top, so every window the app opens is one.
 
 ## Decisions
 
@@ -200,7 +214,7 @@ Where the artboards and §5 left something open, or disagree:
 - **The objective view uses layout rounding.** Its 19px title sits on a 24.7px line,
   which left everything below it on fractional pixels, where 1px borders smeared across
   two rows. Chrome snaps boxes to whole pixels when it paints; `UseLayoutRounding` does
-  the same.
+  the same. Phase 6 turned it on for every window.
 - **Fixed on the way:**
   - Every pill in the app rendered as an ellipse. The artboards write
     `border-radius: 999px`, which CSS scales down evenly, but WPF scales it separately
@@ -240,6 +254,75 @@ Where the artboards and §5 left something open, or disagree:
   its controls was checked instead); and a real `Run` key write, which only happens
   outside the sandbox.
 
+### Phase 6
+
+- **Light references are generated.** Only `FnMain` has a light artboard. The others are
+  rendered light by `render-artboard.ps1 -Light`, which swaps §4.2's dark values for the
+  light ones in a copy. Run on `FnMain`, it reproduces `FnMainClaro` exactly: the same
+  text, and not one pixel different. `Bg` and `Inv` are one colour in dark, so the
+  script tells them apart by use: text and the switch's knob are `Inv`.
+- **Every screen matches its artboard in both themes**, checked with
+  `compare-colours.ps1` over the fills and `compare-ink.ps1` over positions. What still
+  differs is known: the darkened Amber (see "Contrast comes first"), states an artboard
+  shows that the capture didn't (a hovered row, a chosen option, a switch left on), and
+  the images `FnObjetivo` stands in for.
+- **Every window uses layout rounding**, set in the `AppWindow` style. Matching `FnMain`'s
+  date put the panel's cards on fractional pixels, and the first card's top border
+  vanished. No screen can hit that again now.
+- **`FnMain`'s header, measured rather than read:**
+  - The list pads its top by 12, so the cards were 12px high.
+  - The date sits 6 under the weekday on a 1.15 line. WPF's `LineHeight` would scale its
+    baseline and set it a pixel high, so it keeps its natural line, with margins that
+    centre it as CSS does.
+  - The weekday sits on the counter's baseline, a pixel below where top alignment puts it.
+- **The panel's gear is a 36px round button** (`RoundIconButton`), as `FnMain` draws it,
+  not the title bar's 28px one.
+- **Spacing that had drifted from the artboards:** the title bar's buttons sit 2 apart;
+  the collapsed row spaces its date, counter and buttons 12 apart, with its buttons 2
+  apart; a hovered card's actions sit 12 after the chip and 2 apart, inside the card's
+  padding. The collapsed date also moved down a pixel. Centred in the row, it falls at
+  17.5, which Chrome and WPF round opposite ways.
+- **`ConfirmDialog` opens with focus on its default button**, as a Windows message box
+  does, so the ring shows what Enter will do. It shows only after keyboard input.
+- **The empty panel hides the footer's "Sidequests →" while there are no Sidequests**
+  (the user's call, 2026-09-30). §5.1 puts that button under the empty-state text as
+  well, and §4.4 allows one primary button per screen. With Sidequests but nothing on the
+  panel, as right after the import, both show, as §5.1 says. Coming back from the list,
+  focus goes to whichever of the two was used to leave.
+- **The keyboard, checked through UIA:** every focusable control on every screen has a
+  name, the hover-only actions come up for keyboard focus, and the focus ring is `Text`
+  in both themes.
+- **Not checked live:** a Tab walk, because it needs the keyboard and the foreground
+  while the machine was in use; and tooltips, which need the pointer. Their style uses
+  `Surface`, `Line2` and `Text` only.
+
+#### The switchover (2026-09-30)
+
+WeeklyReminder ran from `%LOCALAPPDATA%\WeeklyReminder\` and started from a per-user
+`Run` entry of the same name. In order:
+
+1. WeeklyReminder was stopped and its `Run` entry removed. Its tray icon lingers until
+   the pointer passes over it.
+2. `%APPDATA%\WeeklyReminder\` was copied to `%APPDATA%\WeeklyReminder.backup-20260930\`,
+   checked file by file.
+3. The Release build was installed into `%LOCALAPPDATA%\Sidequest\`, with a `Run` entry
+   in the form `AutoStart` writes, and started without `SIDEQUEST_DATA`.
+4. The import made "Importados" (Slate) from all 19 items, texts and ticks identical and
+   in order, and renamed `week.json` to `week.json.migrated`.
+
+`%APPDATA%\Sidequest\` had existed, empty, since the test-suite incident of 2026-09-20;
+the import only checks for `sidequests.json`, so it made no difference.
+
+**To roll back:** turn off Sidequest's "Abrir al iniciar el equipo" and quit it from the
+tray; rename `week.json.migrated` back to `week.json`; start
+`%LOCALAPPDATA%\WeeklyReminder\WeeklyReminder.exe` and turn its own start-with-Windows
+option back on, which rewrites its `Run` entry. Anything done in Sidequest since stays in
+`%APPDATA%\Sidequest\` and is not carried back.
+
+**To update the installed copy:** quit it from the tray, publish, copy `publish\*` over
+`%LOCALAPPDATA%\Sidequest\`, and start it again. Its data and `Run` entry stay as they
+are.
+
 ## Known deviations from the spec
 
 - **The import does not carry over WeeklyReminder's settings** (§3 step 3). Accepted on
@@ -255,7 +338,8 @@ Where the artboards and §5 left something open, or disagree:
   use pills (`999`); `FnSidequestNuevo` uses `10` and `FnAjustes` uses `5`. The built
   styles are pills, matching §4.4 and the two panel screens. That includes
   `FnSidequestNuevo`'s Cancelar and Crear, which it also draws 38 high where §4.4 says
-  34 and 36.
+  34 and 36, and its Cancelar with no fill, over the form's tint, where §4.4 and
+  `FnSidequest`'s "Bitácora" button fill a secondary button with `Surface`.
 - **Values the artboards take from outside §4.2**, all built as drawn:
   - `FnSidequests` draws its progress tracks at `C @ 20 %`; the header band keeps §4.2's
     25.

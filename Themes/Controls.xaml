@@ -134,6 +134,30 @@
         </Setter>
     </Style>
 
+    <!-- The panel footer's gear: the same button at 36, and round, as FnMain draws it. -->
+    <Style x:Key="RoundIconButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+        <Setter Property="Width" Value="36"/>
+        <Setter Property="Height" Value="36"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.Pill}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource PillRadius}}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Hover}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- The pin reads as active with a Hover fill and Text icon, so it needs a toggle. -->
     <Style x:Key="IconToggle" TargetType="ToggleButton">
         <Setter Property="Width" Value="28"/>

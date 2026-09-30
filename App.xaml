@@ -42,6 +42,10 @@
                 <Setter Property="TextElement.FontFamily" Value="{StaticResource AppFont}"/>
                 <Setter Property="TextElement.FontSize" Value="13"/>
                 <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+                <!-- Chrome snaps every box to whole pixels when it paints. Without this,
+                     anything below a line height like FnMain's 25.3 lands on a fraction of
+                     a pixel, and a 1px border smears across two rows. -->
+                <Setter Property="UseLayoutRounding" Value="True"/>
             </Style>
 
         </ResourceDictionary>

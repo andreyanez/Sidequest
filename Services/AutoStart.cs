@@ -15,8 +15,8 @@ public static class AutoStart
     /// <summary>
     /// When set, on/off lives in this file instead of the Run key. A sandboxed dev run sets it
     /// (SIDEQUEST_DATA), and so does the test suite. A dev build registered under Run would
-    /// start at the next sign-in without the sandbox - against the user's real data, and with
-    /// the WeeklyReminder import ready to rename their week.json.
+    /// start at the next sign-in without the sandbox, against the user's real data, and
+    /// take the place of the installed copy's entry, which shares the value name.
     /// </summary>
     public static string? SandboxFile { get; set; }
 
