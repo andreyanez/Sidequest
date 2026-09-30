@@ -1,0 +1,4 @@
+# Text is stored with LF line endings, whatever the platform or git configuration that
+# commits it, and each git writes its own on checkout. Without this, WSL's git counted
+# every file that Windows' git had written with CRLF as modified.
+* text=auto
