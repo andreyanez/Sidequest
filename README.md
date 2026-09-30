@@ -1,7 +1,9 @@
-# Weekly Reminder
+# Sidequest
 
-A small tray-resident Windows app that pops up a reminder window showing what you
-planned for the week. Runs entirely locally; no accounts, no network.
+A small tray-resident Windows app for side projects. Each project is a **Sidequest**
+with its own list of items; the ones you mean to get to next are sent to a panel that
+stays on screen. Everything is local: no accounts, no network. It replaces
+WeeklyReminder, and imports its list on first start.
 
 ## Requirements
 
@@ -11,105 +13,106 @@ planned for the week. Runs entirely locally; no accounts, no network.
 
 ## Build and run
 
-```
+**A development run never touches real data.** `%APPDATA%\Sidequest\` holds the real
+Sidequests, and the WeeklyReminder import renames `%APPDATA%\WeeklyReminder\week.json`.
+Point `SIDEQUEST_DATA` at a scratch folder and every store moves under it:
+
+```powershell
 dotnet build
-dotnet run
+$env:SIDEQUEST_DATA = "$env:TEMP\sq-sandbox"
+.\tools\seed-sandbox.ps1 -Sandbox $env:SIDEQUEST_DATA   # the artboards' sample data
+Start-Process .\bin\Debug\net8.0-windows\Sidequest.exe
 ```
 
-The app has no main window. On launch it puts a blue tick icon in the notification
-area; everything is reached from there.
+`tools\run-sandbox.ps1` does all of that in one step, in a chosen theme and language.
+A sandboxed copy runs beside an installed one: it has a single-instance lock of its own,
+and its tray icon's tooltip names the sandbox folder.
 
-A window can also be opened straight from the command line, which is handy for
-checking a screen without navigating the tray menu:
-
-```
-WeeklyReminder.exe --popup
-WeeklyReminder.exe --edit
-WeeklyReminder.exe --settings
+```powershell
+dotnet test tests/Sidequest.Tests
 ```
 
-These are honoured by the first instance only. Launching the exe while it is already
-running always just surfaces the popup.
+The tests redirect every store themselves, whatever the environment says.
 
-Publish a standalone copy:
+## Install
 
+Publish a framework-dependent build, copy it somewhere of its own, and start it:
+
+```powershell
+dotnet publish .\Sidequest.csproj -c Release -r win-x64 --self-contained false -o publish
+New-Item -ItemType Directory -Force "$env:LOCALAPPDATA\Sidequest" | Out-Null
+Copy-Item .\publish\* "$env:LOCALAPPDATA\Sidequest" -Recurse -Force
+$env:SIDEQUEST_DATA = $null    # left over from a dev run, it would start on the sandbox
+Start-Process "$env:LOCALAPPDATA\Sidequest\Sidequest.exe"
 ```
-dotnet publish -c Release -r win-x64 --self-contained false -o publish
-```
+
+Name the project file: publishing the solution copies the test project in as well. Turn
+on **Abrir al iniciar el equipo** / **Open at startup** in Settings, which adds a
+per-user `Run` entry pointing at the exe that is running. No admin rights needed.
+
+### Coming from WeeklyReminder
+
+Turn off WeeklyReminder's start-with-Windows option, then quit it from its tray menu.
+The first time Sidequest starts with no data of its own, it imports
+`%APPDATA%\WeeklyReminder\week.json` into a Sidequest called "Importados" and renames
+the file to `week.json.migrated`. Nothing is deleted: to go back, quit Sidequest, rename
+the file back and start WeeklyReminder again. The old settings are not carried over;
+set theme, language and startup again in Settings.
 
 ## How it works
 
-- **Tray menu** — Show reminders, Edit this week, Settings, Quit. Double-clicking the
-  icon shows the popup.
-- **Popup** — slides into the bottom-right corner with a flat list of everything on
-  this week's list. Tick items off directly. Snooze, Edit, or Dismiss. Closes itself
-  after a configurable delay unless you move the mouse over it. It grows to fit the
-  whole list, and only scrolls once the list outgrows the screen.
-- **Collapse** — the chevron rolls the popup up to just its header, showing
-  `This week · 6 of 18 done`. It stays on screen and out of the way, and expands again
-  with one click. The bottom edge is pinned while collapsing, so a popup anchored near
-  the bottom of the screen rolls up rather than leaving a gap. Deliberately not
-  persisted: a popup that fires on schedule should show what it is reminding you about.
-- **Keep on top** — on by default, so the reminder floats above other windows. Turn it
-  off in Settings to let it sit behind whatever you are working in, which suits leaving
-  it open all day with auto-close set to Never.
-- **Dragging** — grab any empty part of the card and drag. The position is remembered
-  and reused for every later popup. If the saved spot is no longer on any screen (a
-  monitor unplugged, a resolution change) it falls back to the bottom-right corner.
-  *Reset popup position* in the tray menu forgets it deliberately.
-- **Schedule** — fires at each configured time of day, at least twice, on the days you
-  pick. Times are checked against the wall clock every 30 seconds, so sleep, hibernation
-  and clock changes need no special handling. A slot missed while the machine was off
-  surfaces once when it wakes, rather than queueing up several popups.
-- **Week rollover** — every Monday the plan resets. Items flagged *Weekly* carry over
-  and are unticked; everything else is cleared.
-- **Dark mode** — toggled in Settings, applied live to every open window including the
-  Windows title bar. The choice is saved immediately rather than on close.
-- **Language** — English or Spanish, switched in Settings and applied live. Until one is
-  picked the app follows the Windows display language, so `Language` stays null in
-  settings.json rather than being frozen on first run. Switching also sets the culture,
-  so weekday names and the date range follow.
-- **Startup** — optional per-user `Run` key entry, toggled in Settings. No admin rights.
-- **Single instance** — launching the exe again just shows the popup.
+- **Panel** — today's date, and the objectives you have sent to it, each with the
+  Sidequest it came from. Tick them off here. The title opens the objective; the chip
+  opens its Sidequest. Hovering or focusing a row shows *return to Sidequest* and
+  *delete*. The chevron collapses the panel to one row, and it stays collapsed until you
+  expand it. The pin keeps it above other apps.
+- **Sidequests** — every Sidequest with its progress, and *New Sidequest*: a name and one
+  of eight colours.
+- **A Sidequest** — its items, grouped as the current objective, pending and completed.
+  *Send objective* puts a pending item on the panel. The "⋯" menu renames it, changes its
+  colour or deletes it.
+- **An objective** — notes, where web addresses become links; up to five local files,
+  linked by path; and up to five images, copied into the app's own folder so the
+  originals can move.
+- **Settings** — appearance (light, dark, or following Windows), language (Spanish or
+  English), open at startup, and keep the panel on top. Changes apply at once.
+- **Tray** — Show panel, Sidequests…, Settings…, Reset position, Quit. Double-clicking
+  the icon shows the panel, and so does starting the exe again. `Sidequest.exe
+  --sidequests` and `--settings` open those screens directly.
+- **Keyboard** — everything is reachable with Tab, Enter, Escape and Delete.
 
 ## Data
 
-Two human-readable JSON files under `%APPDATA%\WeeklyReminder\`:
+Human-readable JSON under `%APPDATA%\Sidequest\`:
 
 | File | Contents |
 | --- | --- |
-| `week.json` | The current week's items |
-| `settings.json` | Popup times, active days, snooze and auto-close, last fired |
+| `sidequests.json` | The Sidequests, their items, and which items are on the panel |
+| `settings.json` | Theme, language, startup, keep on top, collapsed, panel position |
+| `media\` | Copies of images attached to objectives |
 
-Both are safe to hand-edit while the app is closed. Writes go to a temp file and are
-then moved into place, so an unexpected shutdown can't leave a truncated file. If a
-file is ever unreadable it's renamed to `*.corrupt-<timestamp>` rather than discarded.
+Both files are safe to hand-edit while the app is closed. Writes go to a temp file that
+is then moved into place, so an unexpected shutdown can't leave a truncated file, and a
+file that can't be read is renamed to `*.corrupt-<timestamp>` rather than discarded.
 
 ## Layout
 
 ```
-Models/      TaskItem, WeekPlan, AppSettings
-Services/    Storage, Scheduler, AutoStart, TrayIconFactory, ThemeService
-Views/       PopupWindow, EditorWindow, SettingsWindow, ConfirmDialog
-Themes/      Light.xaml, Dark.xaml — colours only, swapped at runtime
-Strings/     English.xaml, Spanish.xaml — UI text, swapped at runtime
-App.xaml     Control styles and templates, shared by both themes
-App.xaml.cs  Tray host, single-instance, window lifetime
+Models/      SidequestProject, SidequestItem, SidequestTheme, AppSettings
+Services/    stores and the import, rules, palette, theme and language, tray icon,
+             autostart, attachments
+Views/       MainWindow and the four views it swaps between, SettingsWindow,
+             ConfirmDialog
+Themes/      Light.xaml, Dark.xaml (colour tokens), Controls.xaml (styles)
+Strings/     English.xaml, Spanish.xaml
+Icons/       icon geometry
+Fonts/       DM Sans, embedded (SIL Open Font License)
+tools/       sandbox runs, artboard renders, screen comparison, UI automation
+tests/       xUnit suite
+docs/        design-spec.md (what to build, in Spanish), dev-notes.md (status,
+             checking a screen, decisions), design/reference/ (the artboards)
 ```
 
-Colours live only in the two theme dictionaries and are referenced with
-`DynamicResource`, so slot 0 of the merged dictionaries can be swapped while windows
-are open. Adding a colour means adding it to **both** files. Slot 1 holds the language
-dictionary and works the same way — adding a string means adding it to both of those.
-
-`DynamicResource` only covers text declared in XAML. Anything built in code — the tray
-menu, the done count, duration labels, weekday names — is rebuilt from
-`LanguageService.Changed`, which each window subscribes to and unsubscribes from on
-close.
-
-WPF's stock `TextBox`, `CheckBox`, `ComboBox` and `ScrollBar` paint themselves with
-fixed light chrome that ignores `Background`/`Foreground`, so `App.xaml` retemplates
-them. That is the bulk of the file.
-
-WinForms is referenced only for `NotifyIcon`, which WPF has no equivalent for. The tray
-icon is drawn with GDI+ at runtime, so the project ships no binary assets.
+Conventions (colours, strings, styles, keyboard and screen-reader support) are in
+[`CLAUDE.md`](CLAUDE.md). Where the work stands is in
+[`docs/dev-notes.md`](docs/dev-notes.md).

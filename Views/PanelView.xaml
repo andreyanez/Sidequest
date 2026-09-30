@@ -1,0 +1,219 @@
+<UserControl x:Class="Sidequest.Views.PanelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <!-- 61 = the 60 of 5.1 plus its 1px top border, as the artboard renders it. -->
+            <RowDefinition Height="61"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header: 5.1 gives it 22/16/14 padding, 16 lateral per 4.3 -->
+        <StackPanel Grid.Row="0" Margin="16,22,16,14">
+            <!-- FnMain sets the weekday on the counter's baseline. Both top-aligned, the
+                 11px weekday would sit a pixel above the 12px counter, the difference in
+                 their ascents. -->
+            <Grid>
+                <TextBlock x:Name="WeekdayText" Style="{StaticResource SectionLabel}" Margin="0,1,0,0"/>
+                <TextBlock x:Name="CounterText"
+                           Style="{StaticResource Muted}"
+                           HorizontalAlignment="Right"/>
+            </Grid>
+            <!-- FnMain puts the date 6 below the weekday on a 1.15 line (25.3), the one
+                 heading in the artboards not on its font's natural line (28.6). CSS centres
+                 the natural line in the shorter one, so the text starts 1.67 above the
+                 line's box and runs 1.67 past it; the margins do the same, in the whole
+                 pixels Chrome paints (layout rounding would round 4.33 and -1.67 apart,
+                 but their sum as one). WPF's own LineHeight would scale the baseline
+                 instead, and set the date a pixel high. -->
+            <TextBlock x:Name="DateText"
+                       Style="{StaticResource Heading}"
+                       Margin="0,4,0,-2"/>
+        </StackPanel>
+
+        <!-- Objectives. 12 lateral padding and a 6px gap between cards, per 4.3, and 12
+             above the first card, as FnMain's list pads its top -->
+        <Grid Grid.Row="1">
+            <!-- Focusable=False for the same reason as the ItemsControl below: the
+                 ScrollViewer otherwise takes a stop of its own between the title bar and
+                 the first row. It still scrolls a focused row into view without it. -->
+            <ScrollViewer x:Name="ListScroll"
+                          Focusable="False"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Padding="12,12,12,0"
+                          KeyDown="List_KeyDown">
+                <!-- Focusable=False: an ItemsControl takes a tab stop of its own by
+                     default, which put an inert stop before the first checkbox. -->
+                <ItemsControl x:Name="ObjectiveList" Focusable="False">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <!-- 52, not the 50 of 4.4: the artboard's rule is height:50 on a
+                                 content-box with a 1px border, so it renders 52. WPF counts
+                                 the border inside Height, so matching it means saying 52. -->
+                            <Border x:Name="Card"
+                                    Height="52"
+                                    Margin="0,0,0,6"
+                                    Padding="14,0,8,0"
+                                    CornerRadius="10"
+                                    Background="{DynamicResource Surface}"
+                                    BorderBrush="{DynamicResource Line}"
+                                    BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- The label is a sibling TextBlock rather than the
+                                         box's content, so the name has to be set for it
+                                         or the box announces itself with no label. -->
+                                    <CheckBox Grid.Column="0"
+                                              VerticalAlignment="Center"
+                                              Background="{Binding ThemeBrush}"
+                                              AutomationProperties.Name="{Binding Item.Text}"
+                                              IsChecked="{Binding Item.Done, Mode=TwoWay}"
+                                              Checked="Done_Changed"
+                                              Unchecked="Done_Changed"/>
+
+                                    <!-- The title opens the objective's detail (5.1, 5.3). A
+                                         button, so the keyboard reaches it too; FnMain draws a
+                                         plain link that goes to Text2 on hover. -->
+                                    <Button x:Name="ItemButton"
+                                            Grid.Column="1"
+                                            Margin="12,0,12,0"
+                                            Style="{StaticResource TextButton}"
+                                            AutomationProperties.Name="{Binding Item.Text}"
+                                            Click="ItemText_Click">
+                                        <TextBlock x:Name="ItemText"
+                                                   Style="{StaticResource ItemText}"
+                                                   Text="{Binding Item.Text}"/>
+                                    </Button>
+
+                                    <!-- Chip: opens the Sidequest (5.1). A button, so the
+                                         keyboard reaches it too. The name is truncated rather
+                                         than shortened: the model carries one name, and an
+                                         abbreviation would be a second field. -->
+                                    <Button Grid.Column="2"
+                                            Style="{StaticResource Chip}"
+                                            VerticalAlignment="Center"
+                                            AutomationProperties.Name="{Binding ProjectName}"
+                                            Click="Chip_Click">
+                                        <TextBlock Text="{Binding ProjectName}"
+                                                   Foreground="{Binding ThemeBrush}"
+                                                   FontSize="11"
+                                                   FontWeight="Medium"
+                                                   VerticalAlignment="Center"
+                                                   MaxWidth="96"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                    </Button>
+
+                                    <!-- 5.1: both appear on hover only. 12 after the chip and
+                                         2 apart, as FnMain spaces them. -->
+                                    <StackPanel x:Name="Actions"
+                                                Grid.Column="3"
+                                                Orientation="Horizontal"
+                                                Margin="12,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Visibility="Collapsed">
+                                        <Button Style="{StaticResource IconButton}"
+                                                Margin="0,0,2,0"
+                                                ToolTip="{DynamicResource L_ReturnToSidequest}"
+                                                AutomationProperties.Name="{DynamicResource L_ReturnToSidequest}"
+                                                Click="Return_Click">
+                                            <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Return}"/>
+                                        </Button>
+                                        <Button Style="{StaticResource IconButton}"
+                                                ToolTip="{DynamicResource L_DeleteObjective}"
+                                                AutomationProperties.Name="{DynamicResource L_DeleteObjective}"
+                                                Click="Delete_Click">
+                                            <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Delete}"/>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Item.Done}" Value="True">
+                                    <Setter TargetName="ItemText" Property="Foreground" Value="{DynamicResource Text2}"/>
+                                    <Setter TargetName="ItemText" Property="TextDecorations" Value="Strikethrough"/>
+                                </DataTrigger>
+                                <Trigger SourceName="ItemButton" Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="ItemText" Property="Foreground" Value="{DynamicResource Text2}"/>
+                                </Trigger>
+                                <Trigger SourceName="Card" Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Card" Property="Background" Value="{DynamicResource Hover}"/>
+                                    <Setter TargetName="Actions" Property="Visibility" Value="Visible"/>
+                                </Trigger>
+                                <!-- 5.1 reveals these on hover, which on its own leaves them
+                                     unreachable without a mouse: a collapsed element takes no
+                                     tab stop. Focusing the row's checkbox shows them first,
+                                     so Tab can then carry on into them. -->
+                                <Trigger SourceName="Card" Property="IsKeyboardFocusWithin" Value="True">
+                                    <Setter TargetName="Card" Property="Background" Value="{DynamicResource Hover}"/>
+                                    <Setter TargetName="Actions" Property="Visibility" Value="Visible"/>
+                                </Trigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <StackPanel x:Name="EmptyState"
+                        Visibility="Collapsed"
+                        VerticalAlignment="Center"
+                        Margin="28,0,28,12">
+                <TextBlock Style="{StaticResource Muted}"
+                           Text="{DynamicResource L_PanelEmpty}"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"/>
+                <Button x:Name="EmptySidequestsButton"
+                        Style="{StaticResource PrimaryButton}"
+                        HorizontalAlignment="Center"
+                        Margin="0,14,0,0"
+                        AutomationProperties.Name="{DynamicResource L_Sidequests}"
+                        Click="Sidequests_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{DynamicResource L_Sidequests}" VerticalAlignment="Center"/>
+                        <Path Style="{StaticResource IconPath}"
+                              Data="{StaticResource Icon.ArrowRight}"
+                              Margin="6,0,-4,0"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
+            <!-- Asymmetric, as FnMain pads it: 12 left, 10 right. -->
+            <Grid Margin="12,0,10,0">
+                <Button x:Name="SidequestsButton"
+                        Style="{StaticResource PrimaryButton}"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        AutomationProperties.Name="{DynamicResource L_Sidequests}"
+                        Click="Sidequests_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{DynamicResource L_Sidequests}" VerticalAlignment="Center"/>
+                        <Path Style="{StaticResource IconPath}"
+                              Data="{StaticResource Icon.ArrowRight}"
+                              Margin="6,0,-4,0"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource RoundIconButton}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        ToolTip="{DynamicResource L_Settings}"
+                        AutomationProperties.Name="{DynamicResource L_Settings}"
+                        Click="Settings_Click">
+                    <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Settings}"/>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

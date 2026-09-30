@@ -1,298 +1,229 @@
-using System.Collections.ObjectModel;
-using System.Globalization;
+using System.IO;
+using System.Security;
 using System.Windows;
-using System.Windows.Controls;
-using WeeklyReminder.Models;
-using WeeklyReminder.Services;
+using System.Windows.Interop;
+using Sidequest.Models;
+using Sidequest.Services;
+using Matrix = System.Windows.Media.Matrix;
+using MouseButtonEventArgs = System.Windows.Input.MouseButtonEventArgs;
+using MouseButtonState = System.Windows.Input.MouseButtonState;
+using Point = System.Windows.Point;
+using SelectionChangedEventArgs = System.Windows.Controls.SelectionChangedEventArgs;
 
-// WinForms is referenced for NotifyIcon, so its implicit using collides with WPF's.
-// Alias the handful of types we touch rather than fully qualifying at each use.
-using CheckBox = System.Windows.Controls.CheckBox;
-using Key = System.Windows.Input.Key;
-using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+namespace Sidequest.Views;
 
-namespace WeeklyReminder.Views;
-
+/// <summary>
+/// Settings (5.8), a window of its own. Every change applies and saves at once - there is
+/// no OK button - and the panel's own pin and this window's switch stay in step.
+/// </summary>
 public partial class SettingsWindow : Window
 {
-    /// <summary>Wrapper so the list can bind to a preformatted string without XAML format escaping.</summary>
-    // ToString is overridden throughout: a templated ComboBoxItem takes its accessible
-    // name from the bound object, and the record default reads "Choice { Label = ... }".
-    public sealed record TimeEntry(TimeOnly Value)
-    {
-        public string Display => Format(Value);
-
-        public override string ToString() => Display;
-    }
-
-    public sealed record Choice(string Label, int Value)
-    {
-        public override string ToString() => Label;
-    }
-
-    public sealed record LanguageChoice(string Label, AppLanguage Value)
-    {
-        public override string ToString() => Label;
-    }
-
-    private static readonly DayOfWeek[] WeekOrder =
-    {
-        DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday,
-        DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday,
-    };
-
-    private readonly AppSettings _settings;
-    private readonly ObservableCollection<TimeEntry> _times = new();
     private readonly Action _languageChanged;
-    private bool _loading = true;
+    private readonly Action _settingsChanged;
+    private bool _loading;
 
-    public SettingsWindow(AppSettings settings)
+    public SettingsWindow()
     {
-        _settings = settings;
-
         InitializeComponent();
+        Icon = TrayIconFactory.WindowIcon();
 
-        foreach (var time in settings.PopupTimes.OrderBy(t => t))
-            _times.Add(new TimeEntry(time));
-        TimeList.ItemsSource = _times;
-
-        // Language names are endonyms, so this list is not rebuilt on a language change.
-        LanguageBox.ItemsSource = new List<LanguageChoice>
+        // Language names are written in their own language, so they need no strings.
+        LanguagePicker.ItemsSource = new[]
         {
-            new("English", AppLanguage.English),
-            new("Español", AppLanguage.Spanish),
+            new SegmentOption("Español", AppLanguage.Spanish),
+            new SegmentOption("English", AppLanguage.English),
         };
-        LanguageBox.SelectedValue = settings.Language ?? LanguageService.Current;
 
-        StartWithWindowsBox.IsChecked = settings.StartWithWindows;
-        KeepOnTopBox.IsChecked = settings.KeepOnTop;
-        DarkModeBox.IsChecked = settings.Theme == AppTheme.Dark;
+        LoadAppearanceOptions();
+        LoadSelections();
 
-        ApplyStrings();
-        ThemeService.TrackTitleBar(this);
-
-        _loading = false;
-
-        _languageChanged = ApplyStrings;
+        // The appearance options are labelled in the current language, so a language switch
+        // rebuilds them; the rest of the window is DynamicResource. Any other change only
+        // moves selections - rebuilding the options then would destroy the one that has
+        // keyboard focus while the arrow keys are moving through them.
+        _languageChanged = () =>
+        {
+            LoadAppearanceOptions();
+            LoadSelections();
+        };
+        _settingsChanged = LoadSelections;
         LanguageService.Changed += _languageChanged;
+        App.Current.SettingsChanged += _settingsChanged;
+        Closed += (_, _) =>
+        {
+            LanguageService.Changed -= _languageChanged;
+            App.Current.SettingsChanged -= _settingsChanged;
+        };
 
-        // Controls receiving focus during load can scroll themselves into view, which
-        // left the window opening part-way down with the first popup time cut off.
-        Loaded += (_, _) => ContentScroll.ScrollToTop();
+        SourceInitialized += (_, _) => CenterOnPanelsScreen();
+    }
+
+    private static AppSettings Settings => App.Current.Settings;
+
+    private void LoadAppearanceOptions()
+    {
+        _loading = true;
+        try
+        {
+            AppearancePicker.ItemsSource = new[]
+            {
+                new SegmentOption(LanguageService.Get("L_Light"), AppTheme.Light),
+                new SegmentOption(LanguageService.Get("L_Dark"), AppTheme.Dark),
+                new SegmentOption(LanguageService.Get("L_System"), null),
+            };
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    /// <summary>Shows the settings as they stand, without that counting as a change.</summary>
+    private void LoadSelections()
+    {
+        _loading = true;
+        try
+        {
+            AppearancePicker.SelectedItem = AppearancePicker.Items.Cast<SegmentOption>()
+                .First(o => Settings.FollowSystemTheme ? o.Value is null : Equals(o.Value, Settings.Theme));
+
+            LanguagePicker.SelectedItem = LanguagePicker.Items.Cast<SegmentOption>()
+                .First(o => Equals(o.Value, LanguageService.Current));
+
+            // The Run key, not the settings file, is the truth: it can be changed outside the
+            // app, in Task Manager's Startup tab for one.
+            StartupSwitch.IsChecked = AutoStart.IsEnabled();
+            KeepOnTopSwitch.IsChecked = Settings.KeepOnTop;
+
+            var version = typeof(App).Assembly.GetName().Version ?? new Version(0, 1);
+            VersionText.Text = LanguageService.Format("L_VersionFmt", $"{version.Major}.{version.Minor}");
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static void Save()
+    {
+        Storage.SaveSettings(Settings);
+        App.Current.NotifySettingsChanged();
     }
 
     /// <summary>
-    /// Rebuilds everything this window renders from code: day names and duration labels
-    /// are culture- and language-dependent, so a switch has to regenerate them.
+    /// Claro and Oscuro fix the theme; Sistema follows Windows' own setting, now and when it
+    /// changes. Either way every window repaints at once.
     /// </summary>
-    private void ApplyStrings()
+    private void Appearance_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var wasLoading = _loading;
-        _loading = true;
+        if (_loading || AppearancePicker.SelectedItem is not SegmentOption option) return;
 
-        BuildDayToggles();
-        BuildDurationChoices();
-        TimeHint.Text = LanguageService.Get("L_TimeHintDefault");
-
-        _loading = wasLoading;
-    }
-
-    private static string Format(TimeOnly time) => time.ToString("HH:mm", CultureInfo.InvariantCulture);
-
-    /// <summary>Keeps a stored value selectable even if it isn't one of the presets.</summary>
-    private static List<Choice> WithCurrent(List<Choice> choices, int current, Func<int, string> label)
-    {
-        if (choices.All(c => c.Value != current))
-            choices.Add(new Choice(label(current), current));
-
-        return choices.OrderBy(c => c.Value).ToList();
-    }
-
-    private void BuildDurationChoices()
-    {
-        SnoozeBox.ItemsSource = WithCurrent(new List<Choice>
+        if (option.Value is AppTheme theme)
         {
-            new(LanguageService.Format("L_MinutesFmt", 5), 5),
-            new(LanguageService.Format("L_MinutesFmt", 10), 10),
-            new(LanguageService.Format("L_MinutesFmt", 15), 15),
-            new(LanguageService.Format("L_MinutesFmt", 30), 30),
-            new(LanguageService.Get("L_OneHour"), 60),
-        }, _settings.SnoozeMinutes, v => LanguageService.Format("L_MinutesFmt", v));
-        SnoozeBox.SelectedValue = _settings.SnoozeMinutes;
-
-        AutoCloseBox.ItemsSource = WithCurrent(new List<Choice>
-        {
-            new(LanguageService.Get("L_Never"), 0),
-            new(LanguageService.Format("L_SecondsFmt", 15), 15),
-            new(LanguageService.Format("L_SecondsFmt", 30), 30),
-            new(LanguageService.Get("L_OneMinute"), 60),
-            new(LanguageService.Get("L_TwoMinutes"), 120),
-        }, _settings.AutoCloseSeconds, v => LanguageService.Format("L_SecondsFmt", v));
-        AutoCloseBox.SelectedValue = _settings.AutoCloseSeconds;
-    }
-
-    private void BuildDayToggles()
-    {
-        DaysPanel.Children.Clear();
-        var format = CultureInfo.CurrentCulture.DateTimeFormat;
-
-        foreach (var day in WeekOrder)
-        {
-            var box = new CheckBox
-            {
-                Content = format.GetAbbreviatedDayName(day),
-                Tag = day,
-                IsChecked = _settings.ActiveDays.Contains(day),
-                // Tight enough that all seven abbreviated day names fit on one row.
-                Margin = new Thickness(0, 0, 9, 6),
-                MinWidth = 36,
-            };
-
-            box.Checked += Day_Changed;
-            box.Unchecked += Day_Changed;
-            DaysPanel.Children.Add(box);
+            Settings.FollowSystemTheme = false;
+            Settings.Theme = theme;
         }
-    }
-
-    private void Day_Changed(object sender, RoutedEventArgs e)
-    {
-        if (_loading) return;
-
-        var selected = DaysPanel.Children.OfType<CheckBox>()
-            .Where(c => c.IsChecked == true)
-            .Select(c => (DayOfWeek)c.Tag!)
-            .ToList();
-
-        if (selected.Count == 0)
+        else
         {
-            // A schedule with no days would silently never fire.
-            DaysHint.Visibility = Visibility.Visible;
-            if (sender is CheckBox box) box.IsChecked = true;
-            return;
+            Settings.FollowSystemTheme = true;
         }
 
-        DaysHint.Visibility = Visibility.Collapsed;
-        _settings.ActiveDays = selected;
+        ThemeService.Apply(App.Current.EffectiveTheme());
+        Save();
     }
 
-    private void NewTimeText_KeyDown(object sender, KeyEventArgs e)
+    /// <summary>Only the interface changes language (5.8); what the user wrote stays as written.</summary>
+    private void Language_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (e.Key != Key.Enter) return;
-        AddTime();
-        e.Handled = true;
-    }
+        if (_loading || LanguagePicker.SelectedItem is not SegmentOption { Value: AppLanguage language }) return;
+        if (language == LanguageService.Current) return;
 
-    private void AddTime_Click(object sender, RoutedEventArgs e) => AddTime();
-
-    private void AddTime()
-    {
-        var text = NewTimeText.Text.Trim();
-        if (text.Length == 0) return;
-
-        if (!TryParseTime(text, out var time))
-        {
-            TimeHint.Text = LanguageService.Format("L_TimeUnreadableFmt", text);
-            return;
-        }
-
-        if (_times.Any(t => t.Value == time))
-        {
-            TimeHint.Text = LanguageService.Format("L_TimeDuplicateFmt", Format(time));
-            return;
-        }
-
-        // Insert in order so the list always reads chronologically.
-        var index = _times.Count;
-        for (var i = 0; i < _times.Count; i++)
-        {
-            if (_times[i].Value <= time) continue;
-            index = i;
-            break;
-        }
-
-        _times.Insert(index, new TimeEntry(time));
-        NewTimeText.Clear();
-        TimeHint.Text = LanguageService.Format("L_TimeAddedFmt", Format(time));
-        SyncTimes();
-    }
-
-    private void RemoveTime_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not FrameworkElement { DataContext: TimeEntry entry }) return;
-
-        if (_times.Count <= AppSettings.MinPopupTimes)
-        {
-            TimeHint.Text = LanguageService.Format("L_TimeMinimumFmt", AppSettings.MinPopupTimes);
-            return;
-        }
-
-        _times.Remove(entry);
-        TimeHint.Text = LanguageService.Format("L_TimeRemovedFmt", entry.Display);
-        SyncTimes();
-    }
-
-    private void SyncTimes() =>
-        _settings.PopupTimes = _times.Select(t => t.Value).OrderBy(v => v).ToList();
-
-    private static bool TryParseTime(string text, out TimeOnly time) =>
-        TimeOnly.TryParse(text, CultureInfo.CurrentCulture, DateTimeStyles.None, out time)
-        || TimeOnly.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out time);
-
-    private void SnoozeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loading || SnoozeBox.SelectedValue is not int value) return;
-        _settings.SnoozeMinutes = value;
-    }
-
-    private void AutoCloseBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loading || AutoCloseBox.SelectedValue is not int value) return;
-        _settings.AutoCloseSeconds = value;
-    }
-
-    private void LanguageBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loading || LanguageBox.SelectedValue is not AppLanguage language) return;
-        if (language == _settings.Language) return;
-
-        _settings.Language = language;
+        Settings.Language = language;
         LanguageService.Apply(language);
-        Storage.SaveSettings(_settings);
+        Save();
     }
 
-    private void StartWithWindows_Changed(object sender, RoutedEventArgs e)
+    private void Startup_Changed(object sender, RoutedEventArgs e)
     {
         if (_loading) return;
-        _settings.StartWithWindows = StartWithWindowsBox.IsChecked == true;
+
+        try
+        {
+            AutoStart.Set(StartupSwitch.IsChecked == true);
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or SecurityException or IOException)
+        {
+            // Policy can lock the Run key. The switch goes back to what is really there.
+        }
+
+        Settings.StartWithWindows = AutoStart.IsEnabled();
+        Save();
     }
 
+    /// <summary>Applies to the panel that is open now (5.8), and moves its pin with it.</summary>
     private void KeepOnTop_Changed(object sender, RoutedEventArgs e)
     {
         if (_loading) return;
 
-        _settings.KeepOnTop = KeepOnTopBox.IsChecked == true;
+        Settings.KeepOnTop = KeepOnTopSwitch.IsChecked == true;
         App.Current.ApplyKeepOnTop();
-        Storage.SaveSettings(_settings);
+        Save();
     }
 
-    private void DarkMode_Changed(object sender, RoutedEventArgs e)
+    private void StartupLabel_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) =>
+        StartupSwitch.IsChecked = StartupSwitch.IsChecked != true;
+
+    private void KeepOnTopLabel_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) =>
+        KeepOnTopSwitch.IsChecked = KeepOnTopSwitch.IsChecked != true;
+
+    private void Back_Click(object sender, RoutedEventArgs e)
     {
-        if (_loading) return;
-
-        _settings.Theme = DarkModeBox.IsChecked == true ? AppTheme.Dark : AppTheme.Light;
-        ThemeService.Apply(_settings.Theme);
-
-        // Saved now rather than on close, so the choice survives a forced quit.
-        Storage.SaveSettings(_settings);
+        Close();
+        App.Current.ShowPanel();
     }
 
-    private void Preview_Click(object sender, RoutedEventArgs e) => App.Current.ShowPopup();
-
-    private void Close_Click(object sender, RoutedEventArgs e) => Close();
-
-    protected override void OnClosed(EventArgs e)
+    private void Drag_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        LanguageService.Changed -= _languageChanged;
-        base.OnClosed(e);
+        if (e.ButtonState != MouseButtonState.Pressed) return;
+
+        try { DragMove(); }
+        catch (InvalidOperationException) { /* released between the event and the call */ }
     }
+
+    /// <summary>
+    /// Centred on the screen the panel is on. Centring on the panel itself would push a
+    /// 720px window off the edge whenever the panel sits in its usual corner.
+    /// </summary>
+    private void CenterOnPanelsScreen()
+    {
+        var anchor = Owner is null ? IntPtr.Zero : new WindowInteropHelper(Owner).Handle;
+        var screen = anchor == IntPtr.Zero
+            ? System.Windows.Forms.Screen.PrimaryScreen!
+            : System.Windows.Forms.Screen.FromHandle(anchor);
+
+        var area = screen.WorkingArea;
+        var toDip = PresentationSource.FromVisual(this)?.CompositionTarget?.TransformFromDevice ?? Matrix.Identity;
+        var topLeft = toDip.Transform(new Point(area.Left, area.Top));
+        var bottomRight = toDip.Transform(new Point(area.Right, area.Bottom));
+
+        Left = topLeft.X + (bottomRight.X - topLeft.X - Width) / 2;
+        Top = topLeft.Y + (bottomRight.Y - topLeft.Y - Height) / 2;
+    }
+}
+
+/// <summary>One option of a segmented control (5.8): its label, and what choosing it means.</summary>
+public sealed class SegmentOption
+{
+    public SegmentOption(string label, object? value)
+    {
+        Label = label;
+        Value = value;
+    }
+
+    public string Label { get; }
+
+    /// <summary>An AppTheme, an AppLanguage - or null, for "Sistema".</summary>
+    public object? Value { get; }
+
+    public override string ToString() => Label;
 }

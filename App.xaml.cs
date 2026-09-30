@@ -1,35 +1,45 @@
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Windows;
-using WeeklyReminder.Models;
-using WeeklyReminder.Services;
-using WeeklyReminder.Views;
+using Sidequest.Models;
+using Sidequest.Services;
+using Sidequest.Views;
 using Forms = System.Windows.Forms;
-using ComboBox = System.Windows.Controls.ComboBox;
-using MouseWheelEventArgs = System.Windows.Input.MouseWheelEventArgs;
-using MouseWheelEventHandler = System.Windows.Input.MouseWheelEventHandler;
 
-namespace WeeklyReminder;
+namespace Sidequest;
 
 /// <summary>
-/// Tray-resident host. There is no main window: the app lives in the notification
-/// area and opens windows on demand.
+/// Tray-resident host. The main panel is a fixture that opens on launch (D1), but closing
+/// it only hides it: the app lives in the notification area until Quit.
 /// </summary>
 public partial class App : System.Windows.Application
 {
-    private const string MutexName = @"Local\WeeklyReminder.SingleInstance.v1";
-    private const string ShowEventName = @"Local\WeeklyReminder.ShowPopup.v1";
+    private const string MutexName = @"Local\Sidequest.SingleInstance.v1";
+    private const string ShowEventName = @"Local\Sidequest.ShowPopup.v1";
 
     private Mutex? _mutex;
     private EventWaitHandle? _showEvent;
     private Forms.NotifyIcon? _tray;
-    private Scheduler? _scheduler;
-
-    private PopupWindow? _popup;
-    private EditorWindow? _editor;
+    private MainWindow? _mainWindow;
     private SettingsWindow? _settingsWindow;
 
     public AppSettings Settings { get; private set; } = new();
-    public WeekPlan Plan { get; private set; } = new();
+
+    /// <summary>
+    /// Raised after a setting changes from anywhere, so two places showing the same one -
+    /// the panel's pin and Settings' "siempre visible" switch - stay in step.
+    /// </summary>
+    public event Action? SettingsChanged;
+
+    public void NotifySettingsChanged() => SettingsChanged?.Invoke();
+
+    /// <summary>The theme to show: the one chosen, or Windows' own under "Sistema" (5.8).</summary>
+    public AppTheme EffectiveTheme() => Settings.FollowSystemTheme ? ThemeService.SystemTheme() : Settings.Theme;
+
+    public ObservableCollection<SidequestProject> Projects { get; private set; } = new();
 
     public static new App Current => (App)System.Windows.Application.Current;
 
@@ -37,8 +47,8 @@ public partial class App : System.Windows.Application
     {
         base.OnStartup(e);
 
-        _mutex = new Mutex(initiallyOwned: true, MutexName, out bool isFirstInstance);
-        _showEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ShowEventName);
+        _mutex = new Mutex(initiallyOwned: true, InstanceName(MutexName), out bool isFirstInstance);
+        _showEvent = new EventWaitHandle(false, EventResetMode.AutoReset, InstanceName(ShowEventName));
 
         if (!isFirstInstance)
         {
@@ -50,19 +60,30 @@ public partial class App : System.Windows.Application
 
         ListenForShowRequests();
 
-        EventManager.RegisterClassHandler(
-            typeof(ComboBox),
-            UIElement.PreviewMouseWheelEvent,
-            new MouseWheelEventHandler(OnComboBoxPreviewMouseWheel));
+        // First, before anything reads a file: settings were otherwise loaded from the
+        // real folder and only then redirected, so a sandboxed run silently started from
+        // the wrong settings.
+        RedirectDataIfSandboxed();
 
         Settings = Storage.LoadSettings();
-        Plan = Storage.LoadWeek();
 
         // Before any window is created, so nothing flashes in the wrong theme or language.
         // Left null in settings deliberately: until a language is picked explicitly, the
         // app keeps following the Windows display language rather than freezing today's.
         LanguageService.Apply(Settings.Language ?? LanguageService.DetectFromSystem());
-        ThemeService.Apply(Settings.Theme);
+
+        // D3: one-time import of WeeklyReminder's data, after the language is known so
+        // the imported Sidequest gets a name the user can read. It is a no-op once
+        // Sidequest has data of its own, so it cannot overwrite anything.
+        LegacyMigration.Run(Settings, LanguageService.Get("L_ImportedSidequest"));
+        Projects = SidequestStore.Load();
+
+        ThemeService.Apply(EffectiveTheme());
+
+        // Windows' light/dark can change while the app runs: "Sistema" follows it, and the
+        // tray icon has to stay readable on the taskbar either way.
+        ThemeService.WatchSystem();
+        ThemeService.SystemChanged += OnSystemThemeChanged;
 
         // The registry is the source of truth for autostart; it can be changed
         // outside the app (Task Manager's Startup tab, for one).
@@ -70,48 +91,91 @@ public partial class App : System.Windows.Application
 
         BuildTrayIcon();
 
-        _scheduler = new Scheduler(Settings);
-        _scheduler.Due += ShowPopup;
-        _scheduler.Start();
+        // D1: nothing surfaces the app on a schedule any more. The panel is a fixture, so
+        // it opens on launch and restores the collapsed state it was left in.
+        _mainWindow = new MainWindow();
+        _mainWindow.ShowPanel();
 
-        OpenRequestedWindow(e.Args);
+        OpenRequestedView(e.Args);
     }
 
     /// <summary>
-    /// Opens a window straight from the command line, so a given screen can be brought
-    /// up without navigating the tray menu. Only honoured by the first instance; a
-    /// relaunch while running always just surfaces the popup.
+    /// Opens a screen straight from the command line, so it can be checked without
+    /// clicking through to it. Only honoured by the first instance; a relaunch while
+    /// running always just brings the panel back.
     /// </summary>
-    private void OpenRequestedWindow(string[] args)
+    private void OpenRequestedView(string[] args)
     {
-        foreach (var arg in args)
-        {
-            switch (arg.ToLowerInvariant())
-            {
-                case "--edit":
-                    ShowEditor();
-                    return;
-                case "--settings":
-                    ShowSettings();
-                    return;
-                case "--popup":
-                    ShowPopup();
-                    return;
-            }
-        }
+        if (args.Any(a => a.Equals("--sidequests", StringComparison.OrdinalIgnoreCase)))
+            ShowSidequests();
+
+        if (args.Any(a => a.Equals("--settings", StringComparison.OrdinalIgnoreCase)))
+            ShowSettings();
     }
 
-    /// <summary>Relaunching the exe surfaces the popup rather than starting a second copy.</summary>
+    private void OnSystemThemeChanged()
+    {
+        if (Settings.FollowSystemTheme && ThemeService.Current != ThemeService.SystemTheme())
+            ThemeService.Apply(ThemeService.SystemTheme());
+
+        if (_tray is null) return;
+        var previous = _tray.Icon;
+        _tray.Icon = TrayIconFactory.Create();
+        previous?.Dispose();
+    }
+
+    /// <summary>The folder SIDEQUEST_DATA names, or null in normal use.</summary>
+    private static string? Sandbox()
+    {
+        var sandbox = Environment.GetEnvironmentVariable("SIDEQUEST_DATA");
+        return string.IsNullOrWhiteSpace(sandbox) ? null : Path.GetFullPath(sandbox);
+    }
+
+    /// <summary>
+    /// The single-instance names, kept apart per sandbox: a dev run then starts beside the
+    /// installed copy instead of handing its launch over to it, while two launches on one
+    /// sandbox still find each other. The hash has to be stable across processes, which
+    /// string.GetHashCode is not.
+    /// </summary>
+    private static string InstanceName(string name)
+    {
+        var sandbox = Sandbox();
+        if (sandbox is null) return name;
+
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(sandbox.TrimEnd('\\').ToUpperInvariant()));
+        return $"{name}.{Convert.ToHexString(hash, 0, 6)}";
+    }
+
+    /// <summary>
+    /// Points both stores at a sandbox when SIDEQUEST_DATA is set. The real folders hold
+    /// the Sidequests in daily use, and the import renames WeeklyReminder's week.json, so
+    /// a dev run must not be able to reach them. Unset in normal use.
+    /// </summary>
+    private static void RedirectDataIfSandboxed()
+    {
+        var sandbox = Sandbox();
+        if (sandbox is null) return;
+
+        SidequestStore.Directory = Path.Combine(sandbox, "Sidequest");
+        Storage.Directory = Path.Combine(sandbox, "Sidequest");
+        LegacyMigration.LegacyDirectory = Path.Combine(sandbox, "WeeklyReminder");
+
+        // Settings' "Abrir al iniciar el equipo" must not register a dev build to run at
+        // sign-in - it would start without this sandbox, on real data.
+        AutoStart.SandboxFile = Path.Combine(sandbox, "autostart");
+    }
+
+    /// <summary>Relaunching the exe brings the panel back rather than starting a second copy.</summary>
     private void ListenForShowRequests()
     {
         var listener = new Thread(() =>
         {
             while (_showEvent!.WaitOne())
-                Dispatcher.BeginInvoke(ShowPopup);
+                Dispatcher.BeginInvoke(ShowPanel);
         })
         {
             IsBackground = true,
-            Name = "WeeklyReminder.ShowRequestListener",
+            Name = "Sidequest.ShowRequestListener",
         };
         listener.Start();
     }
@@ -121,11 +185,12 @@ public partial class App : System.Windows.Application
         _tray = new Forms.NotifyIcon
         {
             Icon = TrayIconFactory.Create(),
-            Text = "Weekly Reminder",
+            // A sandboxed copy can run beside the installed one, so it names its folder.
+            Text = Sandbox() is { } sandbox ? $"Sidequest ({Path.GetFileName(sandbox.TrimEnd('\\'))})" : "Sidequest",
             Visible = true,
             ContextMenuStrip = BuildTrayMenu(),
         };
-        _tray.DoubleClick += (_, _) => ShowPopup();
+        _tray.DoubleClick += (_, _) => ShowPanel();
 
         // WinForms menu labels are plain strings, so the menu is rebuilt wholesale
         // rather than tracking a resource.
@@ -139,109 +204,34 @@ public partial class App : System.Windows.Application
         };
     }
 
-    /// <summary>
-    /// A closed WPF ComboBox consumes the mouse wheel and steps its selection, so
-    /// scrolling the Settings page with the pointer over a dropdown silently changed the
-    /// setting. Swallow the wheel while the drop-down is shut and hand the event to the
-    /// parent instead, so the page still scrolls. An open drop-down keeps normal
-    /// behaviour, since scrolling its list is what you would expect.
-    /// </summary>
-    private static void OnComboBoxPreviewMouseWheel(object sender, MouseWheelEventArgs e)
-    {
-        if (sender is not ComboBox combo || combo.IsDropDownOpen) return;
-
-        e.Handled = true;
-
-        if (combo.Parent is not UIElement parent) return;
-
-        parent.RaiseEvent(new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta)
-        {
-            RoutedEvent = UIElement.MouseWheelEvent,
-            Source = combo,
-        });
-    }
-
+    /// <summary>5.9's menu, in 5.9's order.</summary>
     private Forms.ContextMenuStrip BuildTrayMenu()
     {
         var menu = new Forms.ContextMenuStrip();
-        menu.Items.Add(LanguageService.Get("L_TrayShow"), null, (_, _) => ShowPopup());
-        menu.Items.Add(LanguageService.Get("L_TrayEdit"), null, (_, _) => ShowEditor());
+        menu.Items.Add(LanguageService.Get("L_TrayShow"), null, (_, _) => ShowPanel());
+        menu.Items.Add(LanguageService.Get("L_TraySidequests"), null, (_, _) => ShowSidequests());
         menu.Items.Add(LanguageService.Get("L_TraySettings"), null, (_, _) => ShowSettings());
-        menu.Items.Add(LanguageService.Get("L_TrayResetPosition"), null, (_, _) => ResetPopupPosition());
+        menu.Items.Add(LanguageService.Get("L_TrayResetPosition"), null, (_, _) => _mainWindow?.ResetPosition());
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add(LanguageService.Get("L_TrayQuit"), null, (_, _) => Shutdown());
         return menu;
     }
 
-    public void ShowPopup()
+    /// <summary>The app's front door: the tray, a relaunch, a double-click on the icon.</summary>
+    public void ShowPanel() => _mainWindow?.ShowPanel();
+
+    /// <summary>The tray's "Sidequests…": the panel, opened on the list (5.4).</summary>
+    private void ShowSidequests()
     {
-        if (Plan.RollForwardToCurrentWeek())
-            Storage.SaveWeek(Plan);
-
-        if (_popup is { IsLoaded: true })
-        {
-            _popup.Activate();
-            return;
-        }
-
-        _popup = new PopupWindow(Plan, Settings);
-        _popup.Closed += (_, _) =>
-        {
-            Storage.SaveWeek(Plan);
-            _popup = null;
-        };
-        _popup.SnoozeRequested += () => _scheduler?.Snooze();
-
-        // The popup is topmost, so it steps aside while another window is in use and
-        // comes back once that window is done with.
-        _popup.EditRequested += () => ShowEditor(returnToPopup: true);
-        _popup.SettingsRequested += () => ShowSettings(returnToPopup: true);
-
-        _popup.Show();
+        ShowPanel();
+        _mainWindow?.ShowSidequests();
     }
 
-    /// <summary>Pushes the keep-on-top setting to a popup that is already open.</summary>
-    public void ApplyKeepOnTop()
-    {
-        if (_popup is { IsLoaded: true })
-            _popup.Topmost = Settings.KeepOnTop;
-    }
-
-    /// <summary>Forgets a dragged position and shows the popup back in the corner.</summary>
-    private void ResetPopupPosition()
-    {
-        Settings.PopupLeft = null;
-        Settings.PopupTop = null;
-        Storage.SaveSettings(Settings);
-
-        _popup?.Close();
-        ShowPopup();
-    }
-
-    /// <param name="returnToPopup">
-    /// Reopen the reminder list once this window closes. Set when the editor was
-    /// reached from the popup, so the popup is restored rather than left dismissed.
-    /// </param>
-    public void ShowEditor(bool returnToPopup = false)
-    {
-        if (_editor is { IsLoaded: true })
-        {
-            _editor.Activate();
-            return;
-        }
-
-        _editor = new EditorWindow(Plan);
-        _editor.Closed += (_, _) =>
-        {
-            Storage.SaveWeek(Plan);
-            _editor = null;
-            if (returnToPopup) ShowPopup();
-        };
-        _editor.Show();
-    }
-
-    /// <param name="returnToPopup">See <see cref="ShowEditor"/>.</param>
-    public void ShowSettings(bool returnToPopup = false)
+    /// <summary>
+    /// Settings (5.8), one window at a time. Owned by the panel (6), so it closes with the
+    /// app and stays above a panel that is kept on top.
+    /// </summary>
+    public void ShowSettings()
     {
         if (_settingsWindow is { IsLoaded: true })
         {
@@ -249,20 +239,18 @@ public partial class App : System.Windows.Application
             return;
         }
 
-        _settingsWindow = new SettingsWindow(Settings);
-        _settingsWindow.Closed += (_, _) =>
-        {
-            Storage.SaveSettings(Settings);
-            AutoStart.Set(Settings.StartWithWindows);
-            _scheduler?.ClearSnooze();
-            _settingsWindow = null;
-            if (returnToPopup) ShowPopup();
-        };
+        _settingsWindow = new SettingsWindow { Owner = _mainWindow };
+        _settingsWindow.Closed += (_, _) => _settingsWindow = null;
         _settingsWindow.Show();
     }
 
+    /// <summary>Pushes the keep-on-top setting to the panel that is already open.</summary>
+    public void ApplyKeepOnTop() => _mainWindow?.SyncKeepOnTop();
+
     protected override void OnExit(ExitEventArgs e)
     {
+        ThemeService.StopWatchingSystem();
+
         if (_tray is not null)
         {
             // Hide first, or the icon lingers in the tray until hovered.
@@ -271,7 +259,6 @@ public partial class App : System.Windows.Application
             _tray.Dispose();
         }
 
-        _scheduler?.Dispose();
         _showEvent?.Dispose();
         _mutex?.Dispose();
 

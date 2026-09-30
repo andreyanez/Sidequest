@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sidequest", "Sidequest.csproj", "{A54D3BC3-2592-4E5D-964D-E551EF404693}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B02C44F8-8B19-4801-9B6A-4051505CE375}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sidequest.Tests", "tests\Sidequest.Tests\Sidequest.Tests.csproj", "{399EFF0B-4EAE-4358-9C26-ACEED075C7F9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A54D3BC3-2592-4E5D-964D-E551EF404693}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A54D3BC3-2592-4E5D-964D-E551EF404693}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A54D3BC3-2592-4E5D-964D-E551EF404693}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A54D3BC3-2592-4E5D-964D-E551EF404693}.Release|Any CPU.Build.0 = Release|Any CPU
+		{399EFF0B-4EAE-4358-9C26-ACEED075C7F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{399EFF0B-4EAE-4358-9C26-ACEED075C7F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{399EFF0B-4EAE-4358-9C26-ACEED075C7F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{399EFF0B-4EAE-4358-9C26-ACEED075C7F9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{399EFF0B-4EAE-4358-9C26-ACEED075C7F9} = {B02C44F8-8B19-4801-9B6A-4051505CE375}
+	EndGlobalSection
+EndGlobal

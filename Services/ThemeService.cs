@@ -1,9 +1,10 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using WeeklyReminder.Models;
+using Microsoft.Win32;
+using Sidequest.Models;
 
-namespace WeeklyReminder.Services;
+namespace Sidequest.Services;
 
 /// <summary>
 /// Swaps the active theme dictionary at runtime. Slot 0 of the application's merged
@@ -30,6 +31,54 @@ public static class ThemeService
 
     public static AppTheme Current { get; private set; } = AppTheme.Light;
 
+    /// <summary>
+    /// Raised after a switch. DynamicResource covers everything drawn from the token
+    /// dictionaries, but a Sidequest's colour is resolved in code from two axes, so
+    /// anything showing one has to re-resolve it here.
+    /// </summary>
+    public static event Action? Changed;
+
+    // ---- Windows' own light and dark (5.8's "Sistema", 5.9's tray icon) ------------------
+
+    private const string PersonalizeKey = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
+
+    /// <summary>Raised on the UI thread when Windows' light/dark setting for apps or the taskbar changes.</summary>
+    public static event Action? SystemChanged;
+
+    /// <summary>What "Sistema" follows: Windows' setting for apps. Light if it cannot be read.</summary>
+    public static AppTheme SystemTheme() =>
+        ReadPersonalize("AppsUseLightTheme", fallback: true) ? AppTheme.Light : AppTheme.Dark;
+
+    /// <summary>
+    /// The taskbar's own setting, which Windows keeps apart from the apps' one: a light
+    /// app theme often sits on a dark taskbar. The tray icon has to read against this.
+    /// </summary>
+    public static bool TaskbarIsLight() => ReadPersonalize("SystemUsesLightTheme", fallback: false);
+
+    /// <summary>Starts relaying Windows' theme changes as <see cref="SystemChanged"/>.</summary>
+    public static void WatchSystem()
+    {
+        SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
+        SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
+    }
+
+    public static void StopWatchingSystem() => SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
+
+    private static void OnUserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
+    {
+        // A light/dark switch arrives as General; so does plenty else, and the handlers
+        // compare before acting, so a spurious one costs nothing.
+        if (e.Category != UserPreferenceCategory.General) return;
+
+        System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => SystemChanged?.Invoke());
+    }
+
+    private static bool ReadPersonalize(string name, bool fallback)
+    {
+        using var key = Registry.CurrentUser.OpenSubKey(PersonalizeKey);
+        return key?.GetValue(name) is int value ? value != 0 : fallback;
+    }
+
     public static void Apply(AppTheme theme)
     {
         Current = theme;
@@ -43,6 +92,8 @@ public static class ThemeService
 
         foreach (Window window in System.Windows.Application.Current.Windows)
             ApplyTitleBar(window);
+
+        Changed?.Invoke();
     }
 
     /// <summary>
