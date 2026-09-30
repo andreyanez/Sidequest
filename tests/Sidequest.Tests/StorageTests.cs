@@ -14,6 +14,7 @@ public class StorageTests
         Storage.SaveSettings(new AppSettings
         {
             Theme = AppTheme.Light,
+            FollowSystemTheme = true,
             Language = AppLanguage.Spanish,
             KeepOnTop = false,
             Collapsed = true,
@@ -24,6 +25,7 @@ public class StorageTests
         var loaded = Storage.LoadSettings();
 
         Assert.Equal(AppTheme.Light, loaded.Theme);
+        Assert.True(loaded.FollowSystemTheme);
         Assert.Equal(AppLanguage.Spanish, loaded.Language);
         Assert.False(loaded.KeepOnTop);
         Assert.True(loaded.Collapsed);

@@ -22,8 +22,20 @@ public partial class App : System.Windows.Application
     private EventWaitHandle? _showEvent;
     private Forms.NotifyIcon? _tray;
     private MainWindow? _mainWindow;
+    private SettingsWindow? _settingsWindow;
 
     public AppSettings Settings { get; private set; } = new();
+
+    /// <summary>
+    /// Raised after a setting changes from anywhere, so two places showing the same one -
+    /// the panel's pin and Settings' "siempre visible" switch - stay in step.
+    /// </summary>
+    public event Action? SettingsChanged;
+
+    public void NotifySettingsChanged() => SettingsChanged?.Invoke();
+
+    /// <summary>The theme to show: the one chosen, or Windows' own under "Sistema" (5.8).</summary>
+    public AppTheme EffectiveTheme() => Settings.FollowSystemTheme ? ThemeService.SystemTheme() : Settings.Theme;
 
     public ObservableCollection<SidequestProject> Projects { get; private set; } = new();
 
@@ -64,7 +76,12 @@ public partial class App : System.Windows.Application
         LegacyMigration.Run(Settings, LanguageService.Get("L_ImportedSidequest"));
         Projects = SidequestStore.Load();
 
-        ThemeService.Apply(Settings.Theme);
+        ThemeService.Apply(EffectiveTheme());
+
+        // Windows' light/dark can change while the app runs: "Sistema" follows it, and the
+        // tray icon has to stay readable on the taskbar either way.
+        ThemeService.WatchSystem();
+        ThemeService.SystemChanged += OnSystemThemeChanged;
 
         // The registry is the source of truth for autostart; it can be changed
         // outside the app (Task Manager's Startup tab, for one).
@@ -89,6 +106,20 @@ public partial class App : System.Windows.Application
     {
         if (args.Any(a => a.Equals("--sidequests", StringComparison.OrdinalIgnoreCase)))
             ShowSidequests();
+
+        if (args.Any(a => a.Equals("--settings", StringComparison.OrdinalIgnoreCase)))
+            ShowSettings();
+    }
+
+    private void OnSystemThemeChanged()
+    {
+        if (Settings.FollowSystemTheme && ThemeService.Current != ThemeService.SystemTheme())
+            ThemeService.Apply(ThemeService.SystemTheme());
+
+        if (_tray is null) return;
+        var previous = _tray.Icon;
+        _tray.Icon = TrayIconFactory.Create();
+        previous?.Dispose();
     }
 
     /// <summary>
@@ -104,6 +135,10 @@ public partial class App : System.Windows.Application
         SidequestStore.Directory = Path.Combine(sandbox, "Sidequest");
         Storage.Directory = Path.Combine(sandbox, "Sidequest");
         LegacyMigration.LegacyDirectory = Path.Combine(sandbox, "WeeklyReminder");
+
+        // Settings' "Abrir al iniciar el equipo" must not register a dev build to run at
+        // sign-in - it would start without this sandbox, on real data.
+        AutoStart.SandboxFile = Path.Combine(sandbox, "autostart");
     }
 
     /// <summary>Relaunching the exe brings the panel back rather than starting a second copy.</summary>
@@ -144,15 +179,13 @@ public partial class App : System.Windows.Application
         };
     }
 
-    /// <summary>
-    /// 5.9's menu. "Ajustes…" joins it with the settings window in phase 5; until then it
-    /// is left out rather than shown doing nothing.
-    /// </summary>
+    /// <summary>5.9's menu, in 5.9's order.</summary>
     private Forms.ContextMenuStrip BuildTrayMenu()
     {
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add(LanguageService.Get("L_TrayShow"), null, (_, _) => ShowPanel());
         menu.Items.Add(LanguageService.Get("L_TraySidequests"), null, (_, _) => ShowSidequests());
+        menu.Items.Add(LanguageService.Get("L_TraySettings"), null, (_, _) => ShowSettings());
         menu.Items.Add(LanguageService.Get("L_TrayResetPosition"), null, (_, _) => _mainWindow?.ResetPosition());
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add(LanguageService.Get("L_TrayQuit"), null, (_, _) => Shutdown());
@@ -169,8 +202,30 @@ public partial class App : System.Windows.Application
         _mainWindow?.ShowSidequests();
     }
 
+    /// <summary>
+    /// Settings (5.8), one window at a time. Owned by the panel (6), so it closes with the
+    /// app and stays above a panel that is kept on top.
+    /// </summary>
+    public void ShowSettings()
+    {
+        if (_settingsWindow is { IsLoaded: true })
+        {
+            _settingsWindow.Activate();
+            return;
+        }
+
+        _settingsWindow = new SettingsWindow { Owner = _mainWindow };
+        _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+        _settingsWindow.Show();
+    }
+
+    /// <summary>Pushes the keep-on-top setting to the panel that is already open.</summary>
+    public void ApplyKeepOnTop() => _mainWindow?.SyncKeepOnTop();
+
     protected override void OnExit(ExitEventArgs e)
     {
+        ThemeService.StopWatchingSystem();
+
         if (_tray is not null)
         {
             // Hide first, or the icon lingers in the tray until hovered.

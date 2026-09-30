@@ -228,7 +228,5 @@ public partial class PanelView : UserControl
 
     private void Sidequests_Click(object sender, RoutedEventArgs e) => _shell.ShowSidequests();
 
-    // Phase 5 adds the settings window. Until then this is deliberately inert rather
-    // than half-wired.
-    private void Settings_Click(object sender, RoutedEventArgs e) { }
+    private void Settings_Click(object sender, RoutedEventArgs e) => App.Current.ShowSettings();
 }

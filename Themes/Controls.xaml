@@ -902,6 +902,122 @@
         </Setter>
     </Style>
 
+    <!-- ============ Settings (5.8) ============ ==============================
+
+         The segmented control, as a ListBox for the same reasons as the theme picker:
+         single selection, arrow keys, one tab stop, and a screen reader hears a list with
+         its choice selected. Measured on FnAjustes: a Surface well with a Line border,
+         radius 12 and 3 of padding; options 30 high, 16 in, 2 apart, radius 5 - not the
+         pill 4.4 would suggest, one more of the artboards' disagreements on buttons. The
+         chosen one is filled Text with 13/600 in Inv; the rest are Text2, and take .ib's
+         hover. Choosing applies at once, as 5.8 asks, so the arrow keys preview for free. -->
+    <Style x:Key="Focus.R5">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-3" CornerRadius="8" BorderThickness="2"
+                            BorderBrush="{DynamicResource Text}" SnapsToDevicePixels="True"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Segment" TargetType="ListBoxItem">
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Padding" Value="16,0"/>
+        <Setter Property="Margin" Value="2,0,0,0"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.R5}"/>
+        <Setter Property="AutomationProperties.Name" Value="{Binding Label}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Border x:Name="Bd" Background="Transparent" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                        <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Hover}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Text}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource Inv}"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Segmented" TargetType="ListBox">
+        <Setter Property="SelectionMode" Value="Single"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource Segment}"/>
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <!-- Each option carries its 2px gap on the left; the panel cancels the first. -->
+                    <StackPanel Orientation="Horizontal" Margin="-2,0,0,0"/>
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBox">
+                    <Border Background="{DynamicResource Surface}"
+                            BorderBrush="{DynamicResource Line}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="3"
+                            SnapsToDevicePixels="True">
+                        <ItemsPresenter/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- The switch (4.4): 40x24, a Surface track with a Line2 border and a 16px Text2 knob
+         3 in; on, the track fills with Text and the knob, now Inv, moves 16 right. Measured
+         on FnAjustes, where both are on. -->
+    <Style x:Key="Switch" TargetType="ToggleButton">
+        <Setter Property="Width" Value="40"/>
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.Pill}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Track"
+                            Background="{DynamicResource Surface}"
+                            BorderBrush="{DynamicResource Line2}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            Padding="3"
+                            SnapsToDevicePixels="True">
+                        <Ellipse x:Name="Knob"
+                                 Width="16"
+                                 Height="16"
+                                 HorizontalAlignment="Left"
+                                 Fill="{DynamicResource Text2}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Track" Property="Background" Value="{DynamicResource Text}"/>
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource Text}"/>
+                            <Setter TargetName="Knob" Property="Fill" Value="{DynamicResource Inv}"/>
+                            <Setter TargetName="Knob" Property="HorizontalAlignment" Value="Right"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ============ Tooltips ============ ====================================
          The icon buttons' names. WPF shows a tooltip on keyboard focus as well as hover,
          in fixed light chrome that ignores the theme - glaring on the dark panel. No

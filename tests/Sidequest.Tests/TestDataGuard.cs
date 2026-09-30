@@ -28,5 +28,9 @@ internal static class TestDataGuard
         SidequestStore.Directory = Path.Combine(SafeRoot, "Sidequest");
         Storage.Directory = Path.Combine(SafeRoot, "Sidequest");
         LegacyMigration.LegacyDirectory = Path.Combine(SafeRoot, "WeeklyReminder");
+
+        // Never the real Run key: a test that switched it on would leave a dev build
+        // starting at the user's next sign-in.
+        AutoStart.SandboxFile = Path.Combine(SafeRoot, "autostart");
     }
 }

@@ -28,6 +28,19 @@ public class TestDataGuardTests
     }
 
     [Fact]
+    public void AutoStartNeverTouchesTheRunKey()
+    {
+        Assert.NotNull(AutoStart.SandboxFile);
+        Assert.StartsWith(Path.GetTempPath(), AutoStart.SandboxFile!, StringComparison.OrdinalIgnoreCase);
+
+        // And the sandbox file really is what it reads and writes.
+        AutoStart.Set(true);
+        Assert.True(AutoStart.IsEnabled());
+        AutoStart.Set(false);
+        Assert.False(AutoStart.IsEnabled());
+    }
+
+    [Fact]
     public void TempStoreRestoresToTheSafeRoot_NotToRealAppData()
     {
         using (var temp = new TempStore())

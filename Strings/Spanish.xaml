@@ -66,9 +66,24 @@
     <sys:String x:Key="L_AddImage">Añadir imagen</sys:String>
     <sys:String x:Key="L_RemoveImage">Quitar imagen</sys:String>
 
-    <!-- Bandeja (5.9). "Ajustes…" llega con la ventana de ajustes en la fase 5. -->
+    <!-- Ajustes (5.8). Los nombres de los idiomas van en su propio idioma, sin clave. -->
+    <sys:String x:Key="L_Appearance">Apariencia</sys:String>
+    <sys:String x:Key="L_AppearanceHelp">Tema de todos los paneles</sys:String>
+    <sys:String x:Key="L_Light">Claro</sys:String>
+    <sys:String x:Key="L_Dark">Oscuro</sys:String>
+    <sys:String x:Key="L_System">Sistema</sys:String>
+    <sys:String x:Key="L_Language">Idioma</sys:String>
+    <sys:String x:Key="L_LanguageHelp">Solo cambia la interfaz, no tu contenido</sys:String>
+    <sys:String x:Key="L_OpenOnStartup">Abrir al iniciar el equipo</sys:String>
+    <sys:String x:Key="L_OpenOnStartupHelp">Sidequest se abre cuando enciendes tu PC</sys:String>
+    <sys:String x:Key="L_AlwaysVisible">Panel principal siempre visible</sys:String>
+    <sys:String x:Key="L_AlwaysVisibleHelp">Se mantiene encima de las demás aplicaciones</sys:String>
+    <sys:String x:Key="L_VersionFmt">Sidequest {0}</sys:String>
+
+    <!-- Bandeja (5.9) -->
     <sys:String x:Key="L_TrayShow">Mostrar panel</sys:String>
     <sys:String x:Key="L_TraySidequests">Sidequests…</sys:String>
+    <sys:String x:Key="L_TraySettings">Ajustes…</sys:String>
     <sys:String x:Key="L_TrayResetPosition">Restablecer posición</sys:String>
     <sys:String x:Key="L_TrayQuit">Salir</sys:String>
 
