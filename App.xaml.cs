@@ -47,6 +47,17 @@ public partial class App : System.Windows.Application
     {
         base.OnStartup(e);
 
+        // tools/make-icon.ps1 has the app draw the exe's icon, so it is the tray's mark
+        // exactly. First of all, before the single-instance lock and before any data is
+        // read: it writes the one file and exits.
+        var iconAt = Array.IndexOf(e.Args, "--write-icon");
+        if (iconAt >= 0 && iconAt + 1 < e.Args.Length)
+        {
+            TrayIconFactory.SaveIconFile(e.Args[iconAt + 1]);
+            Shutdown();
+            return;
+        }
+
         _mutex = new Mutex(initiallyOwned: true, InstanceName(MutexName), out bool isFirstInstance);
         _showEvent = new EventWaitHandle(false, EventResetMode.AutoReset, InstanceName(ShowEventName));
 

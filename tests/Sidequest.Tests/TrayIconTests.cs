@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Windows.Media.Imaging;
 using Sidequest.Services;
@@ -62,6 +64,49 @@ public class TrayIconTests
 
             // Kept for looking at: the checks above cannot say whether it reads as an S.
             bitmap.Save(Path.Combine(Path.GetTempPath(), "sidequest-mark.png"));
+        });
+    }
+
+    [Fact]
+    public void IconFile_HoldsTheMarkAtEverySizeWindowsAsksFor()
+    {
+        OnSta(() =>
+        {
+            var path = Path.Combine(Path.GetTempPath(), $"sidequest-icon-{Guid.NewGuid():N}.ico");
+            try
+            {
+                TrayIconFactory.SaveIconFile(path);
+                using var reader = new BinaryReader(File.OpenRead(path));
+
+                Assert.Equal(0, (int)reader.ReadInt16());   // reserved
+                Assert.Equal(1, (int)reader.ReadInt16());   // an icon, not a cursor
+                int count = reader.ReadInt16();
+                Assert.Equal(TrayIconFactory.IconFileSizes.Count, count);
+
+                var entries = new List<(int Size, int Length, int Offset)>();
+                for (var i = 0; i < count; i++)
+                {
+                    int width = reader.ReadByte(), height = reader.ReadByte();
+                    Assert.Equal(width, height);
+                    reader.ReadBytes(6);                    // palette, reserved, planes, bit count
+                    entries.Add((width == 0 ? 256 : width, reader.ReadInt32(), reader.ReadInt32()));
+                }
+
+                Assert.Equal(TrayIconFactory.IconFileSizes, entries.Select(e => e.Size));
+
+                // Every frame is a PNG of the size its entry states.
+                foreach (var (size, length, offset) in entries)
+                {
+                    reader.BaseStream.Position = offset;
+                    using var frame = new Bitmap(new MemoryStream(reader.ReadBytes(length)));
+                    Assert.Equal(size, frame.Width);
+                    Assert.Equal(size, frame.Height);
+                }
+            }
+            finally
+            {
+                File.Delete(path);
+            }
         });
     }
 

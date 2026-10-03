@@ -44,7 +44,15 @@ New-Item -ItemType Directory -Force "$env:LOCALAPPDATA\Sidequest" | Out-Null
 Copy-Item .\publish\* "$env:LOCALAPPDATA\Sidequest" -Recurse -Force
 $env:SIDEQUEST_DATA = $null    # left over from a dev run, it would start on the sandbox
 Start-Process "$env:LOCALAPPDATA\Sidequest\Sidequest.exe"
+
+# A Start menu entry, so it can be started without a prompt
+$link = (New-Object -ComObject WScript.Shell).CreateShortcut(
+    "$([Environment]::GetFolderPath('Programs'))\Sidequest.lnk")
+$link.TargetPath = "$env:LOCALAPPDATA\Sidequest\Sidequest.exe"
+$link.Save()
 ```
+
+Starting it from the Start menu while it is already running brings the panel back.
 
 Name the project file: publishing the solution copies the test project in as well. Turn
 on **Abrir al iniciar el equipo** / **Open at startup** in Settings, which adds a
@@ -115,4 +123,5 @@ docs/        design-spec.md (what to build, in Spanish), dev-notes.md (status,
 
 Conventions (colours, strings, styles, keyboard and screen-reader support) are in
 [`CLAUDE.md`](CLAUDE.md). Where the work stands is in
-[`docs/dev-notes.md`](docs/dev-notes.md).
+[`docs/dev-notes.md`](docs/dev-notes.md), and what changed in each version in
+[`CHANGELOG.md`](CHANGELOG.md).

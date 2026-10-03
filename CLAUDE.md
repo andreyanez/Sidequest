@@ -90,3 +90,6 @@ in dev-notes. They attach only to a build from this repo.
   `using UserControl = System.Windows.Controls.UserControl;`).
 - **Commit messages** follow the existing history: an imperative subject, and a body
   that explains why and cites the spec section (for example 5.4 or D3).
+- **Changelog.** Every change a user would notice gets a line under `[Unreleased]` in
+  `CHANGELOG.md`, in the same commit, written for the user rather than for developers.
+  A release moves those lines under its version (see "Releasing" in dev-notes).

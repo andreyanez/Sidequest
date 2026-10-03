@@ -63,7 +63,7 @@ on an 18px box clamps to a circle, and every bordered box is 2px larger than its
 | Script | What it is for |
 | --- | --- |
 | `tools/seed-sandbox.ps1` | Fills a sandbox with the artboards' four Sidequests, six panel objectives, and `FnObjetivo`'s notes, file and images |
-| `tools/run-sandbox.ps1` | Reseeds the sandbox and launches the build in a given theme and language, at a fixed position; `-Collapsed` starts on the one-row panel, `-Exe .\publish\Sidequest.exe` a Release build. It stops only the copy it started, never a trial run of the same build |
+| `tools/run-sandbox.ps1` | Reseeds the sandbox and launches the build in a given theme and language, at a fixed position; `-Collapsed` starts on the one-row panel, `-Corner` in the default bottom-right corner, `-Exe .\publish\Sidequest.exe` a Release build. It stops only the copy it started, never a trial run of the same build |
 | `tools/render-artboard.ps1` | Renders an artboard to PNG at 1:1 with headless Edge; `-Light` renders any of them in the light theme |
 | `tools/capture-window.ps1` | Screenshots the window rect of a copy started from the repo (never the desktop, never the installed copy); `-Untitled` takes a popup, such as the "⋯" menu |
 | `tools/compare-ink.ps1` | Where each element is drawn, artboard vs app, to the pixel (or per-row, for text) |
@@ -72,6 +72,7 @@ on an 18px box clamps to a circle, and every bordered box is 2px larger than its
 | `tools/send-keys.ps1` | Real keystrokes to whichever window can take them, the dialog when one is up |
 | `tools/tab-walk.ps1` | Presses Tab and reports what really has focus each time |
 | `tools/uia-tree.ps1` | Accessibility tree, flagging focusable controls with no name |
+| `tools/make-icon.ps1` | Draws `Sidequest.ico`, the exe's icon, from the tray's mark |
 
 A typical check:
 
@@ -121,6 +122,20 @@ hijacks the keyboard of whoever is using the machine:
   stop the sandbox copy, which hands focus back. Captures don't have this problem:
   `capture-window.ps1` doesn't foreground a topmost window, and `run-sandbox.ps1` keeps
   the panel on top, so every window the app opens is one.
+
+## Releasing
+
+`CHANGELOG.md` collects every change a user would notice under `[Unreleased]` as it is
+committed. A release:
+
+1. Moves those lines under a new `## [x.y.z] - YYYY-MM-DD` heading, updates the
+   comparison links at the bottom, and sets `<Version>` in `Sidequest.csproj` to match.
+   Fixes alone raise the last number, a feature the middle one; the Bitácora is 1.1.
+2. Is committed as "Release x.y.z" and tagged `vx.y.z`. The user pushes, tags included.
+3. Is installed by updating the installed copy (see "To update the installed copy"
+   under Phase 6) with a fresh publish.
+
+0.1.0 is the build installed on 2026-09-30, tagged after the fact.
 
 ## Decisions
 
@@ -321,6 +336,24 @@ option back on, which rewrites its `Run` entry. Anything done in Sidequest since
 **To update the installed copy:** quit it from the tray, publish, copy `publish\*` over
 `%LOCALAPPDATA%\Sidequest\`, and start it again. Its data and `Run` entry stay as they
 are.
+
+### After 0.1.0
+
+From the user testing the installed copy:
+
+- **Fixed: expanding the panel left it cut short.** The window's `MinHeight` of 384 was
+  switched on and off with the collapsed state. Raising it while the 76px row showed
+  forced the window to exactly 384, and from then on `SizeToContent` stopped growing it,
+  though it stayed set. The minimum now sits on the expanded panel's own grid (358,
+  inside the card's border), so the window just fits whichever view is showing.
+- **The collapse chevrons are inverted** (the user's call, 2026-10-02): down on the panel
+  to collapse it, up on the collapsed row to expand it, where `FnMain` and `FnMainMini`
+  draw up and down. The panel keeps its bottom edge when it collapses, so it rolls down.
+- **The exe has an icon** (the user's call, 2026-10-02). §5.9 has the tray icon drawn at
+  runtime so the project ships no binaries, but Windows reads an exe's icon from the file
+  before the app runs. `Sidequest.ico` is drawn by the same code, through the app's own
+  `--write-icon`, by `tools/make-icon.ps1`. Its colour is the tray's on the machine that
+  drew it, light for a dark taskbar; run the script again after changing the mark.
 
 ## Known deviations from the spec
 

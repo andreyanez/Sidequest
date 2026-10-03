@@ -19,6 +19,9 @@ param(
     [switch]$Empty,
     # Start on the collapsed one-row panel (5.2).
     [switch]$Collapsed,
+    # Start where a fresh install does, in the work area's bottom-right corner, rather than
+    # at the fixed spot captures use.
+    [switch]$Corner,
     # Passed to the app, e.g. '--settings' or '--sidequests' to open a screen directly.
     [string[]]$AppArgs = @(),
     [string]$Sandbox = (Join-Path $env:TEMP 'sq-sandbox'),
@@ -64,10 +67,11 @@ if ($Empty) { Set-Content -LiteralPath (Join-Path $data 'sidequests.json') -Valu
 else { & (Join-Path $PSScriptRoot 'seed-sandbox.ps1') -Sandbox $Sandbox | Out-Null }
 
 # A fixed spot on the primary screen, so one capture lines up with the next.
-[ordered]@{
+$settings = [ordered]@{
     Theme = $Theme; Language = $Language; KeepOnTop = $true; Collapsed = [bool]$Collapsed
-    MainLeft = 200; MainTop = 100
-} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $data 'settings.json') -Encoding UTF8
+}
+if (-not $Corner) { $settings.MainLeft = 200; $settings.MainTop = 100 }
+$settings | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $data 'settings.json') -Encoding UTF8
 
 $env:SIDEQUEST_DATA = $Sandbox
 $p = if ($AppArgs.Count -gt 0) { Start-Process -FilePath $exe -ArgumentList $AppArgs -PassThru }

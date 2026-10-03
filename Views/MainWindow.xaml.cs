@@ -35,7 +35,10 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        MaxHeight = Math.Max(MinHeight, SystemParameters.WorkArea.Height - ScreenPadding);
+        // Never below the expanded panel's own minimum, with the card's border and margin.
+        var expandedMinimum = ExpandedRoot.MinHeight
+            + Card.Margin.Top + Card.Margin.Bottom + Card.BorderThickness.Top + Card.BorderThickness.Bottom;
+        MaxHeight = Math.Max(expandedMinimum, SystemParameters.WorkArea.Height - ScreenPadding);
 
         _panel = new PanelView(this);
         ViewHost.Content = _panel;
@@ -194,12 +197,11 @@ public partial class MainWindow : Window
     {
         var bottom = Top + ActualHeight;
 
+        // The window fits whichever is shown: the collapsed row's fixed 50, or the
+        // expanded panel, which keeps its own minimum.
         App.Current.Settings.Collapsed = collapsed;
         ExpandedRoot.Visibility = collapsed ? Visibility.Collapsed : Visibility.Visible;
         CollapsedRoot.Visibility = collapsed ? Visibility.Visible : Visibility.Collapsed;
-
-        // The collapsed row is a fixed 50; the expanded panel sizes to its content.
-        MinHeight = collapsed ? 0 : 384;
         RefreshCollapsedRow();
 
         if (!pinBottomEdge) return;

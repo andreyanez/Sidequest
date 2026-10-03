@@ -15,7 +15,9 @@ namespace Sidequest.Services;
 
 /// <summary>
 /// Draws the app's mark at runtime instead of shipping an .ico, so the project carries no
-/// binary assets (5.9): a neutral rounded square with the "S" cut out of it.
+/// binary assets (5.9): a neutral rounded square with the "S" cut out of it. The one
+/// exception is the exe's own icon, which Windows reads from the file before the app runs:
+/// SaveIconFile draws it with this same code (tools/make-icon.ps1).
 ///
 /// Its colour is 4.2's Text for the taskbar it sits on - light on a dark taskbar, dark on
 /// a light one - and not for the app's theme: Windows sets the two apart, and a light app
@@ -45,6 +47,40 @@ public static class TrayIconFactory
 
     /// <summary>The same mark for a window's taskbar button, which sits on the same taskbar.</summary>
     public static BitmapSource WindowIcon() => Render(32, TaskbarText);
+
+    /// <summary>The sizes Windows asks an exe's icon for, across Explorer, Start and DPIs.</summary>
+    public static readonly IReadOnlyList<int> IconFileSizes = new[] { 16, 20, 24, 32, 40, 48, 64, 256 };
+
+    /// <summary>
+    /// Writes the mark as an .ico for the exe, in the colour the tray icon has on this
+    /// machine's taskbar. Each size is a PNG frame, which .ico files hold since Vista.
+    /// </summary>
+    public static void SaveIconFile(string path)
+    {
+        var frames = IconFileSizes.Select(size => Png(Render(size, TaskbarText))).ToArray();
+
+        using var writer = new BinaryWriter(File.Create(path));
+        writer.Write((short)0);                 // reserved
+        writer.Write((short)1);                 // an icon, not a cursor
+        writer.Write((short)frames.Length);
+
+        var offset = 6 + 16 * frames.Length;     // past the header and the directory
+        for (var i = 0; i < frames.Length; i++)
+        {
+            var side = (byte)(IconFileSizes[i] >= 256 ? 0 : IconFileSizes[i]);   // 0 means 256
+            writer.Write(side);
+            writer.Write(side);
+            writer.Write((byte)0);              // no palette
+            writer.Write((byte)0);              // reserved
+            writer.Write((short)1);             // colour planes
+            writer.Write((short)32);            // bits per pixel
+            writer.Write(frames[i].Length);
+            writer.Write(offset);
+            offset += frames[i].Length;
+        }
+
+        foreach (var frame in frames) writer.Write(frame);
+    }
 
     private static BitmapSource Render(int size, Color colour)
     {
@@ -79,15 +115,19 @@ public static class TrayIconFactory
         return bitmap;
     }
 
-    /// <summary>A WPF bitmap as the GDI icon NotifyIcon needs, by way of a PNG.</summary>
-    private static Icon ToIcon(BitmapSource source)
+    private static byte[] Png(BitmapSource source)
     {
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(source));
         using var stream = new MemoryStream();
         encoder.Save(stream);
-        stream.Position = 0;
+        return stream.ToArray();
+    }
 
+    /// <summary>A WPF bitmap as the GDI icon NotifyIcon needs, by way of a PNG.</summary>
+    private static Icon ToIcon(BitmapSource source)
+    {
+        using var stream = new MemoryStream(Png(source));
         using var bitmap = new System.Drawing.Bitmap(stream);
 
         // Icon.FromHandle does not take ownership, so clone into a managed icon and release

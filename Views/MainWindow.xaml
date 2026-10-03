@@ -4,7 +4,6 @@
         Title="Sidequest"
         Style="{StaticResource AppWindow}"
         Width="424"
-        MinHeight="384"
         SizeToContent="Height"
         WindowStyle="None"
         ResizeMode="NoResize"
@@ -25,8 +24,12 @@
         </Border.Effect>
 
         <Grid>
-            <!-- ============ Expanded ============ -->
-            <Grid x:Name="ExpandedRoot">
+            <!-- ============ Expanded ============
+                 5.1's minimum of 360, so the empty state is not squashed: the card's 360
+                 less its border. It belongs here rather than on the window. Raising the
+                 window's MinHeight while the collapsed row showed forced the window to
+                 exactly that height, and from then on it stopped fitting its content. -->
+            <Grid x:Name="ExpandedRoot" MinHeight="358">
                 <Grid.RowDefinitions>
                     <!-- 37 as the artboard renders it; 4.4 says 36 and measures the content box. -->
                     <RowDefinition Height="37"/>
@@ -67,7 +70,9 @@
                                         ToolTip="{DynamicResource L_Collapse}"
                                         AutomationProperties.Name="{DynamicResource L_Collapse}"
                                         Click="Collapse_Click">
-                                    <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.ChevronUp}"/>
+                                    <!-- Down, where FnMain draws up: the panel keeps its bottom
+                                         edge, so collapsing rolls it down (the user's call). -->
+                                    <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.ChevronDown}"/>
                                 </Button>
                                 <Button Style="{StaticResource IconButton}"
                                         ToolTip="{DynamicResource L_Close}"
@@ -158,7 +163,8 @@
                             ToolTip="{DynamicResource L_Expand}"
                             AutomationProperties.Name="{DynamicResource L_Expand}"
                             Click="Collapse_Click">
-                        <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.ChevronDown}"/>
+                        <!-- Up, where FnMainMini draws down: expanding grows the panel upward. -->
+                        <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.ChevronUp}"/>
                     </Button>
                     <Button Style="{StaticResource IconButton}"
                             ToolTip="{DynamicResource L_Close}"
