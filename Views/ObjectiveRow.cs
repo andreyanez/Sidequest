@@ -12,15 +12,12 @@ namespace Sidequest.Views;
 /// ticks it in its Sidequest too - the spec is explicit that an objective is not a second
 /// entity.
 /// </summary>
-public sealed class ObjectiveRow
+public sealed class ObjectiveRow : EditableRow
 {
-    public ObjectiveRow(SidequestItem item, SidequestProject project)
+    public ObjectiveRow(SidequestItem item, SidequestProject project) : base(item)
     {
-        Item = item;
         Project = project;
     }
-
-    public SidequestItem Item { get; }
 
     public SidequestProject Project { get; }
 

@@ -4,7 +4,6 @@
         Title="Sidequest"
         Style="{StaticResource AppWindow}"
         Width="424"
-        SizeToContent="Height"
         WindowStyle="None"
         ResizeMode="NoResize"
         AllowsTransparency="True"
@@ -25,11 +24,9 @@
 
         <Grid>
             <!-- ============ Expanded ============
-                 5.1's minimum of 360, so the empty state is not squashed: the card's 360
-                 less its border. It belongs here rather than on the window. Raising the
-                 window's MinHeight while the collapsed row showed forced the window to
-                 exactly that height, and from then on it stopped fitting its content. -->
-            <Grid x:Name="ExpandedRoot" MinHeight="358">
+                 As tall as the user made the window (5), whatever the screen: each view
+                 scrolls its own middle between a fixed header and footer. -->
+            <Grid x:Name="ExpandedRoot">
                 <Grid.RowDefinitions>
                     <!-- 37 as the artboard renders it; 4.4 says 36 and measures the content box. -->
                     <RowDefinition Height="37"/>
@@ -174,6 +171,24 @@
                     </Button>
                 </StackPanel>
             </Grid>
+
+            <!-- 5: the bottom edge resizes the window, its top staying put. These are the
+                 card's own last 6px rather than the shadow below them: the shadow's margin
+                 is transparent, and a transparent pixel passes clicks to whatever is behind. -->
+            <Thumb x:Name="ResizeEdge"
+                   Height="6"
+                   VerticalAlignment="Bottom"
+                   Cursor="SizeNS"
+                   Focusable="False"
+                   AutomationProperties.Name="{DynamicResource L_ResizePanel}"
+                   DragDelta="ResizeEdge_DragDelta"
+                   DragCompleted="ResizeEdge_DragCompleted">
+                <Thumb.Template>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border Background="Transparent"/>
+                    </ControlTemplate>
+                </Thumb.Template>
+            </Thumb>
         </Grid>
     </Border>
 </Window>

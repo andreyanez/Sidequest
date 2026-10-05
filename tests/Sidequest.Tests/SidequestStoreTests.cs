@@ -12,19 +12,13 @@ public class SidequestStoreTests
         Name = "Mudanza",
         Theme = SidequestTheme.Teal,
         SortIndex = 3,
+        Notes = "https://example.com/presupuesto",
+        Files = { @"C:\docs\contrato.pdf" },
+        Images = { "a1b2.png" },
         Items =
         {
             new SidequestItem { Text = "Pedir cajas", Done = true, SortIndex = 0 },
-            new SidequestItem
-            {
-                Text = "Llamar al transportista",
-                InPanel = true,
-                PanelIndex = 2,
-                SortIndex = 1,
-                Notes = "https://example.com/presupuesto",
-                Files = { @"C:\docs\contrato.pdf" },
-                Images = { "a1b2.png" },
-            },
+            new SidequestItem { Text = "Llamar al transportista", InPanel = true, PanelIndex = 2, SortIndex = 1 },
         },
     };
 
@@ -47,6 +41,9 @@ public class SidequestStoreTests
         Assert.Equal("Mudanza", loaded.Name);
         Assert.Equal(SidequestTheme.Teal, loaded.Theme);
         Assert.Equal(3, loaded.SortIndex);
+        Assert.Equal("https://example.com/presupuesto", loaded.Notes);
+        Assert.Equal(@"C:\docs\contrato.pdf", Assert.Single(loaded.Files));
+        Assert.Equal("a1b2.png", Assert.Single(loaded.Images));
         Assert.Equal(2, loaded.Items.Count);
 
         var first = loaded.Items[0];
@@ -58,9 +55,37 @@ public class SidequestStoreTests
         var second = loaded.Items[1];
         Assert.True(second.InPanel);
         Assert.Equal(2, second.PanelIndex);
-        Assert.Equal("https://example.com/presupuesto", second.Notes);
-        Assert.Equal(@"C:\docs\contrato.pdf", Assert.Single(second.Files));
-        Assert.Equal("a1b2.png", Assert.Single(second.Images));
+    }
+
+    [Fact]
+    public void Load_LeavesOutWhatItemsCarriedIn010_AndKeepsTheRest()
+    {
+        // D10: a 0.1.0 file kept notes, files and images on items. They are not merged into
+        // the Sidequest, and the next save drops them; everything else about the item stays.
+        using var temp = new TempStore();
+        File.WriteAllText(SidequestStore.SidequestsPath, """
+            [ { "Name": "Mudanza", "Theme": "Teal", "SortIndex": 0, "Items": [
+                { "Text": "Llamar al transportista", "Done": false, "InPanel": true,
+                  "SortIndex": 1, "PanelIndex": 2,
+                  "Notes": "https://example.com/presupuesto",
+                  "Files": [ "C:\\docs\\contrato.pdf" ], "Images": [ "a1b2.png" ] } ] } ]
+            """);
+
+        var loaded = Assert.Single(SidequestStore.Load());
+        var item = Assert.Single(loaded.Items);
+        Assert.Equal("Llamar al transportista", item.Text);
+        Assert.True(item.InPanel);
+        Assert.Equal(1, item.SortIndex);
+        Assert.Equal(2, item.PanelIndex);
+        Assert.Equal("", loaded.Notes);
+        Assert.Empty(loaded.Files);
+        Assert.Empty(loaded.Images);
+
+        SidequestStore.Save(new[] { loaded });
+        var json = File.ReadAllText(SidequestStore.SidequestsPath);
+        Assert.DoesNotContain("presupuesto", json);
+        Assert.DoesNotContain("contrato.pdf", json);
+        Assert.DoesNotContain("a1b2.png", json);
     }
 
     [Fact]

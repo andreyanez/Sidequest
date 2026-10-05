@@ -70,24 +70,26 @@ set theme, language and startup again in Settings.
 ## How it works
 
 - **Panel** — today's date, and the objectives you have sent to it, each with the
-  Sidequest it came from. Tick them off here. The title opens the objective; the chip
-  opens its Sidequest. Hovering or focusing a row shows *return to Sidequest* and
-  *delete*. The chevron collapses the panel to one row, and it stays collapsed until you
-  expand it. The pin keeps it above other apps.
+  Sidequest it came from. Tick them off here; the chip opens its Sidequest. Hovering or
+  focusing a row shows *rename*, *return to Sidequest* and *delete*. Drag the bottom edge
+  to set the panel's height, which every screen keeps; a long list scrolls. The chevron
+  collapses the panel to one row, and it stays collapsed until you expand it. The pin
+  keeps it above other apps.
 - **Sidequests** — every Sidequest with its progress, and *New Sidequest*: a name and one
   of eight colours.
-- **A Sidequest** — its items, grouped as the current objective, pending and completed.
-  *Send objective* puts a pending item on the panel. The "⋯" menu renames it, changes its
-  colour or deletes it.
-- **An objective** — notes, where web addresses become links; up to five local files,
-  linked by path; and up to five images, copied into the app's own folder so the
-  originals can move.
+- **A Sidequest** — two tabs. *Items*: its items, grouped as the current objective,
+  pending and completed. *Send objective* puts a pending item on the panel, *Add item*
+  adds one after another, and an item is renamed in place (the pencil, or F2). *Notes*:
+  notes, where web addresses become links; up to five local files, linked by path; and
+  up to five images, copied into the app's own folder so the originals can move. The
+  "⋯" menu renames the Sidequest, changes its colour or deletes it.
 - **Settings** — appearance (light, dark, or following Windows), language (Spanish or
   English), open at startup, and keep the panel on top. Changes apply at once.
 - **Tray** — Show panel, Sidequests…, Settings…, Reset position, Quit. Double-clicking
   the icon shows the panel, and so does starting the exe again. `Sidequest.exe
   --sidequests` and `--settings` open those screens directly.
-- **Keyboard** — everything is reachable with Tab, Enter, Escape and Delete.
+- **Keyboard** — everything is reachable with Tab, Enter, Escape and Delete; F2 renames,
+  and the arrow keys move between a Sidequest's tabs.
 
 ## Data
 
@@ -96,8 +98,8 @@ Human-readable JSON under `%APPDATA%\Sidequest\`:
 | File | Contents |
 | --- | --- |
 | `sidequests.json` | The Sidequests, their items, and which items are on the panel |
-| `settings.json` | Theme, language, startup, keep on top, collapsed, panel position |
-| `media\` | Copies of images attached to objectives |
+| `settings.json` | Theme, language, startup, keep on top, collapsed, panel position and height |
+| `media\` | Copies of images attached to Sidequests |
 
 Both files are safe to hand-edit while the app is closed. Writes go to a temp file that
 is then moved into place, so an unexpected shutdown can't leave a truncated file, and a

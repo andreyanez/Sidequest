@@ -42,4 +42,11 @@ public sealed class AppSettings
     public double? MainLeft { get; set; }
 
     public double? MainTop { get; set; }
+
+    /// <summary>
+    /// The compact window's height (5), set by dragging its bottom edge and kept the same
+    /// on every screen. It is the card's height, as the artboards measure it: the window
+    /// itself adds the shadow's margin.
+    /// </summary>
+    public double MainHeight { get; set; } = 640;
 }

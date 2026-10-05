@@ -16,8 +16,8 @@ namespace Sidequest.Services;
 public static class SidequestPalette
 {
     /// <summary>
-    /// Alpha values from 4.2, named for where each one is used. The last three are not
-    /// in 4.2 at all; the artboards introduce them, and the artboards win.
+    /// Alpha values from 4.2, named for where each one is used. The second group is not
+    /// in 4.2 at all; the artboards and 5.6 introduce them, and the artboards win.
     /// </summary>
     public static class Alpha
     {
@@ -31,6 +31,8 @@ public static class SidequestPalette
         public const double ListProgressTrack = 0.20;  // FnSidequests: la pista en la lista es 20, no 25
         public const double FormTint = 0.07;           // FnSidequestNuevo: tarjeta del formulario
         public const double FormBorder = 0.40;         // FnSidequestNuevo: su borde
+        public const double NewItemFill = 0.08;        // 5.6, FnSidequestAdd: el item recién añadido
+        public const double NewItemBorder = 0.50;      // 5.6, FnSidequestAdd: su borde
     }
 
     // 4.2's values, with two light-mode corrections.

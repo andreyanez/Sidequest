@@ -1,4 +1,8 @@
-param([Parameter(Mandatory = $true)][string]$Sandbox)
+param(
+    [Parameter(Mandatory = $true)][string]$Sandbox,
+    # FnSidequestsCompacto's fourteen Sidequests instead, for the long list (5.4).
+    [switch]$Many
+)
 
 # Seeds the sandbox with the sample data from docs/design/reference, so the screens can be
 # compared against the artboards 1:1. Never point this at %APPDATA%.
@@ -13,9 +17,6 @@ function Item($text, $done, $panelIndex) {
         InPanel       = ($null -ne $panelIndex)
         SortIndex     = $script:i
         PanelIndex    = $panelIndex
-        Notes         = ''
-        Files         = @()
-        Images        = @()
     }
 }
 
@@ -27,7 +28,32 @@ function Project($name, $theme, $sort, $items) {
         CreatedAt = (Get-Date).ToString('o')
         SortIndex = $sort
         Items     = $items
+        Notes     = ''
+        Files     = @()
+        Images    = @()
     }
+}
+
+$dir = Join-Path $Sandbox 'Sidequest'
+New-Item -ItemType Directory -Force -Path $dir | Out-Null
+
+if ($Many) {
+    # Name, theme and item count of each, in FnSidequestsCompacto's order. Nothing is
+    # done and nothing is on the panel, as the artboard shows.
+    $rows = @(
+        @('Job Pivoting', 'Slate', 1), @('Misc', 'Teal', 3), @('Mantenimiento de Auto', 'Steel', 1),
+        @('Meditación Preparación', 'Amber', 2), @('Salud y Bienestar', 'Olive', 5),
+        @('Audio Rescue', 'Indigo', 2), @('To Solve Loopitis', 'Coral', 4), @('Money Investment', 'Amber', 3),
+        @('A Voice to Train', 'Steel', 2), @('Knot-ledge', 'Indigo', 2), @('Smile for Me', 'Teal', 1),
+        @('Tesismo Moderno', 'Indigo', 1), @('How To Untie A Ballon', 'Coral', 1), @('Alternative Revenue', 'Teal', 6)
+    )
+    $sort = 0
+    $list = foreach ($row in $rows) {
+        Project $row[0] $row[1] ($sort++) @(1..$row[2] | ForEach-Object { Item "Paso $_" $false $null })
+    }
+    Set-Content -LiteralPath (Join-Path $dir 'sidequests.json') -Value (ConvertTo-Json @($list) -Depth 8) -Encoding UTF8
+    "{0} Sidequests, as FnSidequestsCompacto" -f @($list).Count
+    return
 }
 
 # Panel order and the two ticked objectives come straight from FnMain.html.
@@ -73,19 +99,16 @@ $impuestos = Project 'Impuestos 2026' 'Coral' 3 @(
     (Item 'Presentar declaración'        $false $null)
 )
 
-$dir = Join-Path $Sandbox 'Sidequest'
-New-Item -ItemType Directory -Force -Path $dir | Out-Null
-
-# FnObjetivo's objective: its notes (129 characters, as the artboard counts them), one
-# linked file and three images. The file is real, in the sandbox, so it does not show as
-# missing; the images are drawn here and put straight into media\, as an import would.
-$cotizar = $mudanza.Items[0]
-$cotizar.Notes = "Pedir cotización a 3 empresas. Confirmar embalaje y seguro.`nhttps://transportes.example/cotizar`nhttps://hojas.example/comparativa"
+# FnSidequestNotas's Notas tab, on Mudanza: its notes (207 characters, as the artboard
+# counts them), one linked file and three images. The file is real, in the sandbox, so it
+# does not show as missing; the images are drawn here and put straight into media\, as an
+# import would.
+$mudanza.Notes = "Empresas a cotizar: Transportes Ica y Mudanzas Lima Sur. Mudarse antes del 15 de octubre. Preguntar si el edificio pide carta de mudanza.`nhttps://transportes.example/cotizar`nhttps://hojas.example/comparativa"
 
 $linked = Join-Path $Sandbox 'files\Mudanza\inventario-cajas.xlsx'
 New-Item -ItemType Directory -Force -Path (Split-Path $linked) | Out-Null
 Set-Content -LiteralPath $linked -Value '' -Encoding UTF8
-$cotizar.Files = @($linked)
+$mudanza.Files = @($linked)
 
 Add-Type -AssemblyName System.Drawing
 $media = Join-Path $dir 'media'
@@ -103,7 +126,7 @@ foreach ($pair in @(@('#4FB5A8', '#1D2D2E'), @('#D4A24A', '#2B2419'), @('#8B93E6
     $brush.Dispose(); $g.Dispose(); $bmp.Dispose()
     $names += $name
 }
-$cotizar.Images = $names
+$mudanza.Images = $names
 
 $json = ConvertTo-Json @($portafolio, $mudanza, $curso, $impuestos) -Depth 8
 Set-Content -LiteralPath (Join-Path $dir 'sidequests.json') -Value $json -Encoding UTF8
@@ -115,3 +138,4 @@ foreach ($p in $all) {
 }
 $panel = $all.Items | Where-Object { $_.InPanel } | Sort-Object PanelIndex
 "panel objectives: {0}, of which {1} done" -f $panel.Count, (@($panel | Where-Object { $_.Done }).Count)
+"Mudanza's notes: {0} / 500" -f $mudanza.Notes.Length

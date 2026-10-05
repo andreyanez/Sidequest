@@ -8,18 +8,17 @@ namespace Sidequest.Models;
 /// A small step inside a Sidequest. An item with <see cref="InPanel"/> set is what the
 /// spec calls an "objetivo": the same object, shown in the main panel, not a second
 /// entity. Done therefore reads the same in both places.
+///
+/// In 0.1.0 an item also carried notes, files and images. They moved to the Sidequest in
+/// 0.2, and a 0.1.0 file's are not read, so the next save drops them (D10).
 /// </summary>
 public sealed class SidequestItem : INotifyPropertyChanged
 {
     public const int MaxTextLength = 120;
-    public const int MaxNotesLength = 500;
-    public const int MaxFiles = 5;
-    public const int MaxImages = 5;
 
     private string _text = "";
     private bool _done;
     private bool _inPanel;
-    private string _notes = "";
 
     public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -42,23 +41,14 @@ public sealed class SidequestItem : INotifyPropertyChanged
         set => Set(ref _inPanel, value);
     }
 
-    /// <summary>Order within its Sidequest. Append-only: nothing reorders (D7).</summary>
+    /// <summary>Order within its Sidequest, which dragging changes (D8).</summary>
     public int SortIndex { get; set; }
 
-    /// <summary>Order within the main panel, or null when not in it. Append-only (D7).</summary>
+    /// <summary>
+    /// Order within the main panel, or null when not in it. Dragging changes it (D8),
+    /// independently of SortIndex.
+    /// </summary>
     public int? PanelIndex { get; set; }
-
-    public string Notes
-    {
-        get => _notes;
-        set => Set(ref _notes, value);
-    }
-
-    /// <summary>Absolute paths, referenced not copied (D4).</summary>
-    public List<string> Files { get; set; } = new();
-
-    /// <summary>File names inside media\, copied on add (D4).</summary>
-    public List<string> Images { get; set; } = new();
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

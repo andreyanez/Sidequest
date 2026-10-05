@@ -6,9 +6,12 @@ using Sidequest.Services;
 // WinForms is referenced for NotifyIcon, so its implicit using collides with WPF's.
 using UserControl = System.Windows.Controls.UserControl;
 using Button = System.Windows.Controls.Button;
+using CheckBox = System.Windows.Controls.CheckBox;
 using Key = System.Windows.Input.Key;
+using KeyboardFocusChangedEventArgs = System.Windows.Input.KeyboardFocusChangedEventArgs;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Keyboard = System.Windows.Input.Keyboard;
+using MouseButtonEventArgs = System.Windows.Input.MouseButtonEventArgs;
 
 namespace Sidequest.Views;
 
@@ -16,11 +19,13 @@ public partial class PanelView : UserControl
 {
     private readonly MainWindow _shell;
     private readonly Action _refresh;
+    private readonly InlineRename _rename;
 
     public PanelView(MainWindow shell)
     {
         InitializeComponent();
         _shell = shell;
+        _rename = new InlineRename(ObjectiveList);
 
         // A theme switch changes every Sidequest's colour, and a language switch changes
         // the weekday and date. Both are resolved in code, so both need a rebuild.
@@ -46,7 +51,7 @@ public partial class PanelView : UserControl
 
     private static IEnumerable<ObjectiveRow> BuildRows()
     {
-        // Order is PanelIndex and nothing reorders it (D7), so this is send order.
+        // PanelIndex: the order things were sent in, until dragging changes it (D8).
         return App.Current.Projects
             .SelectMany(project => project.Items
                 .Where(item => item.InPanel)
@@ -83,17 +88,6 @@ public partial class PanelView : UserControl
     /// <summary>The empty state's "Sidequests →" while it shows, the footer's otherwise.</summary>
     private Button SidequestsEntry() =>
         EmptyState.Visibility == Visibility.Visible ? EmptySidequestsButton : SidequestsButton;
-
-    /// <summary>Back from an objective's detail: focus on its title, where the user left.</summary>
-    internal void FocusObjective(SidequestItem item) =>
-        Dispatcher.BeginInvoke(() => FocusObjectiveNow(item), System.Windows.Threading.DispatcherPriority.Loaded);
-
-    /// <summary>5.1: the title opens the objective's detail.</summary>
-    private void ItemText_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { DataContext: ObjectiveRow row })
-            _shell.ShowObjective(row.Item, row.Project);
-    }
 
     /// <summary>The collapsed row shows the same date and counter, so both are shared.</summary>
     internal static string FullDateText() => FullDate(DateTime.Today);
@@ -182,11 +176,12 @@ public partial class PanelView : UserControl
             FocusObjectiveNow(rows[Math.Clamp(index, 0, rows.Count - 1)].Item);
         }, System.Windows.Threading.DispatcherPriority.Loaded);
 
+    /// <summary>A card's first stop is its checkbox.</summary>
     private void FocusObjectiveNow(SidequestItem item)
     {
-        var title = VisualTree.FindDescendant<System.Windows.Controls.Button>(ObjectiveList,
-            b => b.Name == "ItemButton" && b.DataContext is ObjectiveRow row && row.Item == item);
-        if (title is not null) title.Focus();
+        var check = VisualTree.FindDescendant<CheckBox>(ObjectiveList,
+            c => c.Name == "Check" && c.DataContext is ObjectiveRow row && row.Item == item);
+        if (check is not null) check.Focus();
         else SidequestsEntry().Focus();
     }
 
@@ -200,16 +195,40 @@ public partial class PanelView : UserControl
 
     /// <summary>
     /// Supr on a focused row deletes it, which 8 asks for: tabbing to the delete button is
-    /// possible but slow, since every row carries several stops.
+    /// possible but slow, since every row carries several stops. F2 renames it (5.1). A
+    /// row being renamed keeps its keys for the field.
     /// </summary>
     private void List_KeyDown(object sender, KeyEventArgs e)
     {
+        if (_rename.TryBeginFromKey(e))
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key != Key.Delete) return;
-        if (Keyboard.FocusedElement is not FrameworkElement { DataContext: ObjectiveRow row }) return;
+        if (Keyboard.FocusedElement is not FrameworkElement { DataContext: ObjectiveRow row } || row.IsEditing) return;
 
         DeleteRow(row);
         e.Handled = true;
     }
+
+    // ---- Renaming (5.1) -----------------------------------------------------------
+
+    private void Rename_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: ObjectiveRow row }) _rename.Begin(row);
+    }
+
+    private void ItemNameEdit_KeyDown(object sender, KeyEventArgs e) => _rename.FieldKeyDown(e);
+
+    private void SaveName_Click(object sender, RoutedEventArgs e) => _rename.Commit(focusRow: true);
+
+    private void CancelName_Click(object sender, RoutedEventArgs e) => _rename.Cancel(focusRow: true);
+
+    private void Card_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) => _rename.FocusLeaving(e);
+
+    private void View_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) => _rename.PointerDown(e);
 
     private void Delete_Click(object sender, RoutedEventArgs e)
     {
@@ -232,7 +251,6 @@ public partial class PanelView : UserControl
 
         var index = RowIndex(row);
         row.Project.Items.Remove(row.Item);
-        Attachments.ReleaseMedia(new[] { row.Item }, App.Current.Projects);
         Save();
         Refresh();
         FocusRowNear(index);

@@ -12,16 +12,21 @@ swapping 4.2's dark values for its light ones in a copy under %TEMP%, as FnMainC
 for FnMain. It refuses an artboard with a colour the table doesn't cover, rather than
 leave it dark.
 
+-WithoutJournal takes the Bitácora button out of a Sidequest's band, as the app leaves it
+until the Bitácora exists (v1.1), so what is under the band lines up with the app.
+
 .EXAMPLE
 .\tools\render-artboard.ps1 -Name FnSidequests -OutPath $env:TEMP\art-FnSidequests.png
 .\tools\render-artboard.ps1 -Name FnSidequests -OutPath $env:TEMP\art-FnSidequests-light.png -Light
+.\tools\render-artboard.ps1 -Name FnSidequest -OutPath $env:TEMP\art-FnSidequest.png -WithoutJournal
 #>
 param(
     [Parameter(Mandatory = $true)][string]$Name,     # e.g. FnSidequests
     [Parameter(Mandatory = $true)][string]$OutPath,
     [int]$Width = 400,
     [int]$Height = 720,
-    [switch]$Light
+    [switch]$Light,
+    [switch]$WithoutJournal
 )
 
 $edge = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
@@ -33,6 +38,14 @@ if (-not (Test-Path $file)) { throw "No artboard $file" }
 $OutPath = [IO.Path]::GetFullPath($OutPath)
 if (Test-Path $OutPath) { Remove-Item $OutPath }
 
+$html = $null
+if ($WithoutJournal) {
+    $html = Get-Content -LiteralPath $file -Raw -Encoding UTF8
+    $pattern = '\s*<div style="display: flex;"><a class="cta" href="FnBitacora\.html".*?</a></div>'
+    if (-not [regex]::IsMatch($html, $pattern, 'Singleline')) { throw "No Bitácora button in $Name" }
+    $html = [regex]::Replace($html, $pattern, '', 'Singleline')
+}
+
 if ($Light) {
     # 4.2, dark -> light: the neutral tokens, then the eight Sidequest themes.
     $tokens = @{
@@ -40,10 +53,12 @@ if ($Light) {
         '#e8e9ec' = '#17181a'; '#9a9ea8' = '#5b5f68'; '#111214' = '#efefec'
         '#d4a24a' = '#9a6b1f'; '#4fb5a8' = '#1f6f6b'; '#8b93e6' = '#4a4f9c'; '#e0795f' = '#a1452f'
         '#a3b357' = '#5f6b2a'; '#c47fb5' = '#7a3f6e'; '#6aa5d8' = '#3d6285'; '#a0a4ad' = '#55554f'
-        # Not a token: the stripes FnObjetivo draws where its sample images would be.
+        # Not a token: the stripes FnSidequestNotas draws where its sample images would be.
         '#24272c' = '#f0f0ed'
+        # 4.4's scroll thumb, which 4.2 does not list: Themes\Light.xaml's ScrollThumbBrush.
+        '#4a4e56' = '#b4b4ae'
     }
-    $html = Get-Content -LiteralPath $file -Raw -Encoding UTF8
+    if (-not $html) { $html = Get-Content -LiteralPath $file -Raw -Encoding UTF8 }
 
     # Bg and Inv are one colour in dark. Inv is text, and the switch's knob; the rest is Bg.
     $html = [regex]::Replace($html, '(translateX\(16px\);\s*background:\s*)#16171a', '${1}#ffffff', 'IgnoreCase')
@@ -74,8 +89,11 @@ if ($Light) {
         ('#{0:x2}{1:x2}{2:x2}' -f [int]$rgb[1].Value, [int]$rgb[2].Value, [int]$rgb[3].Value) -notin $known
     })
     if ($left.Count -gt 0) { throw "No light value for $($left -join ', ') in $Name - add it to the table." }
+}
 
-    $file = Join-Path $env:TEMP "sidequest-artboard-$Name-light.html"
+if ($html) {
+    $variant = @(if ($Light) { 'light' }) + @(if ($WithoutJournal) { 'nojournal' }) -join '-'
+    $file = Join-Path $env:TEMP "sidequest-artboard-$Name-$variant.html"
     Set-Content -LiteralPath $file -Value $html -Encoding UTF8 -NoNewline
 }
 

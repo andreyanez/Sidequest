@@ -20,6 +20,7 @@ public class StorageTests
             Collapsed = true,
             MainLeft = 120,
             MainTop = 80,
+            MainHeight = 512,
         });
 
         var loaded = Storage.LoadSettings();
@@ -31,6 +32,17 @@ public class StorageTests
         Assert.True(loaded.Collapsed);
         Assert.Equal(120, loaded.MainLeft);
         Assert.Equal(80, loaded.MainTop);
+        Assert.Equal(512, loaded.MainHeight);
+    }
+
+    [Fact]
+    public void Settings_From010_GetTheDefaultHeight()
+    {
+        // 0.1.0 sized the panel to its content and stored no height. 5 sets 640.
+        using var temp = new TempStore();
+        File.WriteAllText(Storage.SettingsPath, """{ "Theme": "Dark", "MainLeft": 10, "MainTop": 20 }""");
+
+        Assert.Equal(640, Storage.LoadSettings().MainHeight);
     }
 
     [Fact]

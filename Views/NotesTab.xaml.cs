@@ -29,26 +29,23 @@ using UserControl = System.Windows.Controls.UserControl;
 namespace Sidequest.Views;
 
 /// <summary>
-/// An objective's detail (5.3): its notes and links, linked files and copied images. There
-/// is no save button - each change saves as it is made, and the notes when the field is
-/// left or the view closes.
+/// A Sidequest's Notas tab (5.6): its notes and links, linked files and copied images, the
+/// context its objectives are distilled from. In 0.1 this was an objective's own detail.
+/// There is no save button - each change saves as it is made, and the notes when the field
+/// is left or the tab closes.
 /// </summary>
-public partial class ObjectiveView : UserControl
+public partial class NotesTab : UserControl
 {
-    /// <summary>FnObjetivo's notes: 13px on a 1.55 line, blocks 6 apart.</summary>
+    /// <summary>FnSidequestNotas's notes: 13px on a 1.55 line, blocks 6 apart.</summary>
     private const double NoteLineHeight = 13 * 1.55;
     private const double NoteGap = 6;
 
-    private readonly MainWindow _shell;
-    private readonly SidequestItem _item;
     private readonly SidequestProject _project;
     private readonly Action _refresh;
 
-    public ObjectiveView(MainWindow shell, SidequestItem item, SidequestProject project)
+    public NotesTab(SidequestProject project)
     {
         InitializeComponent();
-        _shell = shell;
-        _item = item;
         _project = project;
 
         DataObject.AddPastingHandler(NotesBox, NotesBox_Pasting);
@@ -67,8 +64,8 @@ public partial class ObjectiveView : UserControl
             ThemeService.Changed -= _refresh;
             LanguageService.Changed -= _refresh;
 
-            // Leaving by the back button takes focus off the notes first, which saves them;
-            // this is for the ways out that do not.
+            // Switching tabs or leaving by the back button takes focus off the notes first,
+            // which saves them (5.6); this is for the ways out that do not.
             SaveNotes();
         };
     }
@@ -76,13 +73,11 @@ public partial class ObjectiveView : UserControl
     private static void Save() => SidequestStore.Save(App.Current.Projects);
 
     /// <summary>
-    /// Rebuilds whatever is resolved in code: the Sidequest's colours, which follow the app
-    /// theme, and the labels, counters and link colours, which follow the language and theme.
+    /// Rebuilds whatever is resolved in code: the labels, counters and link colours, which
+    /// follow the language and the theme.
     /// </summary>
     private void Refresh()
     {
-        DataContext = new ObjectiveHeader(_item, _project);
-
         // Section labels are upper case (4.1); CSS does it in the artboard.
         var culture = CultureInfo.CurrentCulture;
         NotesLabel.Text = LanguageService.Get("L_NotesAndLinks").ToUpper(culture);
@@ -94,15 +89,12 @@ public partial class ObjectiveView : UserControl
         RefreshImages();
     }
 
-    private void Done_Changed(object sender, RoutedEventArgs e) => Save();
-
-    private void Chip_Click(object sender, RoutedEventArgs e) => _shell.ShowSidequest(_project);
 
     // ---- Notes and links ---------------------------------------------------------------
 
     /// <summary>
     /// The notes as a document: one paragraph per line, with every http(s) address a link in
-    /// the Sidequest's colour. Rebuilt whenever the field is left, which is when 5.3 says
+    /// the Sidequest's colour. Rebuilt whenever the field is left, which is when 5.6 says
     /// new addresses are picked up.
     /// </summary>
     private void LoadNotes()
@@ -116,7 +108,7 @@ public partial class ObjectiveView : UserControl
         document.Blocks.Clear();
 
         var colour = SidequestPalette.Brush(_project.Theme, ThemeService.Current);
-        foreach (var line in _item.Notes.Split('\n'))
+        foreach (var line in _project.Notes.Split('\n'))
         {
             var paragraph = new Paragraph { Margin = new Thickness(0, 0, 0, NoteGap) };
             foreach (var segment in NoteLinks.Split(line))
@@ -152,14 +144,14 @@ public partial class ObjectiveView : UserControl
 
     /// <summary>How many more characters fit, counting the selection a keystroke replaces.</summary>
     private int Room() =>
-        SidequestItem.MaxNotesLength - (NotesText().Length - Plain(new TextRange(NotesBox.Selection.Start, NotesBox.Selection.End)).Length);
+        SidequestProject.MaxNotesLength - (NotesText().Length - Plain(new TextRange(NotesBox.Selection.Start, NotesBox.Selection.End)).Length);
 
     private void UpdateNotesCounter() =>
-        NotesCounter.Text = LanguageService.Format("L_CounterFmt", NotesText().Length, SidequestItem.MaxNotesLength);
+        NotesCounter.Text = LanguageService.Format("L_CounterFmt", NotesText().Length, SidequestProject.MaxNotesLength);
 
     private void NotesBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        var excess = NotesText().Length - SidequestItem.MaxNotesLength;
+        var excess = NotesText().Length - SidequestProject.MaxNotesLength;
         if (excess > 0 && !_trimming) TrimBeforeCaret(excess);
 
         UpdateNotesCounter();
@@ -193,7 +185,7 @@ public partial class ObjectiveView : UserControl
 
     private void SaveNotes()
     {
-        if (SidequestRules.SetNotes(_item, NotesText())) Save();
+        if (SidequestRules.SetNotes(_project, NotesText())) Save();
     }
 
     /// <summary>
@@ -214,7 +206,7 @@ public partial class ObjectiveView : UserControl
         });
     }
 
-    // 5.3 caps the notes at 500 characters. A RichTextBox has no MaxLength, so typing,
+    // 5.6 caps the notes at 500 characters. A RichTextBox has no MaxLength, so typing,
     // Enter and pasting are each held to the room that is left - a first line that keeps
     // the common case from flickering - and TrimBeforeCaret catches what gets past it.
 
@@ -261,14 +253,14 @@ public partial class ObjectiveView : UserControl
         e.DataObject = plain;
     }
 
-    /// <summary>5.3: Ctrl+click on a link opens it, which the field does for its own links.</summary>
+    /// <summary>5.6: Ctrl+click on a link opens it, which the field does for its own links.</summary>
     private void Link_RequestNavigate(object sender, RequestNavigateEventArgs e)
     {
         Shell.OpenUrl(e.Uri.OriginalString);
         e.Handled = true;
     }
 
-    /// <summary>5.3: while the field does not have focus, a plain click on a link opens it.</summary>
+    /// <summary>5.6: while the field does not have focus, a plain click on a link opens it.</summary>
     private void NotesBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (NotesBox.IsKeyboardFocusWithin) return;
@@ -318,17 +310,17 @@ public partial class ObjectiveView : UserControl
 
     private void RefreshFiles()
     {
-        FileRows.ItemsSource = _item.Files.Select(path => new FileRow(path)).ToList();
-        FilesCounter.Text = LanguageService.Format("L_CounterFmt", _item.Files.Count, SidequestItem.MaxFiles);
+        FileRows.ItemsSource = _project.Files.Select(path => new FileRow(path)).ToList();
+        FilesCounter.Text = LanguageService.Format("L_CounterFmt", _project.Files.Count, SidequestProject.MaxFiles);
 
-        // 5.3: at five the button is disabled, and the counter says why.
-        LinkFileButton.IsEnabled = _item.Files.Count < SidequestItem.MaxFiles;
+        // 5.6: at five the button is disabled, and the counter says why.
+        LinkFileButton.IsEnabled = _project.Files.Count < SidequestProject.MaxFiles;
     }
 
     private void FileListContent_SizeChanged(object sender, SizeChangedEventArgs e) =>
         FileListContent.Clip = new RectangleGeometry(new Rect(e.NewSize), 9, 9);
 
-    /// <summary>5.3: a click opens the file in its own app. One that has gone stays put, greyed.</summary>
+    /// <summary>5.6: a click opens the file in its own app. One that has gone stays put, greyed.</summary>
     private void OpenFile_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { DataContext: FileRow row }) return;
@@ -339,15 +331,15 @@ public partial class ObjectiveView : UserControl
     {
         if (sender is not FrameworkElement { DataContext: FileRow row }) return;
 
-        var index = _item.Files.IndexOf(row.FullPath);
-        _item.Files.Remove(row.FullPath);
+        var index = _project.Files.IndexOf(row.FullPath);
+        _project.Files.Remove(row.FullPath);
         Save();
         RefreshFiles();
 
         // Focus to the row that took its place, else the one before, else "Vincular".
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
         {
-            var rows = _item.Files;
+            var rows = _project.Files;
             var next = rows.Count == 0 ? null : rows[Math.Clamp(index, 0, rows.Count - 1)];
             var button = next is null ? null : VisualTree.FindDescendant<Button>(FileRows,
                 b => b.DataContext is FileRow r && r.FullPath == next && b.Style == FindResource("FileRowButton"));
@@ -365,7 +357,7 @@ public partial class ObjectiveView : UserControl
         };
         if (dialog.ShowDialog(Window.GetWindow(this)) != true) return;
 
-        if (Attachments.LinkFiles(_item, dialog.FileNames) > 0)
+        if (Attachments.LinkFiles(_project, dialog.FileNames) > 0)
         {
             Save();
             RefreshFiles();
@@ -378,15 +370,15 @@ public partial class ObjectiveView : UserControl
     private void RefreshImages()
     {
         var slots = new List<ImageSlot>();
-        for (var i = 0; i < SidequestItem.MaxImages; i++)
+        for (var i = 0; i < SidequestProject.MaxImages; i++)
         {
-            if (i < _item.Images.Count) slots.Add(new ImageThumb(_item.Images[i], i + 1));
-            else if (i == _item.Images.Count) slots.Add(new AddImageSlot());
+            if (i < _project.Images.Count) slots.Add(new ImageThumb(_project.Images[i], i + 1));
+            else if (i == _project.Images.Count) slots.Add(new AddImageSlot());
             else slots.Add(new EmptyImageSlot());
         }
 
         ImageList.ItemsSource = slots;
-        ImagesCounter.Text = LanguageService.Format("L_CounterFmt", _item.Images.Count, SidequestItem.MaxImages);
+        ImagesCounter.Text = LanguageService.Format("L_CounterFmt", _project.Images.Count, SidequestProject.MaxImages);
     }
 
     private void OpenImage_Click(object sender, RoutedEventArgs e)
@@ -399,7 +391,7 @@ public partial class ObjectiveView : UserControl
     {
         if (sender is not FrameworkElement { DataContext: ImageThumb thumb }) return;
 
-        Attachments.RemoveImage(_item, thumb.Name, App.Current.Projects);
+        Attachments.RemoveImage(_project, thumb.Name, App.Current.Projects);
         Save();
         RefreshImages();
 
@@ -421,10 +413,10 @@ public partial class ObjectiveView : UserControl
         if (dialog.ShowDialog(Window.GetWindow(this)) == true) AddImages(dialog.FileNames);
     }
 
-    /// <summary>Copies images in (D4) until the objective has five; the rest are left out.</summary>
+    /// <summary>Copies images in (D4) until the Sidequest has five; the rest are left out.</summary>
     private void AddImages(IEnumerable<string> paths)
     {
-        var added = paths.Count(path => Attachments.ImportImage(_item, path));
+        var added = paths.Count(path => Attachments.ImportImage(_project, path));
         if (added == 0) return;
 
         Save();
@@ -435,11 +427,11 @@ public partial class ObjectiveView : UserControl
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
             (VisualTree.FindDescendant<Button>(ImageList, b => b.DataContext is AddImageSlot)
              ?? VisualTree.FindDescendant<Button>(ImageList, b =>
-                 b.DataContext is ImageThumb t && t.Name == _item.Images[^1] && b.Style == FindResource("ImageCellButton")))
+                 b.DataContext is ImageThumb t && t.Name == _project.Images[^1] && b.Style == FindResource("ImageCellButton")))
             ?.Focus());
     }
 
-    // 5.3: an image file dragged anywhere onto the panel is added too. Preview events, so
+    // 5.6: an image file dragged anywhere onto the tab is added too. Preview events, so
     // the notes field does not take it as text first; anything that is not image files is
     // left for the field to handle as usual.
 
@@ -452,7 +444,7 @@ public partial class ObjectiveView : UserControl
     {
         if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
 
-        var accepts = _item.Images.Count < SidequestItem.MaxImages && DroppedImages(e).Count > 0;
+        var accepts = _project.Images.Count < SidequestProject.MaxImages && DroppedImages(e).Count > 0;
         e.Effects = accepts ? DragDropEffects.Copy : DragDropEffects.None;
         ShowDropTarget(accepts);
         e.Handled = true;
@@ -469,7 +461,7 @@ public partial class ObjectiveView : UserControl
         e.Handled = true;
     }
 
-    /// <summary>While an image is dragged over the panel, the "+" cell shows where it lands.</summary>
+    /// <summary>While an image is dragged over the tab, the "+" cell shows where it lands.</summary>
     private void ShowDropTarget(bool on)
     {
         var add = VisualTree.FindDescendant<Button>(ImageList, b => b.DataContext is AddImageSlot);

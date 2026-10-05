@@ -21,15 +21,23 @@
     <sys:String x:Key="L_Close">Cerrar</sys:String>
     <sys:String x:Key="L_Cancel">Cancelar</sys:String>
     <sys:String x:Key="L_Settings">Ajustes</sys:String>
+    <!-- No está en la 7: el nombre del borde inferior que cambia el alto (5). -->
+    <sys:String x:Key="L_ResizePanel">Cambiar el alto del panel</sys:String>
 
     <!-- Panel principal (5.1) -->
     <sys:String x:Key="L_PanelEmpty">Sin objetivos. Entra a un Sidequest y envía uno.</sys:String>
     <sys:String x:Key="L_ReturnToSidequest">Devolver al Sidequest</sys:String>
     <sys:String x:Key="L_DeleteObjective">Eliminar objetivo</sys:String>
     <sys:String x:Key="L_DeleteObjectiveQ">¿Eliminar este objetivo? También se borra de su Sidequest.</sys:String>
+    <sys:String x:Key="L_RenameObjective">Renombrar objetivo</sys:String>
+
+    <!-- Renombrar y reordenar, en el panel y en el detalle (5.1, 5.6) -->
+    <sys:String x:Key="L_SaveName">Guardar nombre</sys:String>
+    <sys:String x:Key="L_EnterSaves">Enter guarda</sys:String>
+    <sys:String x:Key="L_EscCancels">Esc cancela</sys:String>
+    <sys:String x:Key="L_DragToReorder">Arrastrar para reordenar</sys:String>
 
     <!-- Lista y nuevo Sidequest (5.4, 5.5) -->
-    <sys:String x:Key="L_ActiveFmt">{0} activos</sys:String>
     <sys:String x:Key="L_NewSidequest">Nuevo Sidequest</sys:String>
     <sys:String x:Key="L_Name">Nombre</sys:String>
     <sys:String x:Key="L_Theme">Tema</sys:String>
@@ -44,6 +52,12 @@
     <sys:String x:Key="L_Theme_Slate">Grafito</sys:String>
 
     <!-- Detalle del Sidequest (5.6) -->
+    <sys:String x:Key="L_Items">Items</sys:String>
+    <sys:String x:Key="L_Notes">Notas</sys:String>
+    <sys:String x:Key="L_RenameItem">Renombrar item</sys:String>
+    <sys:String x:Key="L_NewItem">Nuevo item</sys:String>
+    <sys:String x:Key="L_EnterAddsNext">Enter añade y sigue</sys:String>
+    <sys:String x:Key="L_EscCloses">Esc cierra</sys:String>
     <sys:String x:Key="L_ItemsFmt">{0} / {1} items</sys:String>
     <sys:String x:Key="L_CurrentObjective">Objetivo actual</sys:String>
     <sys:String x:Key="L_SendObjective">Enviar objetivo</sys:String>
@@ -56,7 +70,7 @@
     <!-- La 7 añade "y su Bitácora": vuelve con la v1.1, que es cuando existe. -->
     <sys:String x:Key="L_DeleteSidequestQ">¿Eliminar "{0}" con sus {1} items?</sys:String>
 
-    <!-- Detalle del objetivo (5.3) -->
+    <!-- Pestaña Notas del Sidequest (5.6), que fue el detalle del objetivo en la 0.1 -->
     <sys:String x:Key="L_NotesAndLinks">Notas y enlaces</sys:String>
     <sys:String x:Key="L_LocalFiles">Archivos locales</sys:String>
     <sys:String x:Key="L_LinkFile">Vincular archivo</sys:String>
@@ -93,7 +107,6 @@
     <!-- No están en la 7: el título de la ventana de confirmación, los singulares y la
          pregunta de borrar un item. -->
     <sys:String x:Key="L_ConfirmTitle">Confirmar</sys:String>
-    <sys:String x:Key="L_ActiveOneFmt">{0} activo</sys:String>
     <sys:String x:Key="L_DeleteItemQ">¿Eliminar este item?</sys:String>
     <sys:String x:Key="L_DeleteSidequestOneQ">¿Eliminar "{0}" con su único item?</sys:String>
     <sys:String x:Key="L_DeleteSidequestEmptyQ">¿Eliminar "{0}"?</sys:String>

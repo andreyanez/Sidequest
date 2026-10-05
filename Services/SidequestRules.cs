@@ -36,7 +36,7 @@ public static class SidequestRules
     }
 
     /// <summary>
-    /// A new Sidequest at the end of the list. SortIndex only grows (D7), so it takes the
+    /// A new Sidequest at the end of the list. Nothing reorders the list, so it takes the
     /// next index rather than the count, which a deletion would make collide.
     /// </summary>
     public static SidequestProject Create(ICollection<SidequestProject> projects, string name, SidequestTheme theme)
@@ -66,20 +66,34 @@ public static class SidequestRules
     }
 
     /// <summary>
-    /// 5.3's notes: plain text, at most 500 characters, addresses included. Lines are kept
-    /// as "\n", which is how the counter counts them. Returns whether anything changed.
+    /// Renames an item, which renames its objective too, being the same object (5.1, 5.6).
+    /// A blank name is not saved and the old one stays. Returns whether anything changed.
     /// </summary>
-    public static bool SetNotes(SidequestItem item, string notes)
+    public static bool RenameItem(SidequestItem item, string text)
     {
-        var text = notes.Replace("\r\n", "\n");
-        if (text.Length > SidequestItem.MaxNotesLength) text = text[..SidequestItem.MaxNotesLength];
-        if (text == item.Notes) return false;
+        var clipped = Clip(text, SidequestItem.MaxTextLength);
+        if (clipped.Length == 0 || clipped == item.Text) return false;
 
-        item.Notes = text;
+        item.Text = clipped;
         return true;
     }
 
-    /// <summary>A new pending item at the end of its Sidequest (D7).</summary>
+    /// <summary>
+    /// The Notas tab's notes (5.6): plain text, at most 500 characters, addresses
+    /// included. Lines are kept as "\n", which is how the counter counts them. Returns
+    /// whether anything changed.
+    /// </summary>
+    public static bool SetNotes(SidequestProject project, string notes)
+    {
+        var text = notes.Replace("\r\n", "\n");
+        if (text.Length > SidequestProject.MaxNotesLength) text = text[..SidequestProject.MaxNotesLength];
+        if (text == project.Notes) return false;
+
+        project.Notes = text;
+        return true;
+    }
+
+    /// <summary>A new pending item, after every other item in its Sidequest.</summary>
     public static SidequestItem AddItem(SidequestProject project, string text)
     {
         var item = new SidequestItem

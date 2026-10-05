@@ -3,6 +3,8 @@ using System.Windows.Automation;
 using Sidequest.Models;
 using Sidequest.Services;
 using DispatcherPriority = System.Windows.Threading.DispatcherPriority;
+using DragCompletedEventArgs = System.Windows.Controls.Primitives.DragCompletedEventArgs;
+using DragDeltaEventArgs = System.Windows.Controls.Primitives.DragDeltaEventArgs;
 using FocusNavigationDirection = System.Windows.Input.FocusNavigationDirection;
 using MouseButtonEventArgs = System.Windows.Input.MouseButtonEventArgs;
 using MouseButtonState = System.Windows.Input.MouseButtonState;
@@ -23,9 +25,6 @@ public partial class MainWindow : Window
     /// <summary>How much must stay on screen for a saved position to be reused.</summary>
     private const double MinVisible = 120;
 
-    /// <summary>5.1: the panel grows until this much of the work area is left.</summary>
-    private const double ScreenPadding = 48;
-
     private readonly PanelView _panel;
     private readonly Action _refresh;
     private Action? _back;
@@ -34,11 +33,6 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-
-        // Never below the expanded panel's own minimum, with the card's border and margin.
-        var expandedMinimum = ExpandedRoot.MinHeight
-            + Card.Margin.Top + Card.Margin.Bottom + Card.BorderThickness.Top + Card.BorderThickness.Bottom;
-        MaxHeight = Math.Max(expandedMinimum, SystemParameters.WorkArea.Height - ScreenPadding);
 
         _panel = new PanelView(this);
         ViewHost.Content = _panel;
@@ -80,21 +74,15 @@ public partial class MainWindow : Window
 
     /// <summary>
     /// Back to the main panel, rebuilt from the model since a sub-panel may have sent,
-    /// deleted or ticked things. Focus returns to what left it: the objective that was
-    /// opened, or else the Sidequests button.
+    /// deleted or ticked things. Every way back arrives from the Sidequests list, so focus
+    /// lands on the button that leads there.
     /// </summary>
-    public void ShowMainPanel(SidequestItem? focus = null)
+    public void ShowMainPanel()
     {
         Navigate(_panel, backKey: null, back: null);
         _panel.Refresh();
-
-        if (focus is not null) _panel.FocusObjective(focus);
-        else _panel.FocusSidequestsButton();
+        _panel.FocusSidequestsButton();
     }
-
-    /// <summary>5.3, reached from an objective's title on the panel, and back to it.</summary>
-    public void ShowObjective(SidequestItem item, SidequestProject project) =>
-        Navigate(new ObjectiveView(this, item, project), "L_MainPanel", () => ShowMainPanel(item));
 
     /// <param name="focus">The Sidequest to put keyboard focus on, when coming back from it.</param>
     public void ShowSidequests(SidequestProject? focus = null)
@@ -107,7 +95,7 @@ public partial class MainWindow : Window
             Storage.SaveSettings(App.Current.Settings);
         }
 
-        Navigate(new SidequestsView(this, focus), "L_MainPanel", () => ShowMainPanel());
+        Navigate(new SidequestsView(this, focus), "L_MainPanel", ShowMainPanel);
     }
 
     /// <param name="justCreated">Opens the add-item field straight away, since an empty
@@ -197,19 +185,63 @@ public partial class MainWindow : Window
     {
         var bottom = Top + ActualHeight;
 
-        // The window fits whichever is shown: the collapsed row's fixed 50, or the
-        // expanded panel, which keeps its own minimum.
         App.Current.Settings.Collapsed = collapsed;
         ExpandedRoot.Visibility = collapsed ? Visibility.Collapsed : Visibility.Visible;
         CollapsedRoot.Visibility = collapsed ? Visibility.Visible : Visibility.Collapsed;
+        ResizeEdge.Visibility = collapsed ? Visibility.Collapsed : Visibility.Visible;
         RefreshCollapsedRow();
+
+        // 5: the height the user chose, the same on every screen. The collapsed row
+        // ignores it, and expanding brings it back.
+        Height = collapsed ? CollapsedWindowHeight : ClampCard(App.Current.Settings.MainHeight) + Shadow;
 
         if (!pinBottomEdge) return;
 
         // Roll up in place: a panel resting on the bottom of the screen should not jump.
-        UpdateLayout();
-        Top = bottom - ActualHeight;
+        Top = bottom - Height;
         ClampToVirtualScreen();
+    }
+
+    // ---- Height (5) ---------------------------------------------------------------
+
+    /// <summary>5's least height for the card.</summary>
+    private const double MinCardHeight = 360;
+
+    /// <summary>The shadow's margin, which the window adds around the card.</summary>
+    private double Shadow => Card.Margin.Top + Card.Margin.Bottom;
+
+    /// <summary>
+    /// 5's greatest: the work area's height. Less the shadow, so the whole window, shadow
+    /// and all, still fits on the screen.
+    /// </summary>
+    private double MaxCardHeight => Math.Max(MinCardHeight, SystemParameters.WorkArea.Height - Shadow);
+
+    private double ClampCard(double height) => Math.Clamp(height, MinCardHeight, MaxCardHeight);
+
+    private double CollapsedWindowHeight =>
+        CollapsedRoot.Height + Card.BorderThickness.Top + Card.BorderThickness.Bottom + Shadow;
+
+    /// <summary>
+    /// The bottom edge follows the pointer and the top stays put (6), so the card grows
+    /// down, as far as the bottom of the work area.
+    /// </summary>
+    private void ResizeEdge_DragDelta(object sender, DragDeltaEventArgs e)
+    {
+        var cardTop = Top + Card.Margin.Top;
+        var roomBelow = SystemParameters.WorkArea.Bottom - cardTop;
+        var card = ActualHeight - Shadow + e.VerticalChange;
+
+        Height = Math.Clamp(card, MinCardHeight, Math.Max(MinCardHeight, Math.Min(MaxCardHeight, roomBelow))) + Shadow;
+    }
+
+    /// <summary>
+    /// 5: the height is saved once, on letting go. ActualHeight rather than Height:
+    /// Windows can stop a window short of what was asked, near the screen's full height.
+    /// </summary>
+    private void ResizeEdge_DragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        App.Current.Settings.MainHeight = ActualHeight - Shadow;
+        Storage.SaveSettings(App.Current.Settings);
     }
 
     private void RefreshCollapsedRow()

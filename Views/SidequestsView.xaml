@@ -4,77 +4,27 @@
              xmlns:local="clr-namespace:Sidequest.Views">
 
     <UserControl.Resources>
-        <!-- 5.4, a Sidequest in full. Measured on FnSidequests: 66 as rendered - the
-             border, 15, a 20px name row, 12, the 3px bar, 14, the border - with the counter
-             centred on the name row, 11 clear of it. 8 between buttons. -->
-        <DataTemplate x:Key="FullButton" DataType="{x:Type local:SidequestButtonRow}">
+        <!-- 5.4's button, compact as D9 chose, from FnSidequestsCompacto: 42 as rendered,
+             radius 10, padding 14, the name at 14/600 with the counter 11 clear of it, and
+             a 2px bar along the bottom, 5 up, on C @ 20 %. 6 between buttons. -->
+        <DataTemplate x:Key="SidequestRow" DataType="{x:Type local:SidequestButtonRow}">
             <Button Style="{StaticResource SidequestButton}"
-                    Height="66"
-                    Margin="0,0,0,8"
-                    Padding="14,15,14,14"
-                    Background="{Binding TintBrush}"
-                    BorderBrush="{Binding BorderBrush}"
-                    AutomationProperties.Name="{Binding AccessibleName}"
-                    Click="Sidequest_Click">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="20"/>
-                        <RowDefinition Height="12"/>
-                        <RowDefinition Height="3"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Text="{Binding Name}"
-                               Foreground="{Binding ThemeBrush}"
-                               FontSize="15"
-                               FontWeight="SemiBold"
-                               VerticalAlignment="Center"
-                               TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Grid.Column="1"
-                               Text="{Binding Counter}"
-                               Style="{StaticResource Muted}"
-                               Margin="11,0,0,0"
-                               VerticalAlignment="Center"/>
-
-                    <!-- Track at C @ 20 %, not 4.2's 25: FnSidequests draws it lighter than
-                         the header band's. The fill is a star column, so it needs no
-                         measuring and stays proportional as the button narrows. -->
-                    <Grid Grid.Row="2" Grid.ColumnSpan="2">
-                        <Border CornerRadius="2" Background="{Binding TrackBrush}"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="{Binding DoneWidth}"/>
-                                <ColumnDefinition Width="{Binding RestWidth}"/>
-                            </Grid.ColumnDefinitions>
-                            <Border CornerRadius="2" Background="{Binding ThemeBrush}"/>
-                        </Grid>
-                    </Grid>
-                </Grid>
-            </Button>
-        </DataTemplate>
-
-        <!-- 5.5: while the form is open the buttons drop to 46 as rendered, name and
-             counter on one line, no bar, to make room. -->
-        <DataTemplate x:Key="CompactButton" DataType="{x:Type local:SidequestButtonRow}">
-            <Button Style="{StaticResource SidequestButton}"
-                    Height="46"
-                    Margin="0,0,0,8"
+                    Height="42"
+                    Margin="0,0,0,6"
                     Padding="14,0"
                     Background="{Binding TintBrush}"
                     BorderBrush="{Binding BorderBrush}"
                     AutomationProperties.Name="{Binding AccessibleName}"
                     Click="Sidequest_Click">
-                <Grid VerticalAlignment="Center">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
+
                     <TextBlock Text="{Binding Name}"
                                Foreground="{Binding ThemeBrush}"
-                               FontSize="15"
+                               FontSize="14"
                                FontWeight="SemiBold"
                                VerticalAlignment="Center"
                                TextTrimming="CharacterEllipsis"/>
@@ -83,6 +33,22 @@
                                Style="{StaticResource Muted}"
                                Margin="11,0,0,0"
                                VerticalAlignment="Center"/>
+
+                    <!-- The fill is a star column, so it needs no measuring and stays
+                         proportional as the button narrows. -->
+                    <Grid Grid.ColumnSpan="2"
+                          Height="2"
+                          Margin="0,0,0,5"
+                          VerticalAlignment="Bottom">
+                        <Border CornerRadius="1" Background="{Binding TrackBrush}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{Binding DoneWidth}"/>
+                                <ColumnDefinition Width="{Binding RestWidth}"/>
+                            </Grid.ColumnDefinitions>
+                            <Border CornerRadius="1" Background="{Binding ThemeBrush}"/>
+                        </Grid>
+                    </Grid>
                 </Grid>
             </Button>
         </DataTemplate>
@@ -92,100 +58,116 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header, 22/16/14 like the panel's. "Sidequests" is 22/600 here: FnSidequests
-             sets 600 where 4.1 says 700, and the artboard wins. The counter sits on the
-             title's baseline, which lands its top 10 lower. -->
-        <Grid Grid.Row="0" Margin="16,22,16,14">
-            <TextBlock Text="{DynamicResource L_Sidequests}"
-                       Style="{StaticResource Heading}"
-                       FontWeight="SemiBold"
-                       Height="29"/>
-            <TextBlock x:Name="ActiveText"
-                       Style="{StaticResource Muted}"
-                       HorizontalAlignment="Right"
-                       VerticalAlignment="Top"
-                       Margin="0,10,0,0"/>
-        </Grid>
+        <!-- Header, 20/16/12: "Sidequests" alone at 22/700. 5.4 drops the counter, since
+             nothing is ever archived and every Sidequest is always in the list. -->
+        <TextBlock Grid.Row="0"
+                   Margin="16,20,16,12"
+                   Text="{DynamicResource L_Sidequests}"
+                   Style="{StaticResource Heading}"/>
 
-        <!-- Focusable=False, as in the panel: a ScrollViewer takes a tab stop of its own. -->
+        <!-- The scrolling middle (5, 4.4). 2 above the first button, 12 below the last -
+             6 here and the button's own 6 - and 14 on the right, where the thumb runs. -->
         <ScrollViewer x:Name="ListScroll"
                       Grid.Row="1"
-                      Focusable="False"
-                      VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled"
-                      Padding="16,2,16,16">
+                      Style="{StaticResource ScrollArea}"
+                      Padding="12,2,14,6">
+            <!-- Focusable=False: an ItemsControl takes a tab stop of its own. -->
+            <ItemsControl x:Name="ProjectList"
+                          Focusable="False"
+                          ItemTemplate="{StaticResource SidequestRow}"/>
+        </ScrollViewer>
 
+        <!-- 5.4's fixed footer, 12/12/6 under a Line: "+ Nuevo Sidequest", or the form in
+             its place while it is open (5.5), which grows the footer upward and leaves the
+             list less room; then the resize grip, 8 below. -->
+        <Border Grid.Row="2"
+                BorderBrush="{DynamicResource Line}"
+                BorderThickness="0,1,0,0"
+                Padding="12,12,12,6">
             <StackPanel>
-                <ItemsControl x:Name="ProjectList"
-                              Focusable="False"
-                              ItemTemplate="{StaticResource FullButton}"/>
-
-                <!-- 12 below the last Sidequest: the list's 8 plus the artboard's 4. -->
                 <Button x:Name="NewButton"
-                        Style="{StaticResource DashedButton}"
-                        Margin="0,4,0,0"
+                        Style="{StaticResource DashedPillButton}"
                         AutomationProperties.Name="{DynamicResource L_NewSidequest}"
                         Click="New_Click">
+                    <!-- The plus is 14px at stroke 2 on a 16-unit box: 0.875. -->
                     <StackPanel Orientation="Horizontal">
-                        <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Plus}"/>
+                        <Path Style="{StaticResource IconPath}"
+                              Data="{StaticResource Icon.Plus}"
+                              StrokeThickness="2"
+                              VerticalAlignment="Center">
+                            <Path.LayoutTransform>
+                                <ScaleTransform ScaleX="0.875" ScaleY="0.875"/>
+                            </Path.LayoutTransform>
+                        </Path>
                         <TextBlock Text="{DynamicResource L_NewSidequest}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
-                <!-- 5.5's form, in place of the dashed button. Tinted with the chosen
-                     theme at FnSidequestNuevo's 7 % with a 40 % border, neither of which
-                     4.2 lists. Sections 18 apart; labels 7 above the field and 10 above
-                     the swatches. Enter creates and Escape cancels, from anywhere in it. -->
-                <Border x:Name="Form"
-                        Visibility="Collapsed"
-                        Margin="0,4,0,0"
-                        Padding="16"
-                        CornerRadius="12"
-                        BorderThickness="1"
-                        KeyDown="Form_KeyDown">
-                    <StackPanel>
-                        <TextBlock x:Name="FormLabel" FontSize="11" FontWeight="SemiBold" Height="14"/>
+                <!-- 5.5's form. Tinted with the chosen theme at FnSidequestNuevo's 7 % with
+                     a 40 % border, neither of which 4.2 lists, the tint running under the
+                     border as CSS paints it. Padding 14 and sections 14 apart; labels 6
+                     above the field and 8 above the swatches. Enter creates and Escape
+                     cancels, from anywhere in it. -->
+                <Grid x:Name="Form"
+                      Visibility="Collapsed"
+                      KeyDown="Form_KeyDown">
+                    <Border x:Name="FormFill" CornerRadius="12"/>
+                    <Border x:Name="FormEdge"
+                            Padding="14"
+                            CornerRadius="12"
+                            BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock x:Name="FormLabel" FontSize="11" FontWeight="SemiBold"/>
 
-                        <TextBlock Text="{DynamicResource L_Name}"
-                                   Style="{StaticResource Muted}"
-                                   Height="16"
-                                   Margin="0,18,0,0"/>
-                        <TextBox x:Name="NameBox"
-                                 Style="{StaticResource TextBox.Themed}"
-                                 Margin="0,7,0,0"
-                                 MaxLength="60"
-                                 AutomationProperties.Name="{DynamicResource L_Name}"
-                                 TextChanged="NameBox_TextChanged"/>
+                            <TextBlock Text="{DynamicResource L_Name}"
+                                       Style="{StaticResource Muted}"
+                                       Margin="0,14,0,0"/>
+                            <TextBox x:Name="NameBox"
+                                     Style="{StaticResource TextBox.Themed}"
+                                     Height="38"
+                                     Margin="0,6,0,0"
+                                     MaxLength="60"
+                                     AutomationProperties.Name="{DynamicResource L_Name}"
+                                     TextChanged="NameBox_TextChanged"/>
 
-                        <TextBlock Text="{DynamicResource L_Theme}"
-                                   Style="{StaticResource Muted}"
-                                   Height="16"
-                                   Margin="0,18,0,0"/>
-                        <ListBox x:Name="ThemePicker"
-                                 Style="{StaticResource SwatchPicker}"
-                                 Margin="0,10,0,0"
-                                 AutomationProperties.Name="{DynamicResource L_Theme}"
-                                 SelectionChanged="ThemePicker_SelectionChanged"/>
+                            <TextBlock Text="{DynamicResource L_Theme}"
+                                       Style="{StaticResource Muted}"
+                                       Margin="0,14,0,0"/>
+                            <ListBox x:Name="ThemePicker"
+                                     Style="{StaticResource SwatchPicker}"
+                                     Margin="0,8,0,0"
+                                     AutomationProperties.Name="{DynamicResource L_Theme}"
+                                     SelectionChanged="ThemePicker_SelectionChanged"/>
 
-                        <!-- Pills from 4.4, as on the panel; FnSidequestNuevo draws these two
-                             at radius 10 and 38 high, one of the artboards' disagreements on
-                             buttons that dev-notes records. -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
-                            <Button Style="{StaticResource SecondaryButton}"
-                                    Content="{DynamicResource L_Cancel}"
-                                    Click="Cancel_Click"/>
-                            <Button x:Name="CreateButton"
-                                    Style="{StaticResource PrimaryButton}"
-                                    Content="{DynamicResource L_Create}"
-                                    Margin="8,0,0,0"
-                                    IsEnabled="False"
-                                    Click="Create_Click"/>
+                            <!-- Pills, as FnSidequestNuevo draws them now. Both say 34, but
+                                 Cancelar's border is outside it (content-box), so it renders 36
+                                 and Crear 34, top-aligned. Cancelar has no fill, so the form's
+                                 tint shows through it. -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+                                <Button Style="{StaticResource SecondaryButton}"
+                                        Height="36"
+                                        Background="Transparent"
+                                        Content="{DynamicResource L_Cancel}"
+                                        Click="Cancel_Click"/>
+                                <Button x:Name="CreateButton"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Height="34"
+                                        Padding="18,0"
+                                        VerticalAlignment="Top"
+                                        Content="{DynamicResource L_Create}"
+                                        Margin="8,0,0,0"
+                                        IsEnabled="False"
+                                        Click="Create_Click"/>
+                            </StackPanel>
                         </StackPanel>
-                    </StackPanel>
-                </Border>
+                    </Border>
+                </Grid>
+
+                <Border Style="{StaticResource ResizeGrip}"/>
             </StackPanel>
-        </ScrollViewer>
+        </Border>
     </Grid>
 </UserControl>

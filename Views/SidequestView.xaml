@@ -1,7 +1,8 @@
 <UserControl x:Class="Sidequest.Views.SidequestView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Sidequest.Views">
+             xmlns:local="clr-namespace:Sidequest.Views"
+             PreviewMouseLeftButtonDown="View_PreviewMouseLeftButtonDown">
 
     <UserControl.Resources>
         <!-- 5.6's "⋯" menu. Opened from code, placed under the button, right-aligned. -->
@@ -12,122 +13,322 @@
             <MenuItem Header="{DynamicResource L_DeleteSidequest}" Click="DeleteSidequest_Click"/>
         </ContextMenu>
 
-        <!-- The three groups of 5.6, one template each. Rows are 6 apart, measured on
-             FnSidequest; the gap is a top margin so nothing trails the last row. -->
+        <!-- A row being renamed is 5.1's FnMainEdit with the detail's 6 for 8: a border in
+             C (1.5 drawn as 1, see CheckBox), no grip, no pill or button, and the text a
+             bare field 14/500 with a C caret; on the right the check in C and the x; under
+             the card, right-aligned, "Enter guarda · Esc cancela" in 11 Text2. No artboard
+             shows it here. The parts are named for InlineRename, which finds them by name. -->
 
-        <!-- (1) In the panel: 50 as rendered, padding 14/10, the "Objetivo actual" pill
-             (24, C fill, 11/700 Inv) and no actions. -->
+        <!-- The three groups of 5.6, one template each, measured on FnSidequest. Cards are
+             48 with their border, 6 apart; the gap trails each card, as the list's padding
+             leaves the last one room. A card's fill runs under its border, which matters
+             for the just-added look, both of whose colours are translucent.
+
+             Hover actions wait at rest with no width, no opacity and no hit-testing, rather
+             than collapsed: unseen, taking no room and no clicks, as the artboard's
+             display:none, but still tab stops. Tab meets them in the order they are drawn,
+             and reveals them; and the current objective's rename is the only stop its card
+             has. They are not clipped, which would clip their focus rings too. -->
+
+        <!-- (1) In the panel: padding 4 and 10, the grip's 18 kept clear (it comes with
+             reordering), the text 10 after it, and the "Objetivo actual" pill (24, C fill,
+             11/700 Inv). Hover shows rename before the pill. -->
         <DataTemplate DataType="{x:Type local:CurrentObjectiveRow}">
-            <Border Height="50"
-                    Margin="0,6,0,0"
-                    Padding="14,0,10,0"
-                    CornerRadius="10"
-                    Background="{DynamicResource Surface}"
-                    BorderBrush="{DynamicResource Line}"
-                    BorderThickness="1">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="{Binding Item.Text}"
-                               Style="{StaticResource ItemText}"
-                               Margin="0,0,12,0"
-                               VerticalAlignment="Center"/>
-                    <Border Grid.Column="1"
-                            Height="24"
-                            Padding="10,0"
-                            CornerRadius="12"
-                            VerticalAlignment="Center"
-                            Background="{Binding ThemeBrush}">
-                        <TextBlock Text="{DynamicResource L_CurrentObjective}"
-                                   FontSize="11"
-                                   FontWeight="Bold"
-                                   Foreground="{DynamicResource Inv}"
-                                   VerticalAlignment="Center"/>
+            <StackPanel Margin="0,0,0,6">
+                <Grid x:Name="Card" LostKeyboardFocus="Card_LostKeyboardFocus">
+                    <Border x:Name="Fill" CornerRadius="10" Background="{DynamicResource Surface}"/>
+                    <Border x:Name="Edge"
+                            Height="48"
+                            Padding="4,0,10,0"
+                            CornerRadius="10"
+                            BorderBrush="{DynamicResource Line}"
+                            BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="GripSlot" Width="18"/>
+                            <TextBlock x:Name="ItemText"
+                                       Grid.Column="1"
+                                       Text="{Binding Item.Text}"
+                                       Style="{StaticResource ItemText}"
+                                       Margin="10,0,0,0"
+                                       VerticalAlignment="Center"/>
+                            <TextBox x:Name="NameEdit"
+                                     Grid.Column="1"
+                                     Style="{StaticResource BareTextBox}"
+                                     Margin="2,0,0,0"
+                                     MaxLength="120"
+                                     Visibility="Collapsed"
+                                     CaretBrush="{Binding ThemeBrush}"
+                                     AutomationProperties.Name="{DynamicResource L_RenameItem}"
+                                     KeyDown="ItemNameEdit_KeyDown"/>
+
+                            <StackPanel x:Name="Actions"
+                                        Grid.Column="2"
+                                        Orientation="Horizontal"
+                                        VerticalAlignment="Center"
+                                        Width="0"
+                                        Opacity="0"
+                                        IsHitTestVisible="False">
+                                <Button x:Name="RenameButton"
+                                        Style="{StaticResource IconButton}"
+                                        ToolTip="{DynamicResource L_RenameItem}"
+                                        AutomationProperties.Name="{DynamicResource L_RenameItem}"
+                                        AutomationProperties.HelpText="{Binding Item.Text}"
+                                        Click="RenameItem_Click">
+                                    <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Rename}"/>
+                                </Button>
+                            </StackPanel>
+                            <Border x:Name="Pill"
+                                    Grid.Column="3"
+                                    Height="24"
+                                    Margin="6,0,0,0"
+                                    Padding="10,0"
+                                    CornerRadius="12"
+                                    VerticalAlignment="Center"
+                                    Background="{Binding ThemeBrush}">
+                                <TextBlock Text="{DynamicResource L_CurrentObjective}"
+                                           FontSize="11"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource Inv}"
+                                           VerticalAlignment="Center"/>
+                            </Border>
+
+                            <Button x:Name="SaveName"
+                                    Grid.Column="2"
+                                    Style="{StaticResource SaveNameButton}"
+                                    Margin="6,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Visibility="Collapsed"
+                                    ToolTip="{DynamicResource L_SaveName}"
+                                    AutomationProperties.Name="{DynamicResource L_SaveName}"
+                                    Click="SaveName_Click">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Check}"/>
+                            </Button>
+                            <Button x:Name="CancelName"
+                                    Grid.Column="3"
+                                    Style="{StaticResource IconButton}"
+                                    Margin="6,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Visibility="Collapsed"
+                                    ToolTip="{DynamicResource L_Cancel}"
+                                    AutomationProperties.Name="{DynamicResource L_Cancel}"
+                                    Click="CancelName_Click">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Close}"/>
+                            </Button>
+                        </Grid>
                     </Border>
                 </Grid>
-            </Border>
-        </DataTemplate>
-
-        <!-- (2) Pending: padding 14/8, "Enviar objetivo" on the right, and 5.6's delete
-             just left of it on hover. Hover fills the card, as FnSidequest's .row does. -->
-        <DataTemplate DataType="{x:Type local:PendingItemRow}">
-            <Border x:Name="Card"
-                    Height="50"
-                    Margin="0,6,0,0"
-                    Padding="14,0,8,0"
-                    CornerRadius="10"
-                    Background="{DynamicResource Surface}"
-                    BorderBrush="{DynamicResource Line}"
-                    BorderThickness="1">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="{Binding Item.Text}"
-                               Style="{StaticResource ItemText}"
-                               Margin="0,0,12,0"
-                               VerticalAlignment="Center"/>
-
-                    <Button x:Name="DeleteButton"
-                            Grid.Column="1"
-                            Style="{StaticResource IconButton}"
-                            Margin="0,0,4,0"
-                            VerticalAlignment="Center"
-                            Visibility="Collapsed"
-                            ToolTip="{DynamicResource L_DeleteItem}"
-                            AutomationProperties.Name="{DynamicResource L_DeleteItem}"
-                            AutomationProperties.HelpText="{Binding Item.Text}"
-                            Click="DeleteItem_Click">
-                        <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Delete}"/>
-                    </Button>
-
-                    <!-- The arrow is FnSidequest's 13px svg on a 16-unit box at stroke 2, so
-                         a 0.8125 scale carries geometry and stroke together (1.63px). -->
-                    <Button Grid.Column="2"
-                            Style="{StaticResource SendButton}"
-                            VerticalAlignment="Center"
-                            BorderBrush="{Binding SendBorderBrush}"
-                            Foreground="{Binding ThemeBrush}"
-                            AutomationProperties.Name="{DynamicResource L_SendObjective}"
-                            AutomationProperties.HelpText="{Binding Item.Text}"
-                            Click="Send_Click">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{DynamicResource L_SendObjective}" VerticalAlignment="Center"/>
-                            <Path Style="{StaticResource IconPath}"
-                                  Data="{StaticResource Icon.ArrowRight}"
-                                  StrokeThickness="2"
-                                  Margin="6,0,0,0"
-                                  VerticalAlignment="Center">
-                                <Path.LayoutTransform>
-                                    <ScaleTransform ScaleX="0.8125" ScaleY="0.8125"/>
-                                </Path.LayoutTransform>
-                            </Path>
-                        </StackPanel>
-                    </Button>
-                </Grid>
-            </Border>
+                <StackPanel x:Name="EditHint"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="0,4,6,0"
+                            Visibility="Collapsed">
+                    <TextBlock Text="{DynamicResource L_EnterSaves}" FontSize="11" Foreground="{DynamicResource Text2}"/>
+                    <TextBlock Text="{DynamicResource L_EscCancels}" FontSize="11" Foreground="{DynamicResource Text2}" Margin="12,0,0,0"/>
+                </StackPanel>
+            </StackPanel>
             <DataTemplate.Triggers>
                 <Trigger SourceName="Card" Property="IsMouseOver" Value="True">
-                    <Setter TargetName="Card" Property="Background" Value="{DynamicResource Hover}"/>
-                    <Setter TargetName="DeleteButton" Property="Visibility" Value="Visible"/>
+                    <Setter TargetName="Fill" Property="Background" Value="{DynamicResource Hover}"/>
+                    <Setter TargetName="Actions" Property="Width" Value="Auto"/>
+                    <Setter TargetName="Actions" Property="Margin" Value="6,0,0,0"/>
+                    <Setter TargetName="Actions" Property="Opacity" Value="1"/>
+                    <Setter TargetName="Actions" Property="IsHitTestVisible" Value="True"/>
                 </Trigger>
-                <!-- As on the panel: a hover-only control takes no tab stop, so focus
-                     inside the row reveals it too. -->
                 <Trigger SourceName="Card" Property="IsKeyboardFocusWithin" Value="True">
-                    <Setter TargetName="Card" Property="Background" Value="{DynamicResource Hover}"/>
-                    <Setter TargetName="DeleteButton" Property="Visibility" Value="Visible"/>
+                    <Setter TargetName="Fill" Property="Background" Value="{DynamicResource Hover}"/>
+                    <Setter TargetName="Actions" Property="Width" Value="Auto"/>
+                    <Setter TargetName="Actions" Property="Margin" Value="6,0,0,0"/>
+                    <Setter TargetName="Actions" Property="Opacity" Value="1"/>
+                    <Setter TargetName="Actions" Property="IsHitTestVisible" Value="True"/>
                 </Trigger>
+                <DataTrigger Binding="{Binding IsNew}" Value="True">
+                    <Setter TargetName="Fill" Property="Background" Value="{Binding NewFillBrush}"/>
+                    <Setter TargetName="Edge" Property="BorderBrush" Value="{Binding NewBorderBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                    <Setter TargetName="Fill" Property="Background" Value="{DynamicResource Surface}"/>
+                    <Setter TargetName="Edge" Property="BorderBrush" Value="{Binding ThemeBrush}"/>
+                    <Setter TargetName="Edge" Property="BorderThickness" Value="1"/>
+                    <Setter TargetName="Edge" Property="Padding" Value="26,0,6,0"/>
+                    <Setter TargetName="GripSlot" Property="Visibility" Value="Collapsed"/>
+                    <Setter TargetName="ItemText" Property="Visibility" Value="Collapsed"/>
+                    <Setter TargetName="NameEdit" Property="Visibility" Value="Visible"/>
+                    <Setter TargetName="Actions" Property="Visibility" Value="Collapsed"/>
+                    <Setter TargetName="Pill" Property="Visibility" Value="Collapsed"/>
+                    <Setter TargetName="SaveName" Property="Visibility" Value="Visible"/>
+                    <Setter TargetName="CancelName" Property="Visibility" Value="Visible"/>
+                    <Setter TargetName="EditHint" Property="Visibility" Value="Visible"/>
+                </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
 
-        <!-- (3) Completed: no card, 44 high, the bare tick then struck-through 14/400 in
-             Text2, 10 apart. The tick is only live where Done may be edited here. -->
+        <!-- (2) Pending: padding 4 and 8, the grip's 18, the text, and "Enviar objetivo".
+             Hover shows rename and delete before it, 6 clear of it and none apart. -->
+        <DataTemplate DataType="{x:Type local:PendingItemRow}">
+            <StackPanel Margin="0,0,0,6">
+                <Grid x:Name="Card" LostKeyboardFocus="Card_LostKeyboardFocus">
+                    <Border x:Name="Fill" CornerRadius="10" Background="{DynamicResource Surface}"/>
+                    <Border x:Name="Edge"
+                            Height="48"
+                            Padding="4,0,8,0"
+                            CornerRadius="10"
+                            BorderBrush="{DynamicResource Line}"
+                            BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="GripSlot" Width="18"/>
+                            <TextBlock x:Name="ItemText"
+                                       Grid.Column="1"
+                                       Text="{Binding Item.Text}"
+                                       Style="{StaticResource ItemText}"
+                                       Margin="10,0,0,0"
+                                       VerticalAlignment="Center"/>
+                            <TextBox x:Name="NameEdit"
+                                     Grid.Column="1"
+                                     Style="{StaticResource BareTextBox}"
+                                     Margin="2,0,0,0"
+                                     MaxLength="120"
+                                     Visibility="Collapsed"
+                                     CaretBrush="{Binding ThemeBrush}"
+                                     AutomationProperties.Name="{DynamicResource L_RenameItem}"
+                                     KeyDown="ItemNameEdit_KeyDown"/>
+
+                            <StackPanel x:Name="Actions"
+                                        Grid.Column="2"
+                                        Orientation="Horizontal"
+                                        VerticalAlignment="Center"
+                                        Width="0"
+                                        Opacity="0"
+                                        IsHitTestVisible="False">
+                                <Button x:Name="RenameButton"
+                                        Style="{StaticResource IconButton}"
+                                        ToolTip="{DynamicResource L_RenameItem}"
+                                        AutomationProperties.Name="{DynamicResource L_RenameItem}"
+                                        AutomationProperties.HelpText="{Binding Item.Text}"
+                                        Click="RenameItem_Click">
+                                    <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Rename}"/>
+                                </Button>
+                                <Button x:Name="DeleteButton"
+                                        Style="{StaticResource IconButton}"
+                                        ToolTip="{DynamicResource L_DeleteItem}"
+                                        AutomationProperties.Name="{DynamicResource L_DeleteItem}"
+                                        AutomationProperties.HelpText="{Binding Item.Text}"
+                                        Click="DeleteItem_Click">
+                                    <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Delete}"/>
+                                </Button>
+                            </StackPanel>
+
+                            <!-- The arrow is FnSidequest's 13px svg on a 16-unit box at stroke 2,
+                                 so a 0.8125 scale carries geometry and stroke together (1.63px). -->
+                            <Button x:Name="SendButton"
+                                    Grid.Column="3"
+                                    Style="{StaticResource SendButton}"
+                                    Margin="6,0,0,0"
+                                    VerticalAlignment="Center"
+                                    BorderBrush="{Binding SendBorderBrush}"
+                                    Foreground="{Binding ThemeBrush}"
+                                    AutomationProperties.Name="{DynamicResource L_SendObjective}"
+                                    AutomationProperties.HelpText="{Binding Item.Text}"
+                                    Click="Send_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{DynamicResource L_SendObjective}" VerticalAlignment="Center"/>
+                                    <Path Style="{StaticResource IconPath}"
+                                          Data="{StaticResource Icon.ArrowRight}"
+                                          StrokeThickness="2"
+                                          Margin="6,0,0,0"
+                                          VerticalAlignment="Center">
+                                        <Path.LayoutTransform>
+                                            <ScaleTransform ScaleX="0.8125" ScaleY="0.8125"/>
+                                        </Path.LayoutTransform>
+                                    </Path>
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="SaveName"
+                                    Grid.Column="2"
+                                    Style="{StaticResource SaveNameButton}"
+                                    Margin="6,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Visibility="Collapsed"
+                                    ToolTip="{DynamicResource L_SaveName}"
+                                    AutomationProperties.Name="{DynamicResource L_SaveName}"
+                                    Click="SaveName_Click">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Check}"/>
+                            </Button>
+                            <Button x:Name="CancelName"
+                                    Grid.Column="3"
+                                    Style="{StaticResource IconButton}"
+                                    Margin="6,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Visibility="Collapsed"
+                                    ToolTip="{DynamicResource L_Cancel}"
+                                    AutomationProperties.Name="{DynamicResource L_Cancel}"
+                                    Click="CancelName_Click">
+                                <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Close}"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+                </Grid>
+                <StackPanel x:Name="EditHint"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="0,4,6,0"
+                            Visibility="Collapsed">
+                    <TextBlock Text="{DynamicResource L_EnterSaves}" FontSize="11" Foreground="{DynamicResource Text2}"/>
+                    <TextBlock Text="{DynamicResource L_EscCancels}" FontSize="11" Foreground="{DynamicResource Text2}" Margin="12,0,0,0"/>
+                </StackPanel>
+            </StackPanel>
+            <DataTemplate.Triggers>
+                <Trigger SourceName="Card" Property="IsMouseOver" Value="True">
+                    <Setter TargetName="Fill" Property="Background" Value="{DynamicResource Hover}"/>
+                    <Setter TargetName="Actions" Property="Width" Value="Auto"/>
+                    <Setter TargetName="Actions" Property="Margin" Value="6,0,0,0"/>
+                    <Setter TargetName="Actions" Property="Opacity" Value="1"/>
+                    <Setter TargetName="Actions" Property="IsHitTestVisible" Value="True"/>
+                </Trigger>
+                <Trigger SourceName="Card" Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter TargetName="Fill" Property="Background" Value="{DynamicResource Hover}"/>
+                    <Setter TargetName="Actions" Property="Width" Value="Auto"/>
+                    <Setter TargetName="Actions" Property="Margin" Value="6,0,0,0"/>
+                    <Setter TargetName="Actions" Property="Opacity" Value="1"/>
+                    <Setter TargetName="Actions" Property="IsHitTestVisible" Value="True"/>
+                </Trigger>
+                <DataTrigger Binding="{Binding IsNew}" Value="True">
+                    <Setter TargetName="Fill" Property="Background" Value="{Binding NewFillBrush}"/>
+                    <Setter TargetName="Edge" Property="BorderBrush" Value="{Binding NewBorderBrush}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsEditing}" Value="True">
+                    <Setter TargetName="Fill" Property="Background" Value="{DynamicResource Surface}"/>
+                    <Setter TargetName="Edge" Property="BorderBrush" Value="{Binding ThemeBrush}"/>
+                    <Setter TargetName="Edge" Property="BorderThickness" Value="1"/>
+                    <Setter TargetName="Edge" Property="Padding" Value="26,0,6,0"/>
+                    <Setter TargetName="GripSlot" Property="Visibility" Value="Collapsed"/>
+                    <Setter TargetName="ItemText" Property="Visibility" Value="Collapsed"/>
+                    <Setter TargetName="NameEdit" Property="Visibility" Value="Visible"/>
+                    <Setter TargetName="Actions" Property="Visibility" Value="Collapsed"/>
+                    <Setter TargetName="SendButton" Property="Visibility" Value="Collapsed"/>
+                    <Setter TargetName="SaveName" Property="Visibility" Value="Visible"/>
+                    <Setter TargetName="CancelName" Property="Visibility" Value="Visible"/>
+                    <Setter TargetName="EditHint" Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <!-- (3) Completed: no card, 40 high, 14 in, the bare tick then struck-through 14/400
+             in Text2, 10 apart. The tick is only live where Done may be edited here. -->
         <DataTemplate DataType="{x:Type local:CompletedItemRow}">
-            <Grid Height="44" Margin="0,6,0,0">
+            <Grid Height="40" Margin="0,0,0,6">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
@@ -156,11 +357,11 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- The band (4.4): margin 12, radius 12, C @ 14 %, padding 18/16/16, rows 14
-             apart. FnSidequest's third row, the Bitácora button, is left out in v1 (0). -->
+             apart. FnSidequest's third row, the Bitácora button, waits for the Bitácora
+             (v1.1, 0). -->
         <Border Grid.Row="0"
                 Margin="12,12,12,0"
                 Padding="16,18,16,16"
@@ -259,59 +460,143 @@
             </StackPanel>
         </Border>
 
-        <!-- The items. 12 from the band to the first row: 6 of padding plus the row's 6. -->
-        <ScrollViewer x:Name="ListScroll"
-                      Grid.Row="1"
-                      Focusable="False"
-                      VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled"
-                      Padding="12,6,12,0">
-            <ItemsControl x:Name="ItemList" Focusable="False" KeyDown="ItemList_KeyDown"/>
-        </ScrollViewer>
+        <!-- Items and Notas (5.6), the chosen one remembered per Sidequest for the session. -->
+        <local:SidequestTabControl x:Name="Tabs"
+                                   Grid.Row="1"
+                                   Style="{StaticResource SidequestTabs}"
+                                   AutomationProperties.Name="{Binding Name}"
+                                   SelectionChanged="Tabs_SelectionChanged">
+            <!-- The header is the count, set in code, and the label comes from the template:
+                 a header that was itself an element would belong to the TabItem, and miss
+                 the font and colour the tab's template gives its header. -->
+            <TabItem x:Name="ItemsTab" Style="{StaticResource SidequestTab}">
+                <TabItem.HeaderTemplate>
+                    <DataTemplate>
+                        <!-- The count is 12/500 at 70 %, in the tab's colour, 6 after the label. -->
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{DynamicResource L_Items}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding}"
+                                       Margin="6,0,0,0"
+                                       FontSize="12"
+                                       FontWeight="Medium"
+                                       Opacity="0.7"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </TabItem.HeaderTemplate>
 
-        <!-- Footer, 10/12/14: "+ Añadir item", which becomes a field in place (5.6). -->
-        <Border Grid.Row="2" Padding="12,10,12,14">
-            <Grid>
-                <Button x:Name="AddButton"
-                        Style="{StaticResource DashedPillButton}"
-                        AutomationProperties.Name="{DynamicResource L_AddItem}"
-                        Click="AddButton_Click">
-                    <!-- FnSidequest's plus is 14px at stroke 2 on a 16-unit box: 0.875. -->
-                    <StackPanel Orientation="Horizontal">
-                        <Path Style="{StaticResource IconPath}"
-                              Data="{StaticResource Icon.Plus}"
-                              StrokeThickness="2"
-                              VerticalAlignment="Center">
-                            <Path.LayoutTransform>
-                                <ScaleTransform ScaleX="0.875" ScaleY="0.875"/>
-                            </Path.LayoutTransform>
-                        </Path>
-                        <TextBlock Text="{DynamicResource L_AddItem}" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                <!-- The open field keeps the button's 44 and 4.4's field look, with its
-                     text on the same line as the items' above it (x 28). A hint stands in
-                     for a placeholder, which WPF's TextBox does not have. -->
-                <Grid x:Name="AddField" Visibility="Collapsed">
-                    <TextBox x:Name="AddBox"
-                             Style="{StaticResource TextBox.Line}"
-                             Height="44"
-                             Padding="12,0"
-                             MaxLength="120"
-                             AutomationProperties.Name="{DynamicResource L_AddItem}"
-                             KeyDown="AddBox_KeyDown"
-                             TextChanged="AddBox_TextChanged"
-                             LostKeyboardFocus="AddBox_LostKeyboardFocus"/>
-                    <TextBlock x:Name="AddHint"
-                               Text="{DynamicResource L_AddItem}"
-                               IsHitTestVisible="False"
-                               Margin="15,0,0,0"
-                               VerticalAlignment="Center"
-                               FontSize="14"
-                               Foreground="{DynamicResource Text2}"/>
+                    <!-- The items, the scrolling middle (5, 4.4): 10 under the tabs. -->
+                    <ScrollViewer x:Name="ListScroll"
+                                  Style="{StaticResource ScrollArea}"
+                                  Padding="12,10,12,0">
+                        <ItemsControl x:Name="ItemList" Focusable="False" KeyDown="ItemList_KeyDown"/>
+                    </ScrollViewer>
+
+                    <!-- Footer, 10/12/14: "+ Añadir item". Open, it is FnSidequestAdd's
+                         field and hint, 10/12/12 under a Line. -->
+                    <Border x:Name="Footer"
+                            Grid.Row="1"
+                            Padding="12,10,12,14"
+                            BorderBrush="{DynamicResource Line}">
+                        <Grid>
+                            <Button x:Name="AddButton"
+                                    Style="{StaticResource DashedPillButton}"
+                                    AutomationProperties.Name="{DynamicResource L_AddItem}"
+                                    Click="AddButton_Click">
+                                <!-- FnSidequest's plus is 14px at stroke 2 on a 16-unit box: 0.875. -->
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Style="{StaticResource IconPath}"
+                                          Data="{StaticResource Icon.Plus}"
+                                          StrokeThickness="2"
+                                          VerticalAlignment="Center">
+                                        <Path.LayoutTransform>
+                                            <ScaleTransform ScaleX="0.875" ScaleY="0.875"/>
+                                        </Path.LayoutTransform>
+                                    </Path>
+                                    <TextBlock Text="{DynamicResource L_AddItem}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- The field: a 44 pill on Surface with a border in C (1.5
+                                 drawn as 1, see CheckBox), padding 14 and 6; the plus in C,
+                                 the field 8 after it at 14/500 with a C caret, and the x 8
+                                 after that. Under it, 6 down, the two hints centred 12 apart
+                                 in 11 Text2. -->
+                            <StackPanel x:Name="AddField" Visibility="Collapsed">
+                                <Border Height="44"
+                                        Padding="14,0,6,0"
+                                        CornerRadius="22"
+                                        Background="{DynamicResource Surface}"
+                                        BorderBrush="{Binding ThemeBrush}"
+                                        BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Path Style="{StaticResource IconPath}"
+                                              Data="{StaticResource Icon.Plus}"
+                                              Stroke="{Binding ThemeBrush}"
+                                              StrokeThickness="2"
+                                              VerticalAlignment="Center">
+                                            <Path.LayoutTransform>
+                                                <ScaleTransform ScaleX="0.875" ScaleY="0.875"/>
+                                            </Path.LayoutTransform>
+                                        </Path>
+                                        <!-- 6, not 8: TextBox insets its text 2 of its own. The
+                                             placeholder stands in for one WPF lacks. -->
+                                        <TextBox x:Name="AddBox"
+                                                 Grid.Column="1"
+                                                 Style="{StaticResource BareTextBox}"
+                                                 Margin="6,0,0,0"
+                                                 MaxLength="120"
+                                                 CaretBrush="{Binding ThemeBrush}"
+                                                 AutomationProperties.Name="{DynamicResource L_NewItem}"
+                                                 KeyDown="AddBox_KeyDown"
+                                                 TextChanged="AddBox_TextChanged"
+                                                 LostKeyboardFocus="AddBox_LostKeyboardFocus"/>
+                                        <TextBlock x:Name="AddHint"
+                                                   Grid.Column="1"
+                                                   Text="{DynamicResource L_NewItem}"
+                                                   Margin="8,0,0,0"
+                                                   FontSize="14"
+                                                   FontWeight="Medium"
+                                                   Foreground="{DynamicResource Text2}"
+                                                   IsHitTestVisible="False"
+                                                   VerticalAlignment="Center"/>
+                                        <Button Grid.Column="2"
+                                                Style="{StaticResource IconButton}"
+                                                Margin="8,0,0,0"
+                                                VerticalAlignment="Center"
+                                                ToolTip="{DynamicResource L_Close}"
+                                                AutomationProperties.Name="{DynamicResource L_Close}"
+                                                Click="CloseAdd_Click">
+                                            <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Close}"/>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
+                                    <TextBlock Text="{DynamicResource L_EnterAddsNext}" FontSize="11" Foreground="{DynamicResource Text2}"/>
+                                    <TextBlock Text="{DynamicResource L_EscCloses}" FontSize="11" Foreground="{DynamicResource Text2}" Margin="12,0,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                 </Grid>
-            </Grid>
-        </Border>
+            </TabItem>
+
+            <!-- Its content, the Notas tab itself, is made in code: it needs the Sidequest. -->
+            <TabItem x:Name="NotesTabItem"
+                     Style="{StaticResource SidequestTab}"
+                     Header="{DynamicResource L_Notes}"
+                     AutomationProperties.Name="{DynamicResource L_Notes}"/>
+        </local:SidequestTabControl>
     </Grid>
 </UserControl>

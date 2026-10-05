@@ -17,4 +17,8 @@
     <SolidColorBrush x:Key="Inv"     Color="#FFFFFF"/>
     <SolidColorBrush x:Key="Canvas"  Color="#EFEFEC"/>
 
+    <!-- 4.4's scroll thumb. No artboard draws it light: this is the dark one's step past
+         Line2, taken the other way. -->
+    <SolidColorBrush x:Key="ScrollThumbBrush" Color="#B4B4AE"/>
+
 </ResourceDictionary>

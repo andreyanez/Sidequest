@@ -11,17 +11,24 @@ launches the build with SIDEQUEST_DATA pointing at the sandbox.
 .EXAMPLE
 .\tools\run-sandbox.ps1 -Theme Light -Language English
 .\tools\run-sandbox.ps1 -Exe .\publish\Sidequest.exe     # a Release build, before installing it
+.\tools\run-sandbox.ps1 -Stop                             # frees the build for dotnet build
 #>
 param(
+    # Only stop the copy started last time, and launch nothing.
+    [switch]$Stop,
     [ValidateSet('Dark', 'Light')][string]$Theme = 'Dark',
     [ValidateSet('Spanish', 'English')][string]$Language = 'Spanish',
     # Start with no Sidequests at all, for the empty states.
     [switch]$Empty,
+    # FnSidequestsCompacto's fourteen Sidequests, for the long list (5.4).
+    [switch]$Many,
     # Start on the collapsed one-row panel (5.2).
     [switch]$Collapsed,
     # Start where a fresh install does, in the work area's bottom-right corner, rather than
     # at the fixed spot captures use.
     [switch]$Corner,
+    # The card's height (Settings.MainHeight); 0 leaves the app's default, 640.
+    [double]$Height = 0,
     # Passed to the app, e.g. '--settings' or '--sidequests' to open a screen directly.
     [string[]]$AppArgs = @(),
     [string]$Sandbox = (Join-Path $env:TEMP 'sq-sandbox'),
@@ -58,19 +65,21 @@ foreach ($p in Get-Process Sidequest -ErrorAction SilentlyContinue) {
     throw ("Sidequest $($p.Id), started {0:HH:mm}, was not started by this script - " -f $p.StartTime) +
           "most likely a trial run on other data. Quit it from its tray menu first."
 }
+if ($Stop) { return }
 
 if (Test-Path $Sandbox) { Remove-Item -Recurse -Force $Sandbox }
 $data = Join-Path $Sandbox 'Sidequest'
 New-Item -ItemType Directory -Force -Path $data | Out-Null
 
 if ($Empty) { Set-Content -LiteralPath (Join-Path $data 'sidequests.json') -Value '[]' }
-else { & (Join-Path $PSScriptRoot 'seed-sandbox.ps1') -Sandbox $Sandbox | Out-Null }
+else { & (Join-Path $PSScriptRoot 'seed-sandbox.ps1') -Sandbox $Sandbox -Many:$Many | Out-Null }
 
 # A fixed spot on the primary screen, so one capture lines up with the next.
 $settings = [ordered]@{
     Theme = $Theme; Language = $Language; KeepOnTop = $true; Collapsed = [bool]$Collapsed
 }
 if (-not $Corner) { $settings.MainLeft = 200; $settings.MainTop = 100 }
+if ($Height -gt 0) { $settings.MainHeight = $Height }
 $settings | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $data 'settings.json') -Encoding UTF8
 
 $env:SIDEQUEST_DATA = $Sandbox

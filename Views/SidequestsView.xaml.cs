@@ -5,7 +5,6 @@ using Sidequest.Services;
 
 // WinForms is referenced for NotifyIcon, so its implicit usings collide with WPF's.
 using Button = System.Windows.Controls.Button;
-using DataTemplate = System.Windows.DataTemplate;
 using DispatcherPriority = System.Windows.Threading.DispatcherPriority;
 using Key = System.Windows.Input.Key;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
@@ -16,8 +15,8 @@ using UserControl = System.Windows.Controls.UserControl;
 namespace Sidequest.Views;
 
 /// <summary>
-/// The Sidequests list (5.4), with the new-Sidequest form (5.5) opening in place of the
-/// dashed button.
+/// The Sidequests list (5.4), with the new-Sidequest form (5.5) opening in the footer in
+/// place of the dashed button.
 /// </summary>
 public partial class SidequestsView : UserControl
 {
@@ -57,15 +56,11 @@ public partial class SidequestsView : UserControl
 
     /// <summary>
     /// Rebuilds everything resolved in code: the buttons carry per-Sidequest colours that
-    /// depend on the app theme, and the counts and the form's label are built from strings.
+    /// depend on the app theme, and their counts and the form's label are built from strings.
     /// </summary>
     private void Refresh()
     {
         RebuildRows();
-
-        // "Activos" is every Sidequest: the model has no finished or archived state.
-        var count = App.Current.Projects.Count;
-        ActiveText.Text = LanguageService.Format(count == 1 ? "L_ActiveOneFmt" : "L_ActiveFmt", count);
 
         if (FormOpen)
         {
@@ -81,17 +76,6 @@ public partial class SidequestsView : UserControl
             .OrderBy(p => p.SortIndex)
             .Select(p => new SidequestButtonRow(p))
             .ToList();
-
-    /// <summary>
-    /// Full or compact (5.5). The rows are rebuilt along with the template: swapping only
-    /// the template regenerates the buttons, but the list's automation peers keep pointing
-    /// at the old ones, and a screen reader then found no Sidequests at all.
-    /// </summary>
-    private void UseTemplate(string key)
-    {
-        ProjectList.ItemTemplate = (DataTemplate)Resources[key];
-        RebuildRows();
-    }
 
     private void Sidequest_Click(object sender, RoutedEventArgs e)
     {
@@ -116,7 +100,8 @@ public partial class SidequestsView : UserControl
     {
         var theme = SidequestRules.DefaultTheme(App.Current.Projects);
 
-        UseTemplate("CompactButton");
+        // 5.5: the form takes the button's place in the footer, and the list keeps its
+        // buttons as they are, with less room to scroll in.
         NewButton.Visibility = Visibility.Collapsed;
         Form.Visibility = Visibility.Visible;
 
@@ -126,20 +111,14 @@ public partial class SidequestsView : UserControl
         ApplyFormTheme(theme);
         CreateButton.IsEnabled = false;
 
-        // 5.5: the name field takes focus. The form can open below the fold of a long
-        // list, so it is also scrolled into view.
-        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
-        {
-            Form.BringIntoView();
-            NameBox.Focus();
-        });
+        // 5.5: the name field takes focus.
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () => NameBox.Focus());
     }
 
     private void CloseForm()
     {
         Form.Visibility = Visibility.Collapsed;
         NewButton.Visibility = Visibility.Visible;
-        UseTemplate("FullButton");
 
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () => NewButton.Focus());
     }
@@ -153,8 +132,8 @@ public partial class SidequestsView : UserControl
         var app = ThemeService.Current;
         var colour = SidequestPalette.Brush(theme, app);
 
-        Form.Background = SidequestPalette.Brush(theme, app, SidequestPalette.Alpha.FormTint);
-        Form.BorderBrush = SidequestPalette.Brush(theme, app, SidequestPalette.Alpha.FormBorder);
+        FormFill.Background = SidequestPalette.Brush(theme, app, SidequestPalette.Alpha.FormTint);
+        FormEdge.BorderBrush = SidequestPalette.Brush(theme, app, SidequestPalette.Alpha.FormBorder);
         FormLabel.Foreground = colour;
         NameBox.Tag = colour;
 

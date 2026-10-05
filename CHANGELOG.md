@@ -12,11 +12,21 @@ in its footer.
 
 - Sidequest has its own icon, the same mark as in the tray, in the Start menu, on the
   taskbar and in File Explorer.
+- Rename objectives and items in place: the pencil that appears on hover, or F2. Enter
+  saves, Escape cancels.
+- The panel's height is yours to set: drag its bottom edge. Every screen keeps it, and
+  long lists scroll, with a fade showing there is more.
+- A Sidequest has Items and Notas tabs. Notas holds its notes, links, files and images.
+- Adding items: Enter adds one and leaves the field ready for the next, and the new item
+  lights up for a moment.
 
 ### Changed
 
 - The collapse and expand buttons point the way the panel moves: down to collapse it,
   since it keeps its bottom edge in place, and up to expand it again.
+- Notes, files and images belong to a Sidequest now, not to each objective, and an
+  objective's title no longer opens a page of its own.
+- The Sidequests list is more compact, with "New Sidequest" always at the bottom.
 
 ### Fixed
 

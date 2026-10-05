@@ -134,6 +134,12 @@
         </Setter>
     </Style>
 
+    <!-- A rename's check (5.1, 5.6), in the Sidequest's colour, which comes from the row
+         it sits in. A setter rather than a local value, so hover still takes it to Text. -->
+    <Style x:Key="SaveNameButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+        <Setter Property="Foreground" Value="{Binding ThemeBrush}"/>
+    </Style>
+
     <!-- The panel footer's gear: the same button at 36, and round, as FnMain draws it. -->
     <Style x:Key="RoundIconButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
         <Setter Property="Width" Value="36"/>
@@ -223,20 +229,22 @@
         </Setter>
     </Style>
 
-    <!-- Pill 34, Surface with a Line2 border; the border goes to Text on hover. -->
+    <!-- Pill 34, Surface with a Line2 border; the border goes to Text on hover. The fill
+         can be set, for FnSidequestNuevo's Cancelar, which lets its form's tint through. -->
     <Style x:Key="SecondaryButton" TargetType="Button">
         <Setter Property="Height" Value="34"/>
         <Setter Property="Padding" Value="14,0"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="FontWeight" Value="Medium"/>
         <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+        <Setter Property="Background" Value="{DynamicResource Surface}"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.Pill}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="Bd"
-                            Background="{DynamicResource Surface}"
+                            Background="{TemplateBinding Background}"
                             BorderBrush="{DynamicResource Line2}"
                             BorderThickness="1"
                             CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource PillRadius}}">
@@ -308,26 +316,31 @@
         </Setter>
     </Style>
 
-    <!-- A Sidequest in the list (4.4, 5.4). Tint and border are the Sidequest's own, so
-         the list sets Background and BorderBrush per button; hover takes the border to
-         Text, as FnSidequests' .cta:hover does. The content - name, counter, progress -
-         comes from the list's item template, full or compact. -->
+    <!-- A Sidequest in the list (4.4, 5.4), compact as D9 chose: radius 10. Tint and
+         border are the Sidequest's own, so the list sets Background and BorderBrush per
+         button; hover takes the border to Text, as the artboards' .cta:hover does. The
+         content - name, counter, progress - comes from the list's item template. -->
     <Style x:Key="SidequestButton" TargetType="Button">
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.R12}"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.R10}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="12"
-                            Padding="{TemplateBinding Padding}"
-                            SnapsToDevicePixels="True">
-                        <ContentPresenter/>
-                    </Border>
+                    <!-- The tint runs under the border, as CSS paints a background, so the
+                         translucent border blends with the tint rather than with the page
+                         behind: a WPF Border fills only inside its edge. -->
+                    <Grid>
+                        <Border Background="{TemplateBinding Background}" CornerRadius="10"/>
+                        <Border x:Name="Bd"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter/>
+                        </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Text}"/>
@@ -371,9 +384,8 @@
         </Setter>
     </Style>
 
-    <!-- "+ Añadir item" (5.6): FnSidequest draws this one as a 44px pill with a 1.5px
-         dash and 13/700 text. Dash lengths are in stroke widths, so 2 on 1.33 off is the
-         same 3/2 pattern at 1.5px. -->
+    <!-- "+ Añadir item" (5.6): FnSidequest draws this one as a 44px pill with 13/700 text
+         and a 1.5px dash, which Chrome draws 1px wide (see CheckBox), 3 on and 2 off. -->
     <Style x:Key="DashedPillButton" TargetType="Button" BasedOn="{StaticResource DashedButton}">
         <Setter Property="Height" Value="44"/>
         <Setter Property="FontSize" Value="13"/>
@@ -384,8 +396,9 @@
                 <ControlTemplate TargetType="Button">
                     <Grid>
                         <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource PillRadius}}"/>
-                        <Rectangle Stroke="{DynamicResource Line2}" StrokeThickness="1.5"
-                                   StrokeDashArray="2 1.333" RadiusX="21.25" RadiusY="21.25"/>
+                        <Rectangle Stroke="{DynamicResource Line2}" StrokeThickness="1"
+                                   StrokeDashArray="3 2" RadiusX="21.5" RadiusY="21.5"
+                                   SnapsToDevicePixels="True"/>
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -400,8 +413,9 @@
     </Style>
 
     <!-- "Enviar objetivo" (4.4, 5.6). A 30px pill - FnSidequest draws it as a <button>,
-         which is border-box, so the 1.5px border sits inside the 30. Border C @ 55% and
-         text in C are the Sidequest's, set per row; hover takes the border to Text. -->
+         which is border-box, so the border sits inside the 30: 1px, as Chrome draws its
+         1.5 at 100 % (see CheckBox). Border C @ 55% and text in C are the Sidequest's, set
+         per row; hover takes the border to Text. -->
     <Style x:Key="SendButton" TargetType="Button">
         <Setter Property="Height" Value="30"/>
         <Setter Property="Padding" Value="12,0"/>
@@ -416,7 +430,7 @@
                     <Border x:Name="Bd"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="1.5"
+                            BorderThickness="1"
                             CornerRadius="{Binding ActualHeight, RelativeSource={RelativeSource Self}, Converter={StaticResource PillRadius}}"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter VerticalAlignment="Center"/>
@@ -431,11 +445,10 @@
         </Setter>
     </Style>
 
-    <!-- ============ Objective detail (5.3) ============ =====================
+    <!-- ============ Notas tab (5.6) ============ ==============================
+         An objective's detail in 0.1 (5.3), a Sidequest's Notas tab since 0.2.
 
-         Text that opens something: the objective's title on a panel card. FnMain draws it
-         as a plain <a>, so there is no chrome; a:hover takes it to Text2, which the card
-         applies to its own TextBlock, since that text sets its colour itself. -->
+         Text that opens something, with no chrome: the base of a file row. -->
     <Style x:Key="TextButton" TargetType="Button">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Cursor" Value="Hand"/>
@@ -452,7 +465,7 @@
         </Setter>
     </Style>
 
-    <!-- A linked file, the whole 42px row: click opens it (5.3). FnObjetivo gives the row no
+    <!-- A linked file, the whole 42px row: click opens it (5.6). FnSidequestNotas gives it no
          hover state, so only the cursor says so. The separator under it is the list's. -->
     <Style x:Key="FileRowButton" TargetType="Button" BasedOn="{StaticResource TextButton}">
         <Setter Property="Height" Value="42"/>
@@ -460,7 +473,7 @@
     </Style>
 
     <!-- "+ Vincular archivo", the last row of the list: 42 high, 12 in, 13px in Text2; hover
-         as .ib, a Hover fill and Text. Disabled at five files (5.3). -->
+         as .ib, a Hover fill and Text. Disabled at five files (5.6). -->
     <Style x:Key="ListActionButton" TargetType="Button">
         <Setter Property="Height" Value="42"/>
         <Setter Property="Padding" Value="12,0"/>
@@ -490,7 +503,7 @@
         </Setter>
     </Style>
 
-    <!-- An image cell: the thumbnail fills a 66px box, radius 10, with a Line border (5.3).
+    <!-- An image cell: the thumbnail fills a 66px box, radius 10, with a Line border (5.6).
          The thumbnail arrives as Background; content is only shown when there is none,
          for an image whose copy has gone missing. -->
     <Style x:Key="ImageCellButton" TargetType="Button">
@@ -516,7 +529,7 @@
         </Setter>
     </Style>
 
-    <!-- The "+" cell: FnObjetivo's 1px dashed Line2 at radius 10; hover as .ib. -->
+    <!-- The "+" cell: FnSidequestNotas's 1px dashed Line2 at radius 10; hover as .ib. -->
     <Style x:Key="DashedCell" TargetType="Button">
         <Setter Property="Height" Value="66"/>
         <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
@@ -537,7 +550,7 @@
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Hover}"/>
                             <Setter Property="Foreground" Value="{DynamicResource Text}"/>
                         </Trigger>
-                        <!-- An image dragged over the panel (5.3): the cell it will land in. -->
+                        <!-- An image dragged over the tab (5.6): the cell it will land in. -->
                         <Trigger Property="Tag" Value="DropTarget">
                             <Setter TargetName="Dash" Property="Stroke" Value="{DynamicResource Text}"/>
                             <Setter Property="Foreground" Value="{DynamicResource Text}"/>
@@ -590,10 +603,15 @@
                         <!-- Circle, not the 6px 4.3 asks for: every checkbox in the
                              artboards sets border-radius 10px on an 18px box, which CSS
                              clamps to 9 - a circle. The artboard is the stated authority,
-                             so it wins, but the two do disagree. -->
+                             so it wins, but the two do disagree.
+
+                             1px, not the 1.5 of 4.4 and the artboards: Chrome floors a
+                             border to whole device pixels, so at 100 % it draws 1.5 as 1,
+                             where layout rounding would make it 2 here. 1 matches Chrome
+                             from 100 to 175 %. The same goes for every 1.5px border. -->
                         <Border x:Name="Box"
                                 CornerRadius="9"
-                                BorderThickness="1.5"
+                                BorderThickness="1"
                                 BorderBrush="{DynamicResource Line2}"
                                 Background="Transparent"
                                 SnapsToDevicePixels="True"/>
@@ -646,7 +664,7 @@
 
     <!-- ============ Text fields (4.4) ============ ==========================
          Surface, border Line, radius 10, padding 12, focus border Text - which is
-         FnObjetivo's notes field exactly.
+         FnSidequestNotas's notes field exactly.
 
          FnSidequestNuevo's name field is deliberately NOT this: inside a theme-tinted
          card it drops to Bg with a border in the Sidequest's colour, so it still reads
@@ -803,12 +821,37 @@
         </Setter>
     </Style>
 
-    <!-- 5.3's notes: one plain-text field whose web addresses show as links in the
+    <!-- A field with no chrome at all, which sits inside something else's: the add-item
+         pill (5.6) and a row being renamed (5.1, 5.6). TextBox insets its text 2px of its
+         own, which the views take off their margins. -->
+    <Style x:Key="BareTextBox" TargetType="TextBox">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+        <Setter Property="SelectionBrush" Value="{DynamicResource Text2}"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="Medium"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <ScrollViewer x:Name="PART_ContentHost"
+                                  Background="{TemplateBinding Background}"
+                                  HorizontalScrollBarVisibility="Hidden"
+                                  VerticalScrollBarVisibility="Hidden"
+                                  Focusable="False"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 5.6's notes: one plain-text field whose web addresses show as links in the
          Sidequest's colour. A RichTextBox rather than a TextBox, for two reasons: its
-         document can carry FnObjetivo's 1.55 line height, which a TextBox cannot, and its
-         links stay live while it is being edited. The view builds the document; this is
-         the frame: Surface, a Line border that goes to Text on focus, radius 10, a fixed
-         148 as rendered. As with TextBox, Padding is applied by the control itself. The
+         document can carry FnSidequestNotas's 1.55 line height, which a TextBox cannot,
+         and its links stay live while it is being edited. The view builds the document;
+         this is the frame: Surface, a Line border that goes to Text on focus, radius 10, a
+         fixed 176, border-box. As with TextBox, Padding is applied by the control itself. The
          document's PagePadding must be 0 as well, and set on the document the control
          already has: a RichTextBox gives any document assigned to it a 5px page padding
          each side, overriding whatever the document said. -->
@@ -821,7 +864,7 @@
         <Setter Property="SelectionBrush" Value="{DynamicResource Text2}"/>
         <Setter Property="Padding" Value="12"/>
         <Setter Property="FontSize" Value="13"/>
-        <Setter Property="Height" Value="148"/>
+        <Setter Property="Height" Value="176"/>
         <Setter Property="AcceptsReturn" Value="True"/>
         <Setter Property="IsDocumentEnabled" Value="True"/>
         <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
@@ -857,16 +900,17 @@
 
     <!-- ============ Theme picker (5.5) ============ =========================
          A ListBox, so single selection, arrow keys and a single tab stop come for free,
-         and a screen reader hears a list with the chosen theme selected. 30px swatches,
-         radius 10, 10 apart; the selected one is ringed 2px in Text at 2px, which is
-         FnSidequestNuevo's outline, and the row's 2px padding is the room it needs.
-         Keyboard focus adds a second ring outside it, since the first only says which
-         one is chosen. Each item supplies Brush and Label. -->
+         and a screen reader hears a list with the chosen theme selected. 28px swatches,
+         radius 9, 10 apart, as FnSidequestNuevo draws them since 0.3 (5.5 still says 30
+         and 10); the selected one is ringed 2px in Text at 2px, which is its outline, and
+         the row's 2px padding is the room it needs. Keyboard focus adds a second ring
+         outside it, since the first only says which one is chosen. Each item supplies
+         Brush and Label. -->
     <Style x:Key="Focus.Swatch">
         <Setter Property="Control.Template">
             <Setter.Value>
                 <ControlTemplate>
-                    <Border Margin="-7" CornerRadius="17" BorderThickness="2"
+                    <Border Margin="-7" CornerRadius="16" BorderThickness="2"
                             BorderBrush="{DynamicResource Text2}" SnapsToDevicePixels="True"/>
                 </ControlTemplate>
             </Setter.Value>
@@ -874,8 +918,8 @@
     </Style>
 
     <Style x:Key="Swatch" TargetType="ListBoxItem">
-        <Setter Property="Width" Value="30"/>
-        <Setter Property="Height" Value="30"/>
+        <Setter Property="Width" Value="28"/>
+        <Setter Property="Height" Value="28"/>
         <Setter Property="Margin" Value="0,0,10,0"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.Swatch}"/>
@@ -884,10 +928,10 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
                     <Grid>
-                        <Border CornerRadius="10" Background="{Binding Brush}"/>
+                        <Border CornerRadius="9" Background="{Binding Brush}"/>
                         <Border x:Name="Ring"
                                 Margin="-4"
-                                CornerRadius="14"
+                                CornerRadius="13"
                                 BorderThickness="2"
                                 BorderBrush="{DynamicResource Text}"
                                 Visibility="Collapsed"/>
@@ -921,6 +965,99 @@
                     <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
                         <ItemsPresenter/>
                     </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ============ Tabs (4.4, 5.6) ============ ==============================
+         A Sidequest's Items and Notas, measured on FnSidequest: a Surface well with a Line
+         border, radius 12 and 3 of padding, 10 under the band and 12 in from the sides;
+         two tabs of equal width, 32 high, radius 9, 2 apart. The chosen one is filled Text
+         with 13/700 in Inv; the other is 13/500 in Text2 and goes to Text on hover, with
+         no fill. A TabControl, so a screen reader hears tabs and Ctrl+Tab works from
+         inside either. -->
+    <Style x:Key="Focus.R9">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-3" CornerRadius="12" BorderThickness="2"
+                            BorderBrush="{DynamicResource Text}" SnapsToDevicePixels="True"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SidequestTab" TargetType="TabItem">
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Margin" Value="1,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.R9}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <!-- Font and colour go on the header alone: a TabItem hands what is set
+                         on it down to its content, which here is the rest of the screen. -->
+                    <Border x:Name="Bd" Background="Transparent" CornerRadius="9">
+                        <ContentPresenter x:Name="Header"
+                                          ContentSource="Header"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          TextElement.FontSize="13"
+                                          TextElement.FontWeight="Medium"
+                                          TextElement.Foreground="{DynamicResource Text2}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Header" Property="TextElement.Foreground" Value="{DynamicResource Text}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Text}"/>
+                            <Setter TargetName="Header" Property="TextElement.Foreground" Value="{DynamicResource Inv}"/>
+                            <Setter TargetName="Header" Property="TextElement.FontWeight" Value="Bold"/>
+                            <Setter Property="Cursor" Value="Arrow"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <!-- Only the chosen tab is a tab stop. A tab that takes focus takes the selection
+             with it, so Tab passing through the other would switch to it; the arrow keys
+             move between them instead (SidequestTabControl). -->
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="False">
+                <Setter Property="IsTabStop" Value="False"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- The tabs above, and below them the chosen tab's content, which takes the rest of
+         the view. -->
+    <Style x:Key="SidequestTabs" TargetType="TabControl">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Border Margin="12,10,12,0"
+                                Padding="3"
+                                CornerRadius="12"
+                                Background="{DynamicResource Surface}"
+                                BorderBrush="{DynamicResource Line}"
+                                BorderThickness="1"
+                                SnapsToDevicePixels="True">
+                            <!-- Halves 2 apart: each tab keeps 1 clear on either side, and
+                                 the panel reaches 1 past the padding to make up the ends. -->
+                            <UniformGrid Rows="1" Margin="-1,0" IsItemsHost="True"/>
+                        </Border>
+                        <ContentPresenter x:Name="PART_SelectedContentHost"
+                                          Grid.Row="1"
+                                          ContentSource="SelectedContent"/>
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -1278,6 +1415,118 @@
                 </Setter>
             </Trigger>
         </Style.Triggers>
+    </Style>
+
+    <!-- ============ Scroll area (4.4) ============ ===========================
+         The scrolling middle every compact screen has between its fixed header and
+         footer (5), as FnSidequestsCompacto draws it: 36px fades over an edge with more
+         past it, and a 4px thumb, radius 2, in a 6px track inset 4 from the ends and 3 from
+         the right, shown whenever there is overflow rather than only on hover. All of it
+         lies over the content, which keeps its width whether the list scrolls or not. -->
+    <Style x:Key="ThinScrollBar" TargetType="ScrollBar">
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Setter Property="Width" Value="6"/>
+        <Setter Property="MinWidth" Value="6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ScrollBar">
+                    <Track x:Name="PART_Track" Orientation="Vertical" IsDirectionReversed="True">
+                        <Track.Thumb>
+                            <Thumb IsTabStop="False" Margin="1,0" MinHeight="24">
+                                <Thumb.Template>
+                                    <ControlTemplate TargetType="Thumb">
+                                        <Border Background="{DynamicResource ScrollThumbBrush}" CornerRadius="2"/>
+                                    </ControlTemplate>
+                                </Thumb.Template>
+                            </Thumb>
+                        </Track.Thumb>
+                        <Track.IncreaseRepeatButton>
+                            <RepeatButton Command="ScrollBar.PageDownCommand" Opacity="0" Focusable="False" IsTabStop="False"/>
+                        </Track.IncreaseRepeatButton>
+                        <Track.DecreaseRepeatButton>
+                            <RepeatButton Command="ScrollBar.PageUpCommand" Opacity="0" Focusable="False" IsTabStop="False"/>
+                        </Track.DecreaseRepeatButton>
+                    </Track>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ScrollArea" TargetType="ScrollViewer">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="views:ScrollCues.Track" Value="True"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ScrollViewer">
+                    <Grid>
+                        <ScrollContentPresenter x:Name="PART_ScrollContentPresenter"
+                                                Margin="{TemplateBinding Padding}"
+                                                CanContentScroll="{TemplateBinding CanContentScroll}"/>
+
+                        <!-- Bg over Bg's own colour: the mask does the fading, so the fill
+                             can stay a DynamicResource and follow the theme. -->
+                        <Rectangle x:Name="TopFade"
+                                   Height="36"
+                                   VerticalAlignment="Top"
+                                   Fill="{DynamicResource Bg}"
+                                   IsHitTestVisible="False"
+                                   Visibility="Collapsed">
+                            <Rectangle.OpacityMask>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#FF000000" Offset="0"/>
+                                    <GradientStop Color="#00000000" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                        <Rectangle x:Name="BottomFade"
+                                   Height="36"
+                                   VerticalAlignment="Bottom"
+                                   Fill="{DynamicResource Bg}"
+                                   IsHitTestVisible="False"
+                                   Visibility="Collapsed">
+                            <Rectangle.OpacityMask>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#00000000" Offset="0"/>
+                                    <GradientStop Color="#FF000000" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+
+                        <ScrollBar x:Name="PART_VerticalScrollBar"
+                                   Style="{StaticResource ThinScrollBar}"
+                                   HorizontalAlignment="Right"
+                                   Margin="0,4,3,4"
+                                   Minimum="0"
+                                   Maximum="{TemplateBinding ScrollableHeight}"
+                                   ViewportSize="{TemplateBinding ViewportHeight}"
+                                   Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                   Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="views:ScrollCues.MoreAbove" Value="True">
+                            <Setter TargetName="TopFade" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="views:ScrollCues.MoreBelow" Value="True">
+                            <Setter TargetName="BottomFade" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 5.4's resize grip in a footer: 36 by 4, radius 2, Line2, 8 below the content. Only
+         a sign; the window's whole bottom edge is what resizes it (MainWindow). -->
+    <Style x:Key="ResizeGrip" TargetType="Border">
+        <Setter Property="Width" Value="36"/>
+        <Setter Property="Height" Value="4"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Background" Value="{DynamicResource Line2}"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="0,8,0,0"/>
+        <Setter Property="IsHitTestVisible" Value="False"/>
     </Style>
 
 </ResourceDictionary>

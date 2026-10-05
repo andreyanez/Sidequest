@@ -33,8 +33,9 @@ in daily use.
   enforced by `ContrastTests`) and chip names (full name, truncated). Record each new
   conflict in dev-notes rather than resolving it silently.
 - **Render artboards in a browser and measure them; don't read values off the markup.**
-  They use CSS `content-box`, so a bordered box renders 2px larger than its CSS
-  `height`, and some text is transformed by CSS.
+  Most use CSS `content-box`, so a bordered box renders 2px larger than its CSS
+  `height`; Chrome draws a 1.5px border 1px wide, so such borders are 1px here; and
+  some text is transformed by CSS.
 
 ## Commands
 
@@ -72,6 +73,9 @@ in dev-notes. They attach only to a build from this repo.
   `IconPath` style, which takes its stroke from `Foreground`.
 - **TextBox templates** must not bind their content host's `Margin` to `Padding`:
   TextBox applies `Padding` itself, so binding it indents the text twice.
+- **A tinted box with a translucent border** puts its fill in a layer under the border.
+  CSS paints a background under the border, while a WPF `Border` fills only inside it,
+  so the border otherwise blends with the page behind and comes out darker.
 - **Pills** take their radius from `PillRadiusConverter` (half the height), never
   `CornerRadius="999"`. The artboards' 999 is a pill in CSS, but in WPF it makes an
   ellipse.

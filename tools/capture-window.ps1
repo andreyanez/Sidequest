@@ -3,7 +3,9 @@ param(
     [Parameter(Mandatory = $true)][string]$OutPath,
     [string]$TitleLike = '',
     # The largest window with no title: a popup, such as the "⋯" menu or a tooltip.
-    [switch]$Untitled
+    [switch]$Untitled,
+    # Narrows to a copy run from one build folder, when a trial run of the same build is up too.
+    [string]$BinDir = (Join-Path (Split-Path $PSScriptRoot -Parent) 'bin')
 )
 
 # Captures only the target process's own window rectangle - never the whole desktop.
@@ -46,8 +48,10 @@ public class Cap {
 # Only a copy started from this repo: the installed Sidequest may be running as well, and
 # its windows show real data.
 $repo = Split-Path $PSScriptRoot -Parent
+$BinDir = [IO.Path]::GetFullPath($BinDir)
+if (-not $BinDir.StartsWith($repo + '\', [StringComparison]::OrdinalIgnoreCase)) { throw "Refusing $BinDir - only builds inside $repo are captured." }
 $proc = Get-Process $ProcessName -ErrorAction Stop |
-    Where-Object { $_.Path -and $_.Path.StartsWith($repo + '\', [StringComparison]::OrdinalIgnoreCase) } |
+    Where-Object { $_.Path -and $_.Path.StartsWith($BinDir, [StringComparison]::OrdinalIgnoreCase) } |
     Select-Object -First 1
 if (-not $proc) { Write-Output "No $ProcessName running from $repo"; exit 1 }
 $all = [Cap]::Windows([uint32]$proc.Id)

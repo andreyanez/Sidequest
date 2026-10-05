@@ -12,8 +12,10 @@ daily use, and WeeklyReminder is retired (see "The switchover" under Phase 6).
 shell and main panel; navigation, the Sidequests list, the new-Sidequest form and the
 Sidequest detail; the objective detail with its notes, files and images; the settings
 window and the tray; the light-theme and keyboard pass, short of a live Tab walk; and
-the switch from WeeklyReminder. v1 is complete. Next are the tweaks the user has
-collected from using it, then phase 7, the Bitácora (v1.1).
+the switch from WeeklyReminder. v1 is complete. Of the spec's 0.2 and 0.3 changes ("0.2
+and 0.3" below), A to E are done and checked, keyboard and pointer included. F
+(reordering) and G (the final pass and the release) are next. Phase 7, the Bitácora
+(v1.1), comes after them.
 
 ---
 
@@ -55,17 +57,18 @@ run migrate live data. Two regression tests cover it. Do not remove either guard
 
 The artboards in `design/reference/` are the done-criterion: a screen is finished when it
 matches its HTML at 1:1 in both themes and both languages. **Render them in a browser and
-measure — do not read the markup.** Doing that turned up three differences the source
+measure — do not read the markup.** Doing that turned up four differences the source
 text does not show: the weekday is uppercased by CSS, the checkbox `border-radius: 10px`
-on an 18px box clamps to a circle, and every bordered box is 2px larger than its CSS
-`height` because the artboards use `content-box`.
+on an 18px box clamps to a circle, a bordered box is 2px larger than its CSS `height`
+unless it says `box-sizing: border-box` (0.2's cards do, 0.1's did not), and a 1.5px
+border is drawn 1px wide at 100 %.
 
 | Script | What it is for |
 | --- | --- |
-| `tools/seed-sandbox.ps1` | Fills a sandbox with the artboards' four Sidequests, six panel objectives, and `FnObjetivo`'s notes, file and images |
-| `tools/run-sandbox.ps1` | Reseeds the sandbox and launches the build in a given theme and language, at a fixed position; `-Collapsed` starts on the one-row panel, `-Corner` in the default bottom-right corner, `-Exe .\publish\Sidequest.exe` a Release build. It stops only the copy it started, never a trial run of the same build |
-| `tools/render-artboard.ps1` | Renders an artboard to PNG at 1:1 with headless Edge; `-Light` renders any of them in the light theme |
-| `tools/capture-window.ps1` | Screenshots the window rect of a copy started from the repo (never the desktop, never the installed copy); `-Untitled` takes a popup, such as the "⋯" menu |
+| `tools/seed-sandbox.ps1` | Fills a sandbox with the artboards' four Sidequests and six panel objectives, with `FnSidequestNotas`'s notes, file and images on Mudanza; `-Many` seeds `FnSidequestsCompacto`'s fourteen Sidequests instead |
+| `tools/run-sandbox.ps1` | Reseeds the sandbox and launches the build in a given theme and language, at a fixed position; `-Many` or `-Empty` choose the data, `-Height` the card's height, `-Collapsed` starts on the one-row panel, `-Corner` in the default bottom-right corner, `-Exe .\publish\Sidequest.exe` a Release build, and `-Stop` only stops the last copy, which frees the build for `dotnet build`. It stops only the copy it started, never a trial run of the same build |
+| `tools/render-artboard.ps1` | Renders an artboard to PNG at 1:1 with headless Edge; `-Light` renders any of them in the light theme, and `-WithoutJournal` takes the Bitácora button out of a Sidequest's band, as the app leaves it until v1.1 |
+| `tools/capture-window.ps1` | Screenshots the window rect of a copy started from the repo (never the desktop, never the installed copy); `-Untitled` takes a popup, such as the "⋯" menu, and `-BinDir` picks one build folder's copy when a trial run of `bin\Debug` is up too, as the other tools' `-BinDir` does |
 | `tools/compare-ink.ps1` | Where each element is drawn, artboard vs app, to the pixel (or per-row, for text) |
 | `tools/compare-colours.ps1` | Where the fills disagree, artboard vs app, grouped by colour pair: the wrong token, where the layout already matches |
 | `tools/uia-do.ps1` | Invokes, focuses, selects or types into a control by its accessible name |
@@ -355,6 +358,117 @@ From the user testing the installed copy:
   `--write-icon`, by `tools/make-icon.ps1`. Its colour is the tray's on the machine that
   drew it, light for a dark taskbar; run the script again after changing the mark.
 
+## 0.2 and 0.3
+
+The spec's 0.2 and 0.3 (2026-10-03) set no order of their own. Agreed with the user on
+2026-10-04, A to E first:
+
+- **A. Data.** Notes, files and images move from items to Sidequests (D10: a 0.1.0
+  file's item-level fields are ignored and dropped on the next save; the user's real
+  data had none). `MainHeight` joins the settings. §7's new strings, and the counter's
+  go.
+- **B. Window.** A fixed height the user drags from the bottom edge, the same on every
+  screen; each view a fixed header, a scrolling middle and a fixed footer, with 4.4's
+  scroll cues.
+- **C. Sidequests list.** Compact buttons (D9), "Nuevo Sidequest" fixed in the footer,
+  the form taking its place there.
+- **D. Sidequest detail.** Items and Notas tabs, Notas taking over the objective
+  detail, which goes; the new add-item field.
+- **E. Rename**, on the panel and on items.
+- **F. Reorder** by dragging and from the keyboard (D8). Until then the handle's space
+  is reserved, as 4.4 says, but nothing is drawn in it: the spec shows no dead controls.
+- **G.** Both themes, both languages and the keyboard over everything, then a release.
+
+Conflicts settled in the same exchange:
+
+- **Compact buttons everywhere.** `FnSidequests`, `FnSidequestNuevo` and
+  `FnSidequestsLargoNuevo` still draw the 64px button D9 turned down; the 42px one of
+  `FnSidequestsCompacto` is built.
+- **The chevrons stay inverted** (see "After 0.1.0"), though 4.4, `FnMain` and
+  `FnMainMini` still draw them up to collapse.
+- **Versions follow the spec:** these ship as 0.2.0 and 0.3.0, the fixes under
+  `[Unreleased]` going out with 0.2.0.
+
+### A to E, as built
+
+- **A. Data.** A 0.1.0 `sidequests.json` loads with its items' notes, files and images
+  left out, and the next save drops them (D10); `SidequestStoreTests` holds that.
+  Image copies belong to Sidequests now: deleting one deletes its copies, but removing an
+  image keeps a copy another Sidequest still uses. `Settings.MainHeight` is the card's
+  height, 640 by default, which a 0.1.0 settings file gets.
+- **B. Window.**
+  - The window is the card's height plus the 24 of shadow, the card held between 5's
+    360 and the work area less the shadow. Dragging the bottom 6px moves the bottom edge
+    only, as far as the work area's bottom, and the height is saved on letting go, from
+    the window's actual height: near the screen's full height Windows stops a window
+    short of what was asked.
+  - 4.4's scroll cues are `ScrollCues` plus the `ScrollArea` style. The thumb is
+    `FnSidequestsCompacto`'s `#4A4E56`, which 4.2 does not list. Light has no value
+    anywhere, so it is `#B4B4AE`, just past `Line2` toward `Text2`, as the dark one is.
+  - The resize grip is drawn only where the artboards draw it, in the Sidequests list's
+    footer; on the other screens the edge works with nothing drawn.
+  - String not in §7: `L_ResizePanel`, the edge's accessible name.
+- **C. Sidequests list.** As `FnSidequestsCompacto` (D9); the counter and its strings
+  (`L_ActiveFmt`, `L_ActiveOneFmt`) are gone. In the form, Cancelar is 36 and Crear 34,
+  top-aligned: both say 34, but Cancelar's border is outside it (content-box). The
+  buttons' and the form's tints run under their translucent borders, a rule now in
+  CLAUDE.md.
+- **D. Sidequest detail.**
+  - The tabs are `SidequestTabControl`. Only the chosen tab is a tab stop, because a tab
+    that takes focus takes the selection with it: Tab passing through Items would switch
+    to it. From a focused tab the arrow keys, Home and End move between them, and
+    Ctrl+Tab works from anywhere inside; Home and End pressed elsewhere stay with what has
+    focus, where the stock control would jump tabs. The chosen tab is remembered per
+    Sidequest until the app quits (5.6). A new Sidequest opens on Items with the add field
+    open, as before.
+  - A `TabItem` hands its font and colour down to its content, which here is the rest of
+    the screen: every unstyled text in Items came out bold. The tab style sets them on
+    the header's presenter instead, and the Items header is a template rather than an
+    element, since an element header belongs to the `TabItem` and skips the presenter.
+  - Notas is `NotesTab`: the objective detail's code, moved to the Sidequest, with the
+    notes 176 high. The band still leaves out the Bitácora button until v1.1, so
+    everything under it sits 50px higher than the artboards draw it;
+    `render-artboard.ps1 -WithoutJournal` renders them to match.
+  - Cards are 48 with their border, completed rows 40. Hover actions wait at rest with no
+    width, no opacity and no hit-testing, rather than collapsed: unseen and taking no
+    room or clicks, as the artboards' `display: none`, yet still tab stops and still
+    there for a screen reader. Tab meets them in the order they are drawn, and the
+    current objective, whose only action is rename, can be reached at all. The panel's
+    cards do the same. Clipping them instead would clip their focus rings, which WPF
+    clips to the focused control's clipping ancestors.
+  - Adding (`FnSidequestAdd`): Enter adds at the end of the pending items, lights the
+    card for 1.5 s (`C @ 8 %` under a `C @ 50 %` border), scrolls to it and keeps the
+    field. Leaving an empty field closes it, including a click on something that cannot
+    take focus. The window losing focus to another app does not: the next name may be
+    on its way from there.
+- **E. Rename** (`FnMainEdit`): the pencil, or F2 on a focused card. Enter, the check,
+  leaving the card or a click elsewhere saves; Escape or the x cancels; a blank name keeps
+  the old one (`SidequestRules.RenameItem`). Moving focus between the field and the
+  card's own check and x is not leaving, and nor is the window losing focus; the
+  Sidequest title's rename now waits for that too.
+  - No artboard shows an item being renamed in the detail: it is `FnMainEdit`'s card
+    with the detail's 6 for the panel's 8.
+  - A screen reader hears the field as "Renombrar objetivo" or "Renombrar item".
+    `FnMainEdit` labels it "Nombre del objetivo", which §7 has no key for.
+- **Checked:** every screen of A to E against its artboard in dark and light, and in
+  English: positions with `compare-ink.ps1`, fills with `compare-colours.ps1`. Then,
+  with the user's go-ahead on 2026-10-04, live with the keyboard and the pointer:
+  - Tab order on the panel (per card: checkbox, chip, rename, return, delete) and in
+    the detail (the chosen tab only; rename, delete, send per row; only live ticks).
+  - Rename on both: F2 and the pencil, text selected on entry; Enter, the check, Tab out
+    of the card and a click elsewhere save; Escape and the x cancel; a blank name keeps
+    the old one; F2 on a completed item does nothing; focus returns to the pencil.
+  - The tabs: arrows, Home, End and Ctrl+Tab; End on a button stays put; the chosen tab
+    remembered on coming back; notes saved on switching tabs.
+  - Adding: Enter adds and keeps the field, the glow measured within its 1.5 s and gone
+    after; Escape closes; a click elsewhere closes an empty field.
+  - Delete asks first and Escape cancels; "Enviar objetivo" moves focus to the next
+    row; hover on both screens, measured against the artboards' hovered rows; dragging
+    the bottom edge both ways, saved on release.
+
+  It found one bug: the actions were clipped to hide them at rest, and WPF clipped the
+  pencil's focus ring with them.
+
 ## Known deviations from the spec
 
 - **The import does not carry over WeeklyReminder's settings** (§3 step 3). Accepted on
@@ -366,26 +480,26 @@ From the user testing the installed copy:
   +0.06em on section labels; measured on the artboard that is −0.44px and +0.66px. WPF has
   no letter-spacing property, and the workaround is an attached behaviour that rebuilds
   text as per-character `Run`s.
-- **The artboards disagree with each other on button radius.** `FnMain` and `FnSidequest`
-  use pills (`999`); `FnSidequestNuevo` uses `10` and `FnAjustes` uses `5`. The built
-  styles are pills, matching §4.4 and the two panel screens. That includes
-  `FnSidequestNuevo`'s Cancelar and Crear, which it also draws 38 high where §4.4 says
-  34 and 36, and its Cancelar with no fill, over the form's tint, where §4.4 and
-  `FnSidequest`'s "Bitácora" button fill a secondary button with `Surface`.
+- **Button radii.** Every artboard now draws pills except `FnAjustes`, whose segmented
+  options are radius 5, built as drawn. `FnSidequestNuevo`'s Cancelar has no fill, over
+  the form's tint, where §4.4 fills a secondary button with `Surface`; it is built as
+  drawn.
 - **Values the artboards take from outside §4.2**, all built as drawn:
-  - `FnSidequests` draws its progress tracks at `C @ 20 %`; the header band keeps §4.2's
-    25.
+  - The Sidequests list draws its progress tracks at `C @ 20 %`; the header band keeps
+    §4.2's 25.
   - `FnSidequestNuevo` tints its form at 7 % with a 40 % border.
-  - `FnSidequests` sets "Sidequests" at 22/600, where §4.1 says 700.
-  - The dashed "Nuevo Sidequest" is 1px, not §4.4's 1.5.
+  - 5.6's just-added item, `C @ 8 %` under `C @ 50 %`, is in §5 but not in 4.2's list.
 
   All of them are in `SidequestPalette.Alpha` or at the element, each with a comment
   naming its artboard.
-- **1.5px borders stay 1.5px.** At 100 % scaling Chrome draws the artboards' 1.5px
-  borders ("Enviar objetivo", the dashed "Añadir item", the checkbox) as 1px. WPF keeps
-  the stated value, which is also what a HiDPI screen shows.
-- **No artboard shows a scrollbar**, so the `ScrollBar` style has no reference and follows the
-  §4.2 tokens only. It takes layout width, so cards narrow by 12px once the list overflows.
+- **1.5px borders are drawn 1px** (changed 2026-10-04). Chrome floors a border to whole
+  device pixels, so at 100 % the artboards' 1.5px borders ("Enviar objetivo", the dashed
+  buttons, the checkbox, the add field, a card being renamed) render 1px. The earlier
+  "keep 1.5" stopped being true when phase 6 turned on layout rounding, which drew them
+  2px. 1 matches Chrome from 100 to 175 %. The dashed outlines are a `Rectangle`'s
+  stroke, which layout rounding leaves alone, so at 1.5 they blurred across two rows.
+- **The scroll areas follow `FnSidequestsCompacto`** (4.4). Text fields keep the older
+  implicit `ScrollBar` style, which no artboard shows, held to §4.2's tokens.
 
 ## After the phase 3 cleanup
 

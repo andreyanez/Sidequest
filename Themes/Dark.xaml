@@ -13,4 +13,8 @@
     <SolidColorBrush x:Key="Inv"     Color="#16171A"/>
     <SolidColorBrush x:Key="Canvas"  Color="#111214"/>
 
+    <!-- 4.4's scroll thumb, named there but not in 4.2's table: FnSidequestsCompacto's
+         colour, a step past Line2. -->
+    <SolidColorBrush x:Key="ScrollThumbBrush" Color="#4A4E56"/>
+
 </ResourceDictionary>

@@ -124,21 +124,38 @@ public sealed class SidequestHeader
     public GridLength RestWidth { get; }
 }
 
-/// <summary>An item in a Sidequest's detail (5.6). The subclass is the group it sits in.</summary>
-public abstract class DetailRow
+/// <summary>
+/// An item in a Sidequest's detail (5.6). The subclass is the group it sits in. Besides
+/// renaming, a row that was just added is lit up for a moment, which also changes in place.
+/// </summary>
+public abstract class DetailRow : EditableRow
 {
-    protected DetailRow(SidequestItem item, SidequestProject project)
-    {
-        Item = item;
-        Project = project;
-        ThemeBrush = SidequestPalette.Brush(project.Theme, ThemeService.Current);
-    }
+    private bool _isNew;
 
-    public SidequestItem Item { get; }
+    protected DetailRow(SidequestItem item, SidequestProject project) : base(item)
+    {
+        Project = project;
+
+        var app = ThemeService.Current;
+        ThemeBrush = SidequestPalette.Brush(project.Theme, app);
+        NewFillBrush = SidequestPalette.Brush(project.Theme, app, SidequestPalette.Alpha.NewItemFill);
+        NewBorderBrush = SidequestPalette.Brush(project.Theme, app, SidequestPalette.Alpha.NewItemBorder);
+    }
 
     public SidequestProject Project { get; }
 
     public Brush ThemeBrush { get; }
+
+    /// <summary>5.6: the item Enter has just added, which wears these for 1.5 s.</summary>
+    public bool IsNew
+    {
+        get => _isNew;
+        set => Set(ref _isNew, value);
+    }
+
+    public Brush NewFillBrush { get; }
+
+    public Brush NewBorderBrush { get; }
 
     public static DetailRow For(SidequestItem item, SidequestProject project) =>
         SidequestRules.GroupOf(item) switch
@@ -151,7 +168,7 @@ public abstract class DetailRow
     public override string ToString() => Item.Text;
 }
 
-/// <summary>In the panel and not done: carries the "Objetivo actual" pill and no actions.</summary>
+/// <summary>In the panel and not done: carries the "Objetivo actual" pill, and rename on hover.</summary>
 public sealed class CurrentObjectiveRow : DetailRow
 {
     public CurrentObjectiveRow(SidequestItem item, SidequestProject project) : base(item, project) { }
@@ -159,7 +176,7 @@ public sealed class CurrentObjectiveRow : DetailRow
     public override string ToString() => $"{Item.Text}, {LanguageService.Get("L_CurrentObjective")}";
 }
 
-/// <summary>Not in the panel and not done: offers "Enviar objetivo", and delete on hover.</summary>
+/// <summary>Not in the panel and not done: offers "Enviar objetivo", and rename and delete on hover.</summary>
 public sealed class PendingItemRow : DetailRow
 {
     public PendingItemRow(SidequestItem item, SidequestProject project) : base(item, project)
@@ -175,35 +192,14 @@ public sealed class CompletedItemRow : DetailRow
 {
     public CompletedItemRow(SidequestItem item, SidequestProject project) : base(item, project) { }
 
+    /// <summary>5.6 offers renaming on pending items and current objectives only.</summary>
+    public override bool CanRename => false;
+
     /// <summary>Whether the tick can be clicked off here; see <see cref="SidequestRules.CanUntickInDetail"/>.</summary>
     public bool CanUntick => SidequestRules.CanUntickInDetail(Item);
 }
 
-/// <summary>An objective's band (5.3): the objective, and its Sidequest's name and colours.</summary>
-public sealed class ObjectiveHeader
-{
-    public ObjectiveHeader(SidequestItem item, SidequestProject project)
-    {
-        Item = item;
-        Project = project;
-
-        var app = ThemeService.Current;
-        ThemeBrush = SidequestPalette.Brush(project.Theme, app);
-        BandBrush = SidequestPalette.Brush(project.Theme, app, SidequestPalette.Alpha.HeaderTint);
-    }
-
-    public SidequestItem Item { get; }
-
-    public SidequestProject Project { get; }
-
-    public string ProjectName => Project.Name;
-
-    public Brush ThemeBrush { get; }
-
-    public Brush BandBrush { get; }
-}
-
-/// <summary>A linked file in an objective's detail (5.3): name, folder, and whether it is still there.</summary>
+/// <summary>A linked file on a Sidequest's Notas tab (5.6): name, folder, and whether it is still there.</summary>
 public sealed class FileRow
 {
     public FileRow(string path)
@@ -220,7 +216,7 @@ public sealed class FileRow
 
     public string Folder { get; }
 
-    /// <summary>5.3: a file that has gone is shown in Text2, with a tooltip saying so.</summary>
+    /// <summary>5.6: a file that has gone is shown in Text2, with a tooltip saying so.</summary>
     public bool Exists { get; }
 
     public string? MissingNote => Exists ? null : LanguageService.Get("L_FileMissing");
@@ -228,7 +224,7 @@ public sealed class FileRow
     public override string ToString() => Name;
 }
 
-/// <summary>One of the five cells of 5.3's image grid, in order: images, "+", empty.</summary>
+/// <summary>One of the five cells of 5.6's image grid, in order: images, "+", empty.</summary>
 public abstract class ImageSlot
 {
 }
@@ -289,7 +285,7 @@ public sealed class ImageThumb : ImageSlot
     }
 }
 
-/// <summary>The "+" cell: adds an image, from a file dialog or dropped on the panel.</summary>
+/// <summary>The "+" cell: adds an image, from a file dialog or dropped on the tab.</summary>
 public sealed class AddImageSlot : ImageSlot
 {
     public override string ToString() => LanguageService.Get("L_AddImage");

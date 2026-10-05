@@ -1,9 +1,11 @@
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using Sidequest.Models;
 using Sidequest.Services;
 
 // WinForms is referenced for NotifyIcon, so its implicit usings collide with WPF's.
+using AutomationProperties = System.Windows.Automation.AutomationProperties;
 using Button = System.Windows.Controls.Button;
 using ContextMenu = System.Windows.Controls.ContextMenu;
 using DispatcherPriority = System.Windows.Threading.DispatcherPriority;
@@ -26,20 +28,33 @@ using Visual = System.Windows.Media.Visual;
 namespace Sidequest.Views;
 
 /// <summary>
-/// A Sidequest's detail (5.6): its band, its items in three fixed groups, and adding
-/// items in place. Every change saves at once; there is no save button anywhere.
+/// A Sidequest's detail (5.6): its band, and under it the Items and Notas tabs. Items holds
+/// the items in three fixed groups, renamed and added in place; Notas is NotesTab. Every
+/// change saves at once; there is no save button anywhere.
 /// </summary>
 public partial class SidequestView : UserControl
 {
     /// <summary>How long a press on the title has to be held to rename it (5.6).</summary>
     private static readonly TimeSpan LongPress = TimeSpan.FromMilliseconds(500);
 
+    /// <summary>5.6: how long an item Enter has just added stays lit.</summary>
+    private static readonly TimeSpan NewItemGlow = TimeSpan.FromSeconds(1.5);
+
+    /// <summary>
+    /// The tab last chosen in each Sidequest, for the session only (5.6): leaving and
+    /// coming back finds it again, and quitting forgets it.
+    /// </summary>
+    private static readonly Dictionary<Guid, int> LastTab = new();
+
     private readonly MainWindow _shell;
     private readonly SidequestProject _project;
     private readonly bool _justCreated;
     private readonly Action _refresh;
     private readonly DispatcherTimer _pressTimer;
+    private readonly DispatcherTimer _glowTimer;
+    private readonly InlineRename _rename;
 
+    private SidequestItem? _newItem;
     private SidequestTheme _themeBeforePicker;
     private bool _closingPicker;
 
@@ -49,6 +64,12 @@ public partial class SidequestView : UserControl
         _shell = shell;
         _project = project;
         _justCreated = justCreated;
+        _rename = new InlineRename(ItemList);
+
+        NotesTabItem.Content = new NotesTab(project);
+
+        // A new Sidequest is empty, and its next step is always its first item.
+        Tabs.SelectedIndex = justCreated ? 0 : LastTab.GetValueOrDefault(project.Id);
 
         _pressTimer = new DispatcherTimer { Interval = LongPress };
         _pressTimer.Tick += (_, _) =>
@@ -56,6 +77,9 @@ public partial class SidequestView : UserControl
             _pressTimer.Stop();
             BeginRename();
         };
+
+        _glowTimer = new DispatcherTimer { Interval = NewItemGlow };
+        _glowTimer.Tick += (_, _) => EndGlow();
 
         // Escape closes the menu without choosing, and focus would otherwise drop to the
         // window. An entry that was chosen moves focus on after this, so it still wins.
@@ -81,6 +105,7 @@ public partial class SidequestView : UserControl
             ThemeService.Changed -= _refresh;
             LanguageService.Changed -= _refresh;
             _pressTimer.Stop();
+            _glowTimer.Stop();
         };
     }
 
@@ -93,6 +118,14 @@ public partial class SidequestView : UserControl
             .Select(item => DetailRow.For(item, _project))
             .ToList();
 
+        // A rebuild inside the 1.5 s keeps the glow on the item that has it.
+        if (_newItem is not null && RowOf(_newItem) is { } row) row.IsNew = true;
+
+        // Items shows the number of items, whatever their state (5.6).
+        var count = _project.Items.Count.ToString(CultureInfo.CurrentCulture);
+        ItemsTab.Header = count;
+        AutomationProperties.SetName(ItemsTab, $"{LanguageService.Get("L_Items")} {count}");
+
         if (rebuildSwatches && ThemePicker.Visibility == Visibility.Visible)
         {
             ThemePicker.ItemsSource = ThemeSwatch.All();
@@ -100,13 +133,16 @@ public partial class SidequestView : UserControl
         }
     }
 
+    private DetailRow? RowOf(SidequestItem item) =>
+        (ItemList.ItemsSource as IEnumerable<DetailRow>)?.FirstOrDefault(r => r.Item == item);
+
     private List<SidequestItem> PendingItems() =>
         SidequestRules.DetailOrder(_project).Where(i => SidequestRules.GroupOf(i) == ItemGroup.Pending).ToList();
 
     /// <summary>
     /// After an item leaves the pending group, keyboard focus goes to the pending item that
-    /// took its place, or the one before it, or failing both the add button - never back
-    /// to the top of the window.
+    /// took its place, or the one before it, or failing both the way to add one - never
+    /// back to the top of the window.
     /// </summary>
     private void FocusPendingNear(int index)
     {
@@ -115,7 +151,7 @@ public partial class SidequestView : UserControl
             var pending = PendingItems();
             if (pending.Count == 0)
             {
-                AddButton.Focus();
+                FocusAddEntry();
                 return;
             }
 
@@ -128,9 +164,25 @@ public partial class SidequestView : UserControl
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
         {
             var button = VisualTree.FindDescendant<Button>(ItemList, b =>
-                b.DataContext is PendingItemRow row && row.Item == item && b.Name != "DeleteButton");
+                b.Name == "SendButton" && b.DataContext is PendingItemRow row && row.Item == item);
             button?.Focus();
         });
+    }
+
+    private void FocusAddEntry()
+    {
+        if (AddField.Visibility == Visibility.Visible) AddBox.Focus();
+        else AddButton.Focus();
+    }
+
+    // ---- Tabs (5.6) -------------------------------------------------------------------
+
+    private void Tabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // Selections inside the tabs bubble up through here too.
+        if (e.OriginalSource != Tabs) return;
+
+        LastTab[_project.Id] = Tabs.SelectedIndex;
     }
 
     // ---- Items ----------------------------------------------------------------------
@@ -152,11 +204,20 @@ public partial class SidequestView : UserControl
         if (sender is FrameworkElement { DataContext: PendingItemRow row }) DeleteItem(row);
     }
 
-    /// <summary>Supr on a pending row deletes it, as it does on the panel.</summary>
+    /// <summary>
+    /// Supr on a pending row deletes it, as it does on the panel, and F2 on any card
+    /// renames it (5.1). A row being renamed keeps its keys for the field.
+    /// </summary>
     private void ItemList_KeyDown(object sender, KeyEventArgs e)
     {
+        if (_rename.TryBeginFromKey(e))
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (e.Key != Key.Delete) return;
-        if (Keyboard.FocusedElement is not FrameworkElement { DataContext: PendingItemRow row }) return;
+        if (Keyboard.FocusedElement is not FrameworkElement { DataContext: PendingItemRow row } || row.IsEditing) return;
 
         DeleteItem(row);
         e.Handled = true;
@@ -176,7 +237,6 @@ public partial class SidequestView : UserControl
 
         var index = PendingItems().IndexOf(row.Item);
         _project.Items.Remove(row.Item);
-        Attachments.ReleaseMedia(new[] { row.Item }, App.Current.Projects);
         Save();
         Refresh();
         FocusPendingNear(index);
@@ -195,14 +255,48 @@ public partial class SidequestView : UserControl
         FocusSendButton(row.Item);
     }
 
+    // ---- Renaming an item (5.6, as 5.1) ---------------------------------------------
+
+    private void RenameItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: DetailRow row }) _rename.Begin(row);
+    }
+
+    private void ItemNameEdit_KeyDown(object sender, KeyEventArgs e) => _rename.FieldKeyDown(e);
+
+    private void SaveName_Click(object sender, RoutedEventArgs e) => _rename.Commit(focusRow: true);
+
+    private void CancelName_Click(object sender, RoutedEventArgs e) => _rename.Cancel(focusRow: true);
+
+    private void Card_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) => _rename.FocusLeaving(e);
+
+    /// <summary>
+    /// A click elsewhere counts as leaving, for a rename and for an empty add field, even
+    /// on a spot that cannot take focus and so would leave it where it was.
+    /// </summary>
+    private void View_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _rename.PointerDown(e);
+
+        if (AddField.Visibility == Visibility.Visible && AddBox.Text.Trim().Length == 0
+            && !(e.OriginalSource is Visual target && AddField.IsAncestorOf(target)))
+            CloseAddField(focusButton: false);
+    }
+
     // ---- Add item (5.6) -------------------------------------------------------------
 
     private void AddButton_Click(object sender, RoutedEventArgs e) => OpenAddField();
 
+    /// <summary>
+    /// FnSidequestAdd: the dashed button gives way to the field and its hint, and the
+    /// footer takes a Line along its top and 12 rather than 14 below.
+    /// </summary>
     private void OpenAddField()
     {
         AddButton.Visibility = Visibility.Collapsed;
         AddField.Visibility = Visibility.Visible;
+        Footer.BorderThickness = new Thickness(0, 1, 0, 0);
+        Footer.Padding = new Thickness(12, 10, 12, 12);
         AddBox.Text = string.Empty;
 
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () => AddBox.Focus());
@@ -212,12 +306,16 @@ public partial class SidequestView : UserControl
     {
         AddField.Visibility = Visibility.Collapsed;
         AddButton.Visibility = Visibility.Visible;
+        Footer.BorderThickness = new Thickness(0);
+        Footer.Padding = new Thickness(12, 10, 12, 14);
         AddBox.Text = string.Empty;
 
         if (focusButton) Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () => AddButton.Focus());
     }
 
-    /// <summary>Enter adds and leaves the field open for the next one; Escape closes it.</summary>
+    private void CloseAdd_Click(object sender, RoutedEventArgs e) => CloseAddField(focusButton: true);
+
+    /// <summary>Enter adds and leaves the field open, empty, for the next one; Escape closes it.</summary>
     private void AddBox_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Escape)
@@ -238,25 +336,44 @@ public partial class SidequestView : UserControl
 
         var item = SidequestRules.AddItem(_project, AddBox.Text);
         Save();
+
+        _newItem = item;
         Refresh();
         AddBox.Text = string.Empty;
 
-        // The new item joins the end of the pending group, which can be scrolled out of
-        // sight above the completed ones.
+        // 5.6: lit for 1.5 s, counted afresh for each new item.
+        _glowTimer.Stop();
+        _glowTimer.Start();
+
+        // It joins the end of the pending group, which can be scrolled out of sight above
+        // the completed ones.
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
         {
-            var row = VisualTree.FindDescendant<FrameworkElement>(ItemList, f =>
-                f.DataContext is DetailRow r && r.Item == item);
-            row?.BringIntoView();
+            var card = VisualTree.FindDescendant<FrameworkElement>(ItemList, f =>
+                f.Name == "Card" && f.DataContext is DetailRow r && r.Item == item);
+            card?.BringIntoView();
         });
+    }
+
+    private void EndGlow()
+    {
+        _glowTimer.Stop();
+        if (_newItem is not null && RowOf(_newItem) is { } row) row.IsNew = false;
+        _newItem = null;
     }
 
     private void AddBox_TextChanged(object sender, TextChangedEventArgs e) =>
         AddHint.Visibility = AddBox.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
 
-    /// <summary>Clicking away closes an empty field; one with text in it stays open.</summary>
+    /// <summary>
+    /// Leaving an empty field closes it; one with text in it stays open and adds nothing,
+    /// so a click elsewhere never makes an item by accident (5.6). Focus going nowhere is
+    /// the window losing it to another app, and there the field waits: the next item's
+    /// name may be being copied from there.
+    /// </summary>
     private void AddBox_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
     {
+        if (e.NewFocus is null) return;
         if (AddField.Visibility == Visibility.Visible && AddBox.Text.Trim().Length == 0)
             CloseAddField(focusButton: false);
     }
@@ -284,7 +401,7 @@ public partial class SidequestView : UserControl
             Dispatcher.BeginInvoke(DispatcherPriority.Input, () => (menu.Items[0] as MenuItem)?.Focus());
     }
 
-    // ---- Rename (5.6) ---------------------------------------------------------------
+    // ---- Rename the Sidequest (5.6) -------------------------------------------------
 
     private void Rename_Click(object sender, RoutedEventArgs e) => BeginRename();
 
@@ -341,8 +458,15 @@ public partial class SidequestView : UserControl
         e.Handled = true;
     }
 
-    private void NameEdit_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) =>
+    /// <summary>
+    /// Leaving the field keeps the new name, as leaving a renamed item does. Focus going
+    /// nowhere is the window losing it to another app, and there the field waits.
+    /// </summary>
+    private void NameEdit_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (e.NewFocus is null) return;
         EndRename(commit: true);
+    }
 
     // ---- Change theme ---------------------------------------------------------------
 
@@ -417,8 +541,8 @@ public partial class SidequestView : UserControl
 
     /// <summary>
     /// Deleting a Sidequest takes its items with it, including any objectives in the panel
-    /// (5.6). v1 has no Bitácora yet, so nothing else goes, and the question does not
-    /// mention one.
+    /// (5.6), and the images its Notas tab copied. v1 has no Bitácora yet, so nothing else
+    /// goes, and the question does not mention one.
     /// </summary>
     private void DeleteSidequest_Click(object sender, RoutedEventArgs e)
     {
@@ -438,7 +562,7 @@ public partial class SidequestView : UserControl
             return;
 
         App.Current.Projects.Remove(_project);
-        Attachments.ReleaseMedia(_project.Items, App.Current.Projects);
+        Attachments.ReleaseMedia(new[] { _project }, App.Current.Projects);
         Save();
         _shell.ShowSidequests();
     }

@@ -66,7 +66,7 @@ public class SidequestRulesTests
     [Fact]
     public void Create_GoesAfterTheHighestSortIndex_NotTheCount()
     {
-        // After a deletion the count and the indexes part ways; D7 says indexes only grow.
+        // After a deletion the count and the indexes part ways, so the count would collide.
         var projects = new List<SidequestProject> { Project(SidequestTheme.Amber, 0), Project(SidequestTheme.Teal, 5) };
 
         var created = SidequestRules.Create(projects, "Nuevo", SidequestTheme.Plum);
@@ -99,16 +99,41 @@ public class SidequestRulesTests
     }
 
     [Fact]
+    public void RenameItem_KeepsTheOldText_WhenTheNewOneIsBlankOrTheSame()
+    {
+        // 5.1: "un nombre vacío no se guarda (se restaura el anterior)".
+        var item = Item("Cotizar camión de mudanza", 0, panelIndex: 0);
+
+        Assert.False(SidequestRules.RenameItem(item, "  "));
+        Assert.False(SidequestRules.RenameItem(item, " Cotizar camión de mudanza "));
+        Assert.Equal("Cotizar camión de mudanza", item.Text);
+
+        Assert.True(SidequestRules.RenameItem(item, " Cotizar camión con embalaje "));
+        Assert.Equal("Cotizar camión con embalaje", item.Text);
+        Assert.True(item.InPanel);
+    }
+
+    [Fact]
+    public void RenameItem_HoldsTheTextToAHundredAndTwentyCharacters()
+    {
+        var item = Item("a", 0);
+
+        SidequestRules.RenameItem(item, new string('x', 150));
+
+        Assert.Equal(SidequestItem.MaxTextLength, item.Text.Length);
+    }
+
+    [Fact]
     public void SetNotes_KeepsLinesAsNewlines_AndStopsAtFiveHundred()
     {
-        var item = new SidequestItem();
+        var project = new SidequestProject();
 
-        Assert.True(SidequestRules.SetNotes(item, "uno\r\ndos"));
-        Assert.Equal("uno\ndos", item.Notes);
-        Assert.False(SidequestRules.SetNotes(item, "uno\ndos"));
+        Assert.True(SidequestRules.SetNotes(project, "uno\r\ndos"));
+        Assert.Equal("uno\ndos", project.Notes);
+        Assert.False(SidequestRules.SetNotes(project, "uno\ndos"));
 
-        SidequestRules.SetNotes(item, new string('x', 600));
-        Assert.Equal(SidequestItem.MaxNotesLength, item.Notes.Length);
+        SidequestRules.SetNotes(project, new string('x', 600));
+        Assert.Equal(SidequestProject.MaxNotesLength, project.Notes.Length);
     }
 
     [Fact]
