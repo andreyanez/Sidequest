@@ -14,7 +14,8 @@ Sidequest detail; the objective detail with its notes, files and images; the set
 window and the tray; the light-theme and keyboard pass, short of a live Tab walk; and
 the switch from WeeklyReminder. v1 is complete. Of the spec's 0.2 and 0.3 changes ("0.2
 and 0.3" below), A to G are done: they shipped together as 0.3.0 on 2026-10-04, and
-that build is the installed one. Phase 7, the Bitácora (v1.1), is next.
+0.3.1, a fix to it from the same day, is the installed build. Phase 7, the Bitácora
+(v1.1), is next.
 
 ---
 
@@ -139,7 +140,9 @@ committed. A release:
 
 0.1.0 is the build installed on 2026-09-30, tagged after the fact. 0.3.0, the spec's
 0.2 and 0.3 together, was released and installed on 2026-10-04, with the data folder
-copied to `%APPDATA%\Sidequest.backup-20261004\` first.
+copied to `%APPDATA%\Sidequest.backup-20261004\` first. 0.3.1 followed the same evening
+with one fix ("After 0.3.0" under "0.2 and 0.3"), installed over it; it does not touch
+the data's format, so it took no backup of its own.
 
 ## Decisions
 
