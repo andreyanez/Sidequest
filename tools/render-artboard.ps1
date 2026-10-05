@@ -73,11 +73,12 @@ if ($Light) {
         if ($light) { $light } else { $m.Value }
     })
 
-    # The tints are rgba() of a theme colour: the same alpha over its light value.
+    # The tints are rgba() of a theme colour: the same alpha over its light value. Bg comes
+    # as rgba() too, in the scroll fades; Inv never does.
     $html = [regex]::Replace($html, 'rgba\(\s*(\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\s*\)', {
         param($m)
         $dark = '#{0:x2}{1:x2}{2:x2}' -f [int]$m.Groups[1].Value, [int]$m.Groups[2].Value, [int]$m.Groups[3].Value
-        $light = $tokens[$dark]
+        $light = if ($dark -eq '#16171a') { '#f6f6f4' } else { $tokens[$dark] }
         if (-not $light) { return $m.Value }
         $r, $g, $b = 1, 3, 5 | ForEach-Object { [Convert]::ToInt32($light.Substring($_, 2), 16) }
         'rgba({0}, {1}, {2}, {3})' -f $r, $g, $b, $m.Groups[4].Value

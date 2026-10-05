@@ -12,7 +12,7 @@
     <RootNamespace>Sidequest</RootNamespace>
     <AssemblyName>Sidequest</AssemblyName>
     <!-- 5.8 shows this in the Settings footer as "Sidequest 0.1". -->
-    <Version>0.1.0</Version>
+    <Version>0.3.0</Version>
     <!-- The exe's icon, drawn from the tray's mark by tools/make-icon.ps1. Conditional so
          a checkout without it still builds, and the script can draw it again. -->
     <ApplicationIcon Condition="Exists('Sidequest.ico')">Sidequest.ico</ApplicationIcon>

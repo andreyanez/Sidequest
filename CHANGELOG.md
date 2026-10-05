@@ -8,6 +8,11 @@ in its footer.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-04
+
+After a few days of use: notes move to the Sidequest, the panel keeps the height you
+give it, and objectives and items can be renamed and put in order.
+
 ### Added
 
 - Sidequest has its own icon, the same mark as in the tray, in the Start menu, on the
@@ -16,7 +21,8 @@ in its footer.
   saves, Escape cancels.
 - The panel's height is yours to set: drag its bottom edge. Every screen keeps it, and
   long lists scroll, with a fade showing there is more.
-- A Sidequest has Items and Notas tabs. Notas holds its notes, links, files and images.
+- A Sidequest has two tabs: Items, and Notes, which holds its notes, links, files and
+  images.
 - Adding items: Enter adds one and leaves the field ready for the next, and the new item
   lights up for a moment.
 - Put objectives and items in the order you want: drag a card by the ⋮⋮ handle that
@@ -28,7 +34,8 @@ in its footer.
 - The collapse and expand buttons point the way the panel moves: down to collapse it,
   since it keeps its bottom edge in place, and up to expand it again.
 - Notes, files and images belong to a Sidequest now, not to each objective, and an
-  objective's title no longer opens a page of its own.
+  objective's title no longer opens a page of its own. Any that 0.1.0 kept on an
+  objective are not carried over.
 - The Sidequests list is more compact, with "New Sidequest" always at the bottom.
 
 ### Fixed
@@ -64,5 +71,6 @@ The first version, replacing WeeklyReminder.
 - The weekly rollover. Objectives stay until you remove them.
 - Reordering by dragging. Lists keep the order items were added or sent in.
 
-[Unreleased]: https://github.com/andreyanez/Sidequest/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/andreyanez/Sidequest/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/andreyanez/Sidequest/compare/v0.1.0...v0.3.0
 [0.1.0]: https://github.com/andreyanez/Sidequest/releases/tag/v0.1.0

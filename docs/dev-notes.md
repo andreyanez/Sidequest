@@ -13,8 +13,8 @@ shell and main panel; navigation, the Sidequests list, the new-Sidequest form an
 Sidequest detail; the objective detail with its notes, files and images; the settings
 window and the tray; the light-theme and keyboard pass, short of a live Tab walk; and
 the switch from WeeklyReminder. v1 is complete. Of the spec's 0.2 and 0.3 changes ("0.2
-and 0.3" below), A to F are done and checked, keyboard and pointer included. G, the
-final pass and the release, is next. Phase 7, the Bitácora (v1.1), comes after it.
+and 0.3" below), A to G are done: they shipped together as 0.3.0 on 2026-10-04, and
+that build is the installed one. Phase 7, the Bitácora (v1.1), is next.
 
 ---
 
@@ -137,7 +137,9 @@ committed. A release:
 3. Is installed by updating the installed copy (see "To update the installed copy"
    under Phase 6) with a fresh publish.
 
-0.1.0 is the build installed on 2026-09-30, tagged after the fact.
+0.1.0 is the build installed on 2026-09-30, tagged after the fact. 0.3.0, the spec's
+0.2 and 0.3 together, was released and installed on 2026-10-04, with the data folder
+copied to `%APPDATA%\Sidequest.backup-20261004\` first.
 
 ## Decisions
 
@@ -386,7 +388,9 @@ Conflicts settled in the same exchange:
 - **The chevrons stay inverted** (see "After 0.1.0"), though 4.4, `FnMain` and
   `FnMainMini` still draw them up to collapse.
 - **Versions follow the spec:** these ship as 0.2.0 and 0.3.0, the fixes under
-  `[Unreleased]` going out with 0.2.0.
+  `[Unreleased]` going out with 0.2.0. In the event A to F were built together, so
+  there was never a build with 0.2 alone, and the user chose a single 0.3.0 for all of
+  it, the fixes included (2026-10-04).
 
 ### A to E, as built
 
@@ -505,6 +509,23 @@ Conflicts settled in the same exchange:
   Chrome's, on the same pixels, as text does. **Not checked live:** losing the pointer
   mid-drag, which `Thumb` turns into a cancel itself; forcing it would have meant
   switching the user's foreground window during a drag.
+
+### G, the final pass (2026-10-04)
+
+- **Every screen against its artboard, dark and light**, fills with
+  `compare-colours.ps1`: the panel, collapsed, being renamed and dragged; the long
+  Sidequests list; the new-Sidequest form; a Sidequest's Items and Notas; Settings. What
+  differs is only what the captures didn't set up: a hovered row, today's date, a
+  chosen option and a switch left on in Settings, and the darkened Amber of "Contrast
+  comes first". Filled in, the form matches to the pixel, its name on the artboard's
+  baseline.
+- **English on every screen**, by eye: nothing overflows or is cut short that the
+  Spanish doesn't cut too.
+- **The keyboard** on what A to F had not walked: the Sidequests list, the form (Escape
+  closes it, Enter from the swatches creates), Settings (its own Tab cycle; Escape does
+  nothing) and the collapsed row. On every screen every focusable control has a name.
+- **Fixed on the way:** `render-artboard.ps1 -Light` refused `FnSidequestsCompacto`,
+  whose scroll fades write Bg as `rgba()`.
 
 ## Known deviations from the spec
 
