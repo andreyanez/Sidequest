@@ -7,7 +7,11 @@ using Sidequest.Services;
 using UserControl = System.Windows.Controls.UserControl;
 using Button = System.Windows.Controls.Button;
 using CheckBox = System.Windows.Controls.CheckBox;
+using DragCompletedEventArgs = System.Windows.Controls.Primitives.DragCompletedEventArgs;
+using DragDeltaEventArgs = System.Windows.Controls.Primitives.DragDeltaEventArgs;
+using DragStartedEventArgs = System.Windows.Controls.Primitives.DragStartedEventArgs;
 using Key = System.Windows.Input.Key;
+using Thumb = System.Windows.Controls.Primitives.Thumb;
 using KeyboardFocusChangedEventArgs = System.Windows.Input.KeyboardFocusChangedEventArgs;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Keyboard = System.Windows.Input.Keyboard;
@@ -20,12 +24,17 @@ public partial class PanelView : UserControl
     private readonly MainWindow _shell;
     private readonly Action _refresh;
     private readonly InlineRename _rename;
+    private readonly DragReorder _drag;
 
     public PanelView(MainWindow shell)
     {
         InitializeComponent();
         _shell = shell;
         _rename = new InlineRename(ObjectiveList);
+
+        // 5.1: any objective, done or not, moves anywhere in the panel.
+        _drag = new DragReorder(ObjectiveList, ListScroll, DragLayer,
+            _ => (0, ObjectiveList.Items.Count - 1), MoveObjective);
 
         // A theme switch changes every Sidequest's colour, and a language switch changes
         // the weekday and date. Both are resolved in code, so both need a rebuild.
@@ -195,12 +204,13 @@ public partial class PanelView : UserControl
 
     /// <summary>
     /// Supr on a focused row deletes it, which 8 asks for: tabbing to the delete button is
-    /// possible but slow, since every row carries several stops. F2 renames it (5.1). A
-    /// row being renamed keeps its keys for the field.
+    /// possible but slow, since every row carries several stops. F2 renames it, and
+    /// Alt+Up and Alt+Down on its grip move it (5.1). Escape drops a drag. A row being
+    /// renamed keeps its keys for the field.
     /// </summary>
     private void List_KeyDown(object sender, KeyEventArgs e)
     {
-        if (_rename.TryBeginFromKey(e))
+        if (_drag.TryCancel(e) || _drag.TryMoveFromKey(e) || _rename.TryBeginFromKey(e))
         {
             e.Handled = true;
             return;
@@ -229,6 +239,36 @@ public partial class PanelView : UserControl
     private void Card_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) => _rename.FocusLeaving(e);
 
     private void View_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) => _rename.PointerDown(e);
+
+    // ---- Reordering (5.1, D8) -----------------------------------------------------
+
+    private void Grip_DragStarted(object sender, DragStartedEventArgs e) => _drag.Started(sender, e);
+
+    private void Grip_DragDelta(object sender, DragDeltaEventArgs e) => _drag.Delta(sender, e);
+
+    private void Grip_DragCompleted(object sender, DragCompletedEventArgs e) => _drag.Completed(sender, e);
+
+    /// <summary>The panel's order is PanelIndex, renumbered in the new order and saved.</summary>
+    private void MoveObjective(ItemRow row, int to)
+    {
+        if (ObjectiveList.ItemsSource is not List<ObjectiveRow> rows) return;
+
+        var panel = rows.Select(r => r.Item).ToList();
+        if (!SidequestRules.MoveInPanel(panel, panel.IndexOf(row.Item), to)) return;
+
+        Save();
+        Refresh();
+        FocusGrip(row.Item);
+    }
+
+    /// <summary>After a move the list is new, so focus goes back to the grip that moved.</summary>
+    private void FocusGrip(SidequestItem item) =>
+        Dispatcher.BeginInvoke(() =>
+        {
+            var grip = VisualTree.FindDescendant<Thumb>(ObjectiveList,
+                t => t.Name == "Grip" && t.DataContext is ObjectiveRow row && row.Item == item);
+            grip?.Focus();
+        }, System.Windows.Threading.DispatcherPriority.Loaded);
 
     private void Delete_Click(object sender, RoutedEventArgs e)
     {

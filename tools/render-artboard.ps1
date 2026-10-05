@@ -57,6 +57,8 @@ if ($Light) {
         '#24272c' = '#f0f0ed'
         # 4.4's scroll thumb, which 4.2 does not list: Themes\Light.xaml's ScrollThumbBrush.
         '#4a4e56' = '#b4b4ae'
+        # 4.4's dragged card casts the same black shadow in both themes.
+        '#000000' = '#000000'
     }
     if (-not $html) { $html = Get-Content -LiteralPath $file -Raw -Encoding UTF8 }
 

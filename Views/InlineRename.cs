@@ -27,14 +27,14 @@ namespace Sidequest.Views;
 internal sealed class InlineRename
 {
     private readonly ItemsControl _list;
-    private EditableRow? _row;
+    private ItemRow? _row;
 
     public InlineRename(ItemsControl list)
     {
         _list = list;
     }
 
-    public void Begin(EditableRow row)
+    public void Begin(ItemRow row)
     {
         if (_row == row || !row.CanRename) return;
         Commit(focusRow: false);
@@ -73,7 +73,7 @@ internal sealed class InlineRename
     public bool TryBeginFromKey(KeyEventArgs e)
     {
         if (e.Key != Key.F2) return false;
-        if (e.OriginalSource is not FrameworkElement { DataContext: EditableRow row } || row.IsEditing || !row.CanRename)
+        if (e.OriginalSource is not FrameworkElement { DataContext: ItemRow row } || row.IsEditing || !row.CanRename)
             return false;
 
         Begin(row);
@@ -116,7 +116,7 @@ internal sealed class InlineRename
         Commit(focusRow: false);
     }
 
-    private void End(EditableRow row, bool focusRow)
+    private void End(ItemRow row, bool focusRow)
     {
         _row = null;
         row.IsEditing = false;
@@ -126,6 +126,6 @@ internal sealed class InlineRename
         if (focusRow) Part<Button>(row, "RenameButton")?.Focus();
     }
 
-    private T? Part<T>(EditableRow row, string name) where T : FrameworkElement =>
+    private T? Part<T>(ItemRow row, string name) where T : FrameworkElement =>
         VisualTree.FindDescendant<T>(_list, e => e.Name == name && e.DataContext == row);
 }

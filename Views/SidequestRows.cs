@@ -125,24 +125,21 @@ public sealed class SidequestHeader
 }
 
 /// <summary>
-/// An item in a Sidequest's detail (5.6). The subclass is the group it sits in. Besides
-/// renaming, a row that was just added is lit up for a moment, which also changes in place.
+/// An item in a Sidequest's detail (5.6). The subclass is the group it sits in, and it
+/// moves only among its own group. Besides renaming and dragging, a row that was just
+/// added is lit up for a moment, which also changes in place.
 /// </summary>
-public abstract class DetailRow : EditableRow
+public abstract class DetailRow : ItemRow
 {
     private bool _isNew;
 
-    protected DetailRow(SidequestItem item, SidequestProject project) : base(item)
+    protected DetailRow(SidequestItem item, SidequestProject project) : base(item, project)
     {
-        Project = project;
-
         var app = ThemeService.Current;
         ThemeBrush = SidequestPalette.Brush(project.Theme, app);
         NewFillBrush = SidequestPalette.Brush(project.Theme, app, SidequestPalette.Alpha.NewItemFill);
         NewBorderBrush = SidequestPalette.Brush(project.Theme, app, SidequestPalette.Alpha.NewItemBorder);
     }
-
-    public SidequestProject Project { get; }
 
     public Brush ThemeBrush { get; }
 
@@ -168,7 +165,7 @@ public abstract class DetailRow : EditableRow
     public override string ToString() => Item.Text;
 }
 
-/// <summary>In the panel and not done: carries the "Objetivo actual" pill, and rename on hover.</summary>
+/// <summary>In the panel and not done: carries the "Objetivo actual" pill; grip and rename on hover.</summary>
 public sealed class CurrentObjectiveRow : DetailRow
 {
     public CurrentObjectiveRow(SidequestItem item, SidequestProject project) : base(item, project) { }
@@ -176,7 +173,7 @@ public sealed class CurrentObjectiveRow : DetailRow
     public override string ToString() => $"{Item.Text}, {LanguageService.Get("L_CurrentObjective")}";
 }
 
-/// <summary>Not in the panel and not done: offers "Enviar objetivo", and rename and delete on hover.</summary>
+/// <summary>Not in the panel and not done: offers "Enviar objetivo"; grip, rename and delete on hover.</summary>
 public sealed class PendingItemRow : DetailRow
 {
     public PendingItemRow(SidequestItem item, SidequestProject project) : base(item, project)
@@ -192,8 +189,10 @@ public sealed class CompletedItemRow : DetailRow
 {
     public CompletedItemRow(SidequestItem item, SidequestProject project) : base(item, project) { }
 
-    /// <summary>5.6 offers renaming on pending items and current objectives only.</summary>
+    /// <summary>5.6 renames and reorders pending items and current objectives only.</summary>
     public override bool CanRename => false;
+
+    public override bool CanMove => false;
 
     /// <summary>Whether the tick can be clicked off here; see <see cref="SidequestRules.CanUntickInDetail"/>.</summary>
     public bool CanUntick => SidequestRules.CanUntickInDetail(Item);

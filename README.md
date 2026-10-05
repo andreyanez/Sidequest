@@ -71,7 +71,8 @@ set theme, language and startup again in Settings.
 
 - **Panel** — today's date, and the objectives you have sent to it, each with the
   Sidequest it came from. Tick them off here; the chip opens its Sidequest. Hovering or
-  focusing a row shows *rename*, *return to Sidequest* and *delete*. Drag the bottom edge
+  focusing a row shows its ⋮⋮ handle, to drag it into another place, and *rename*,
+  *return to Sidequest* and *delete*. Drag the bottom edge
   to set the panel's height, which every screen keeps; a long list scrolls. The chevron
   collapses the panel to one row, and it stays collapsed until you expand it. The pin
   keeps it above other apps.
@@ -79,7 +80,8 @@ set theme, language and startup again in Settings.
   of eight colours.
 - **A Sidequest** — two tabs. *Items*: its items, grouped as the current objective,
   pending and completed. *Send objective* puts a pending item on the panel, *Add item*
-  adds one after another, and an item is renamed in place (the pencil, or F2). *Notes*:
+  adds one after another, an item is renamed in place (the pencil, or F2), and its ⋮⋮
+  handle moves it within its group. *Notes*:
   notes, where web addresses become links; up to five local files, linked by path; and
   up to five images, copied into the app's own folder so the originals can move. The
   "⋯" menu renames the Sidequest, changes its colour or deletes it.
@@ -89,7 +91,8 @@ set theme, language and startup again in Settings.
   the icon shows the panel, and so does starting the exe again. `Sidequest.exe
   --sidequests` and `--settings` open those screens directly.
 - **Keyboard** — everything is reachable with Tab, Enter, Escape and Delete; F2 renames,
-  and the arrow keys move between a Sidequest's tabs.
+  Alt+↑ and Alt+↓ on a handle move its card, and the arrow keys move between a
+  Sidequest's tabs.
 
 ## Data
 

@@ -19,6 +19,9 @@ in its footer.
 - A Sidequest has Items and Notas tabs. Notas holds its notes, links, files and images.
 - Adding items: Enter adds one and leaves the field ready for the next, and the new item
   lights up for a moment.
+- Put objectives and items in the order you want: drag a card by the ⋮⋮ handle that
+  appears on hover, or press Alt+↑ and Alt+↓ on the handle. In a Sidequest, items move
+  within their own group, and completed ones stay put.
 
 ### Changed
 

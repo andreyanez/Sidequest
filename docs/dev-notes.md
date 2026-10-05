@@ -13,9 +13,8 @@ shell and main panel; navigation, the Sidequests list, the new-Sidequest form an
 Sidequest detail; the objective detail with its notes, files and images; the settings
 window and the tray; the light-theme and keyboard pass, short of a live Tab walk; and
 the switch from WeeklyReminder. v1 is complete. Of the spec's 0.2 and 0.3 changes ("0.2
-and 0.3" below), A to E are done and checked, keyboard and pointer included. F
-(reordering) and G (the final pass and the release) are next. Phase 7, the Bitácora
-(v1.1), comes after them.
+and 0.3" below), A to F are done and checked, keyboard and pointer included. G, the
+final pass and the release, is next. Phase 7, the Bitácora (v1.1), comes after it.
 
 ---
 
@@ -376,7 +375,7 @@ The spec's 0.2 and 0.3 (2026-10-03) set no order of their own. Agreed with the u
   detail, which goes; the new add-item field.
 - **E. Rename**, on the panel and on items.
 - **F. Reorder** by dragging and from the keyboard (D8). Until then the handle's space
-  is reserved, as 4.4 says, but nothing is drawn in it: the spec shows no dead controls.
+  was reserved, as 4.4 says, with nothing drawn in it: the spec shows no dead controls.
 - **G.** Both themes, both languages and the keyboard over everything, then a release.
 
 Conflicts settled in the same exchange:
@@ -469,6 +468,44 @@ Conflicts settled in the same exchange:
   It found one bug: the actions were clipped to hide them at rest, and WPF clipped the
   pencil's focus ring with them.
 
+### F, as built
+
+- **The grip is a `Thumb`**, which holds the pointer for the whole drag, and a tab stop
+  of its own: the first in each card, so Alt+Up and Alt+Down can reach it (5.1). It
+  shows on hover and on keyboard focus anywhere in the card, like the actions.
+- **The drag, shared by both lists (`DragReorder`):** past the system's drag distance
+  the card lifts - Surface, a Line2 border, a shadow 10 down at 45 % and 6 to the right,
+  as `FnMainDrag` draws it - and follows the pointer up and down, held within its span:
+  the whole panel, or its own group of the detail (5.6). The cards between slide aside
+  in 110 ms (4.4: at most 120), and a gap opens where it would land, dashed in its
+  Sidequest's colour over `C @ 6 %`, drawn on a canvas behind the cards so the card
+  passes over it. Letting go slides it into the gap and saves; Escape, or losing the
+  pointer to another window, slides everything back. Afterwards keyboard focus is on
+  the grip of the card that moved.
+- **Not in the spec:** held near the top or bottom of a list that scrolls, the card
+  scrolls it. Without that, a card could not reach a place out of view.
+- **The orders.** The panel is numbered afresh from 0 in its new order. In a Sidequest
+  the group's items trade the `SortIndex` values they hold, so the other groups keep
+  theirs, and an item that changes group later - ticked, unticked, sent, returned - comes
+  back near where it was. Equal indexes, which no version writes but a hand-edited file
+  could hold, are spread out first.
+- **The two lists that drag pad their content, not their scroll area.** `ScrollArea`'s
+  `Padding` sits outside the clip, which cut off the lifted card's right edge and its
+  shadow; `FnMainDrag`'s list clips at its outer edge, as CSS does. Content scrolls into
+  that margin too now, as it would in CSS.
+- **The shadow's blur is 36.** CSS's 24 is a Gaussian of sigma 12, and WPF's
+  `BlurRadius` is about three sigmas. At 24 the shadow was dark under the card and gone
+  too soon; at 36 it matches `FnMainDrag` to a level, in light, where a shadow shows.
+- **Checked live**, on a copy of its own beside the user's trial run: the held drag
+  against `FnMainDrag` in dark and light (positions to the pixel, shadow and gap to a
+  level), dropping and the saved order, Escape, Alt+Up and Alt+Down at the ends of the
+  panel and of a group, a pending item held against the current objective above it,
+  scrolling at the edge, hover against `FnSidequest`'s hovered row, and the Tab order
+  with the grips. Tests go from 94 to 99. The grip's dots render a little lighter than
+  Chrome's, on the same pixels, as text does. **Not checked live:** losing the pointer
+  mid-drag, which `Thumb` turns into a cancel itself; forcing it would have meant
+  switching the user's foreground window during a drag.
+
 ## Known deviations from the spec
 
 - **The import does not carry over WeeklyReminder's settings** (§3 step 3). Accepted on
@@ -476,6 +513,10 @@ Conflicts settled in the same exchange:
   `LegacyMigration` copies them into `AppSettings`, but `App.OnStartup` applies the
   language before the import runs, overwrites `StartWithWindows` from the registry, and
   never saves afterwards. Only the week's items survive the import.
+- **The grip's cursor is `SizeNS`, not `grab`.** 4.4 asks for `grab` and `grabbing`,
+  which browsers draw themselves and Windows does not have. Drawing a hand at runtime, as
+  the tray icon is drawn, is possible but was not worth it; the up-and-down arrows say
+  what the grip does.
 - **Letter-spacing is not implemented.** §4.1 asks for −0.02em on 22/700 headings and
   +0.06em on section labels; measured on the artboard that is −0.44px and +0.66px. WPF has
   no letter-spacing property, and the workaround is an attached behaviour that rebuilds

@@ -10,6 +10,9 @@ using Button = System.Windows.Controls.Button;
 using ContextMenu = System.Windows.Controls.ContextMenu;
 using DispatcherPriority = System.Windows.Threading.DispatcherPriority;
 using DispatcherTimer = System.Windows.Threading.DispatcherTimer;
+using DragCompletedEventArgs = System.Windows.Controls.Primitives.DragCompletedEventArgs;
+using DragDeltaEventArgs = System.Windows.Controls.Primitives.DragDeltaEventArgs;
+using DragStartedEventArgs = System.Windows.Controls.Primitives.DragStartedEventArgs;
 using InputManager = System.Windows.Input.InputManager;
 using Key = System.Windows.Input.Key;
 using KeyboardDevice = System.Windows.Input.KeyboardDevice;
@@ -53,6 +56,7 @@ public partial class SidequestView : UserControl
     private readonly DispatcherTimer _pressTimer;
     private readonly DispatcherTimer _glowTimer;
     private readonly InlineRename _rename;
+    private readonly DragReorder _drag;
 
     private SidequestItem? _newItem;
     private SidequestTheme _themeBeforePicker;
@@ -65,6 +69,7 @@ public partial class SidequestView : UserControl
         _project = project;
         _justCreated = justCreated;
         _rename = new InlineRename(ItemList);
+        _drag = new DragReorder(ItemList, ListScroll, DragLayer, GroupSpan, MoveItem);
 
         NotesTabItem.Content = new NotesTab(project);
 
@@ -205,12 +210,13 @@ public partial class SidequestView : UserControl
     }
 
     /// <summary>
-    /// Supr on a pending row deletes it, as it does on the panel, and F2 on any card
-    /// renames it (5.1). A row being renamed keeps its keys for the field.
+    /// Supr on a pending row deletes it, as it does on the panel; F2 on any card renames
+    /// it, and Alt+Up and Alt+Down on its grip move it (5.1). Escape drops a drag. A row
+    /// being renamed keeps its keys for the field.
     /// </summary>
     private void ItemList_KeyDown(object sender, KeyEventArgs e)
     {
-        if (_rename.TryBeginFromKey(e))
+        if (_drag.TryCancel(e) || _drag.TryMoveFromKey(e) || _rename.TryBeginFromKey(e))
         {
             e.Handled = true;
             return;
@@ -281,6 +287,49 @@ public partial class SidequestView : UserControl
         if (AddField.Visibility == Visibility.Visible && AddBox.Text.Trim().Length == 0
             && !(e.OriginalSource is Visual target && AddField.IsAncestorOf(target)))
             CloseAddField(focusButton: false);
+    }
+
+    // ---- Reordering an item (5.6, D8) ----------------------------------------------
+
+    private void Grip_DragStarted(object sender, DragStartedEventArgs e) => _drag.Started(sender, e);
+
+    private void Grip_DragDelta(object sender, DragDeltaEventArgs e) => _drag.Delta(sender, e);
+
+    private void Grip_DragCompleted(object sender, DragCompletedEventArgs e) => _drag.Completed(sender, e);
+
+    /// <summary>
+    /// 5.6: an item moves only among its own group - current objectives among themselves,
+    /// pending items among themselves - which DetailOrder keeps together.
+    /// </summary>
+    private (int First, int Last)? GroupSpan(ItemRow row)
+    {
+        if (ItemList.ItemsSource is not List<DetailRow> rows || !row.CanMove) return null;
+
+        var group = row.GetType();
+        var first = rows.FindIndex(r => r.GetType() == group);
+        return first < 0 ? null : (first, rows.FindLastIndex(r => r.GetType() == group));
+    }
+
+    /// <summary>The Sidequest's order is SortIndex, traded within the group and saved.</summary>
+    private void MoveItem(ItemRow row, int to)
+    {
+        if (GroupSpan(row) is not { } span) return;
+        if (!SidequestRules.MoveInGroup(_project, row.Item, to - span.First)) return;
+
+        Save();
+        Refresh();
+        FocusGrip(row.Item);
+    }
+
+    /// <summary>After a move the list is new, so focus goes back to the grip that moved.</summary>
+    private void FocusGrip(SidequestItem item)
+    {
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+        {
+            var grip = VisualTree.FindDescendant<Thumb>(ItemList, t =>
+                t.Name == "Grip" && t.DataContext is DetailRow row && row.Item == item);
+            grip?.Focus();
+        });
     }
 
     // ---- Add item (5.6) -------------------------------------------------------------

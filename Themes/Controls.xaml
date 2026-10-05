@@ -134,6 +134,37 @@
         </Setter>
     </Style>
 
+    <!-- The drag grip (4.4, D8): 18x32 and radius 10, its six dots in Text2. A Thumb, which
+         takes the pointer for the whole drag; focusable, since Alt+Up and Alt+Down move its
+         card from the keyboard (5.1). Its place is always kept; the cards show it on hover
+         and on keyboard focus. Windows has no grab cursor, so it takes the one for moving
+         up and down. -->
+    <Style x:Key="Grip" TargetType="Thumb">
+        <Setter Property="Width" Value="18"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Focusable" Value="True"/>
+        <Setter Property="IsTabStop" Value="True"/>
+        <Setter Property="Foreground" Value="{DynamicResource Text2}"/>
+        <Setter Property="Cursor" Value="SizeNS"/>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource Focus.R10}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Border Background="Transparent" CornerRadius="10">
+                        <Path Data="{StaticResource Icon.Grip}"
+                              Fill="{TemplateBinding Foreground}"
+                              Width="10"
+                              Height="16"
+                              Stretch="None"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- A rename's check (5.1, 5.6), in the Sidequest's colour, which comes from the row
          it sits in. A setter rather than a local value, so hover still takes it to Text. -->
     <Style x:Key="SaveNameButton" TargetType="Button" BasedOn="{StaticResource IconButton}">

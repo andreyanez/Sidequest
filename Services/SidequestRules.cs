@@ -125,6 +125,59 @@ public static class SidequestRules
         item.InPanel = true;
     }
 
+    /// <summary>
+    /// D8 on the panel (5.1): moves the objective at <paramref name="from"/> to
+    /// <paramref name="to"/>, done or not. <paramref name="panel"/> is the panel's items in
+    /// the order shown; they are numbered afresh from 0, which keeps that order whatever
+    /// indexes they held before. Returns whether anything moved.
+    /// </summary>
+    public static bool MoveInPanel(IList<SidequestItem> panel, int from, int to)
+    {
+        if (from < 0 || from >= panel.Count) return false;
+        to = Math.Clamp(to, 0, panel.Count - 1);
+        if (from == to) return false;
+
+        var order = panel.ToList();
+        var item = order[from];
+        order.RemoveAt(from);
+        order.Insert(to, item);
+
+        for (var i = 0; i < order.Count; i++) order[i].PanelIndex = i;
+        return true;
+    }
+
+    /// <summary>
+    /// D8 in a Sidequest (5.6): moves an item to another place in its own group, current
+    /// objectives among themselves and pending items among themselves. Completed items do
+    /// not move. The group's items trade the SortIndex values they already hold, so the
+    /// other groups keep theirs, and an item that changes group later still lands near
+    /// where it was. Returns whether anything moved.
+    /// </summary>
+    public static bool MoveInGroup(SidequestProject project, SidequestItem item, int to)
+    {
+        var group = GroupOf(item);
+        if (group == ItemGroup.Completed) return false;
+
+        // Equal indexes would leave the new order to chance; spread them out first.
+        if (project.Items.Select(i => i.SortIndex).Distinct().Count() != project.Items.Count)
+        {
+            var spread = project.Items.OrderBy(i => i.SortIndex).ToList();
+            for (var i = 0; i < spread.Count; i++) spread[i].SortIndex = i;
+        }
+
+        var members = DetailOrder(project).Where(i => GroupOf(i) == group).ToList();
+        var from = members.IndexOf(item);
+        to = Math.Clamp(to, 0, members.Count - 1);
+        if (from < 0 || from == to) return false;
+
+        var places = members.Select(i => i.SortIndex).OrderBy(i => i).ToList();
+        members.RemoveAt(from);
+        members.Insert(to, item);
+
+        for (var i = 0; i < members.Count; i++) members[i].SortIndex = places[i];
+        return true;
+    }
+
     /// <summary>1: back to its Sidequest as it stands - Done is kept.</summary>
     public static void ReturnToSidequest(SidequestItem item)
     {

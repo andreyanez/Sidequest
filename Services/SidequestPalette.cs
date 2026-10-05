@@ -33,6 +33,7 @@ public static class SidequestPalette
         public const double FormBorder = 0.40;         // FnSidequestNuevo: su borde
         public const double NewItemFill = 0.08;        // 5.6, FnSidequestAdd: el item recién añadido
         public const double NewItemBorder = 0.50;      // 5.6, FnSidequestAdd: su borde
+        public const double DropGapFill = 0.06;        // 4.4, FnMainDrag: el hueco donde caerá la tarjeta
     }
 
     // 4.2's values, with two light-mode corrections.

@@ -215,4 +215,81 @@ public class SidequestRulesTests
         Assert.False(SidequestRules.CanUntickInDetail(Item("done in panel", 0, done: true, panelIndex: 0)));
         Assert.False(SidequestRules.CanUntickInDetail(Item("pending", 0)));
     }
+
+    // ---- D8: reordering -----------------------------------------------------------------
+
+    [Fact]
+    public void MoveInPanel_NumbersThePanelAfresh_InTheNewOrder()
+    {
+        // FnMainDrag: the second objective dragged one place down. Gaps in the old
+        // indexes, as deletions leave them, don't matter.
+        var a = Item("Elegir", 0, panelIndex: 0);
+        var b = Item("Cotizar", 0, panelIndex: 3);
+        var c = Item("Terminar", 0, panelIndex: 7);
+        var d = Item("Comprar", 0, done: true, panelIndex: 8);
+
+        Assert.True(SidequestRules.MoveInPanel(new[] { a, b, c, d }, 1, 2));
+
+        Assert.Equal(new int?[] { 0, 2, 1, 3 }, new[] { a.PanelIndex, b.PanelIndex, c.PanelIndex, d.PanelIndex });
+    }
+
+    [Fact]
+    public void MoveInPanel_MovesCompletedObjectivesToo_AndStopsAtTheEnds()
+    {
+        var a = Item("a", 0, panelIndex: 0);
+        var done = Item("done", 0, done: true, panelIndex: 1);
+
+        Assert.True(SidequestRules.MoveInPanel(new[] { a, done }, 1, -5));
+        Assert.Equal(0, done.PanelIndex);
+        Assert.Equal(1, a.PanelIndex);
+
+        Assert.False(SidequestRules.MoveInPanel(new[] { done, a }, 0, 0));
+    }
+
+    [Fact]
+    public void MoveInGroup_TradesPlacesWithinTheGroup_AndLeavesTheOthersAlone()
+    {
+        var current = Item("current", 1, panelIndex: 0);
+        var p1 = Item("p1", 2);
+        var p2 = Item("p2", 4);
+        var completed = Item("completed", 5, done: true);
+        var p3 = Item("p3", 7);
+        var project = Project(SidequestTheme.Teal, 0, current, p1, p2, completed, p3);
+
+        Assert.True(SidequestRules.MoveInGroup(project, p3, 0));
+
+        Assert.Equal(new[] { "current", "p3", "p1", "p2", "completed" },
+            SidequestRules.DetailOrder(project).Select(i => i.Text));
+        // p3 takes p1's place and the rest shift along; the others keep their indexes.
+        Assert.Equal((2, 4, 7), (p3.SortIndex, p1.SortIndex, p2.SortIndex));
+        Assert.Equal((1, 5), (current.SortIndex, completed.SortIndex));
+    }
+
+    [Fact]
+    public void MoveInGroup_CompletedItemsStay_AndAMoveStopsAtTheGroupsEnds()
+    {
+        var current = Item("current", 0, panelIndex: 0);
+        var pending = Item("pending", 1);
+        var completed = Item("completed", 2, done: true);
+        var project = Project(SidequestTheme.Teal, 0, current, pending, completed);
+
+        Assert.False(SidequestRules.MoveInGroup(project, completed, 0));
+        // Alone in its group, the pending item has nowhere to go - not into the current one.
+        Assert.False(SidequestRules.MoveInGroup(project, pending, 0));
+        Assert.Equal((0, 1, 2), (current.SortIndex, pending.SortIndex, completed.SortIndex));
+    }
+
+    [Fact]
+    public void MoveInGroup_SpreadsEqualIndexesFirst_SoTheNewOrderHolds()
+    {
+        var a = Item("a", 3);
+        var b = Item("b", 3);
+        var c = Item("c", 3);
+        var project = Project(SidequestTheme.Teal, 0, a, b, c);
+
+        Assert.True(SidequestRules.MoveInGroup(project, a, 2));
+
+        Assert.Equal(new[] { "b", "c", "a" }, SidequestRules.DetailOrder(project).Select(i => i.Text));
+        Assert.Equal(3, project.Items.Select(i => i.SortIndex).Distinct().Count());
+    }
 }
