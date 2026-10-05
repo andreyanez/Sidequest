@@ -11,8 +11,9 @@ in daily use.
    app, and decisions the code cannot show. Keep its Status line current at each phase
    boundary.
 2. **`docs/design-spec.md`**: what to build. It is written in Spanish. §0 holds the
-   resolved decisions (D1–D7), the v1 scope and the phase order. The list in §8 is the
-   older v0.1 order with different numbering, so go by §0.
+   decisions (D1–D10; D8 revokes D7) and the scope. The list in §8 is the older v0.1
+   order with different numbering, so go by §0. §0 sets no phase order for the 0.2/0.3
+   changes: propose one and record it in dev-notes before writing code.
 3. **`docs/design/reference/*.html`**: the artboards. A screen is done when it matches
    its artboard 1:1 in both themes and both languages, and every §5 interaction works
    from the keyboard (Tab, Enter, Escape, Delete) as well as the mouse. Only `FnMain`
@@ -84,7 +85,8 @@ in dev-notes. They attach only to a build from this repo.
   - Row classes override `ToString()`, since UIA reads it.
 - **Model.** The type is `SidequestProject`, not `Sidequest`, because of a clash with the
   root namespace. An objective is the same `SidequestItem` with `InPanel = true`, never a
-  copy. `SortIndex` and `PanelIndex` only ever grow, since nothing reorders (D7).
+  copy. Objectives and items are reordered by dragging (D8, which revokes D7):
+  `PanelIndex` orders the panel and `SortIndex` orders a Sidequest, independently.
 - **WinForms** is referenced only for `NotifyIcon`. Its implicit usings collide with
   WPF's, so code files alias what they use (for example
   `using UserControl = System.Windows.Controls.UserControl;`).

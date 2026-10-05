@@ -1,6 +1,16 @@
 # Sidequest — especificación de diseño e implementación
 
-Versión 0.1 · 18 de septiembre de 2026 · Reemplaza la UI de WeeklyReminder por Sidequest.
+Versión 0.3 · 3 de octubre de 2026 · Reemplaza la UI de WeeklyReminder por Sidequest.
+
+**Cambios en 0.2** (tras unos días de uso): se elimina el detalle del objetivo y sus notas, archivos
+e imágenes pasan al detalle del Sidequest como pestaña **Notas**; los objetivos e items se pueden
+**renombrar** y **reordenar arrastrando** (asa ⋮⋮ al pasar el cursor); se especifica el estado de
+**añadir item**. Secciones afectadas: 1, 3, 4.4, 5.1, 5.3, 5.6, 7, 8.
+
+**Cambios en 0.3**: la ventana compacta pasa a **alto fijo ajustable por el usuario** (igual en todas
+las vistas) con scroll interno y señales de scroll; la lista de Sidequests pierde el contador "n
+activos" y fija "Nuevo Sidequest" en el pie. No hay archivado de Sidequests. Secciones afectadas:
+3, 4.4, 5, 5.1, 5.4, 5.5, 6, 7.
 
 Este documento describe **qué** construir. Las convenciones del repo (cómo compilar, cómo
 se organizan temas e idiomas, qué patrones de WPF se usan) viven en `README.md` y, cuando
@@ -12,31 +22,34 @@ valores exactos de CSS).
 
 ## 0. Decisiones
 
-**Resueltas el 19 de septiembre de 2026.** Todas quedaron en su opción por defecto salvo D7,
-que no estaba en la versión 0.1. Las marcas **[DECIDIR]** del resto del documento se leen ya
-como decididas.
+**D1–D7 se resolvieron el 19 de septiembre de 2026** y la v1 (0.1.0) salió con ellas el 30 de
+septiembre. **D7 queda revocada por D8 (0.2).** D8–D10 se resolvieron el 3 de octubre de
+2026. Las marcas **[DECIDIR]** del resto del documento se leen ya como decididas.
 
 | # | Tema | Decisión | Se descartó |
 |---|------|----------|-------------|
 | D1 | Recordatorios programados, snooze y auto-cierre de WeeklyReminder | **Se eliminan.** Sidequest es un panel persistente, no un popup que aparece solo. Se pierden los avisos de 09:00 / 15:00 / 23:00. | Conservar el `Scheduler` para mostrar el panel principal a horas fijas. |
 | D2 | Rollover semanal | **Se elimina.** Los objetivos no expiran por fecha; el usuario los quita. | — |
 | D3 | Migración de `week.json` | **Se importa** a un Sidequest llamado "Importados" (tema Grafito); los items conservan `Done` y su orden actual. | Descartar los datos antiguos. |
-| D4 | Imágenes adjuntas a un objetivo | **Se copian** a `%APPDATA%\Sidequest\media\` (el original puede moverse). Los archivos locales solo se **referencian** por ruta. | Referenciar también las imágenes. |
+| D4 | Imágenes adjuntas *(en la 0.1, a un objetivo; desde la 0.2, a un Sidequest)* | **Se copian** a `%APPDATA%\Sidequest\media\` (el original puede moverse). Los archivos locales solo se **referencian** por ruta. | Referenciar también las imágenes. |
 | D5 | Nombre del ejecutable, mutex y carpeta de datos | **Se renombra todo a `Sidequest`**, incluidos el repositorio de GitHub y la carpeta del proyecto. La carpeta antigua `%APPDATA%\WeeklyReminder\` solo se lee para migrar. | Mantener el nombre interno y cambiar solo la UI. |
 | D6 | Whiteboard: redimensionar formas | **v1 no redimensiona**; solo crear, mover, editar texto y borrar. | Incluir asas de redimensión en v1. |
-| D7 | Reordenar objetivos e items *(no estaba en la 0.1)* | **No se reordena en ninguna lista.** `SortIndex` y `PanelIndex` solo crecen: el panel va en orden de envío y el Sidequest en orden de creación, dentro de los grupos de la 5.6. Los campos se conservan por si más adelante se quiere reordenar. | Arrastrar para reordenar, como hace hoy WeeklyReminder. |
+| ~~D7~~ | ~~Reordenar objetivos e items~~ | ~~No se reordena en ninguna lista; `SortIndex` y `PanelIndex` solo crecen.~~ **Revocada por D8.** Rigió la 0.1.0. | — |
+| D8 | Reordenar objetivos e items *(0.2)* | **Se reordena arrastrando** desde el asa ⋮⋮ (5.1 y 5.6). El panel y cada Sidequest tienen órdenes independientes (`PanelIndex`, `SortIndex`). | Mantener D7. |
+| D9 | Tamaño del botón de Sidequest en la lista *(0.3)* | **Compacto (42 px)**, ~50 % más Sidequests a la vista (5.4). | Normal (64 px). |
+| D10 | Notas, archivos e imágenes guardados en objetivos por la 0.1.0 *(0.2)* | **No se migran.** No hay ninguno en uso. Al cargar un `sidequests.json` de la 0.1.0, los campos `Notes`, `Files` e `Images` de los items se ignoran y desaparecen en el siguiente guardado. | Fusionarlos en la pestaña Notas de su Sidequest. |
 
-### Alcance de v1
+### Alcance
 
-La **Bitácora (5.7) se aplaza a v1.1** y se construye después del cambio definitivo a
-Sidequest. En v1 el botón "Bitácora" **no aparece** en el detalle del Sidequest — no se
-muestra un control muerto — y `boards\<sidequestId>.json` no se crea todavía.
+**v1 (0.1.0, publicada el 30 de septiembre de 2026).** La Bitácora (5.7) se aplazó a v1.1; el
+botón "Bitácora" **no aparece** en el detalle del Sidequest — no se muestra un control muerto — y
+`boards\<sidequestId>.json` no se crea todavía. Orden que se siguió: fase 0 (renombres, fuente,
+resolución de color, iconos) → 1 (datos y migración) → 2 (shell y panel principal) → 3
+(navegación y Sidequests) → 4 (detalle del objetivo) → 5 (ajustes y bandeja) → 6 (tema claro y
+repaso de teclado).
 
-Orden de trabajo: fase 0 (renombres, fuente, resolución de color, iconos) → 1 (datos y
-migración) → 2 (shell y panel principal) → 3 (navegación y Sidequests) → 4 (detalle del
-objetivo) → 5 (ajustes y bandeja) → 6 (tema claro y repaso de teclado) → 7 (Bitácora, v1.1).
-Se trabaja en la rama `sidequest`; WeeklyReminder sigue instalado y funcionando hasta que
-se complete la fase 6.
+**Cambios de la 0.2 y la 0.3.** Se construyen sobre `main` antes de la Bitácora, que sigue
+siendo la fase 7 (v1.1).
 
 ### Correcciones a la 0.1
 
@@ -71,10 +84,16 @@ Reglas de negocio:
   (`InPanel = false`, conserva `Done`) o **eliminar** (borra el item del Sidequest, previa confirmación).
 - Un objetivo completado se queda en el panel, tachado, hasta que el usuario lo devuelva o elimine.
   No hay limpieza automática por día ni por semana **[D2]**.
-- Los detalles de un objetivo (notas, archivos, imágenes) se editan solo desde el panel principal
-  (click en el texto del objetivo). Un item que no está en el panel no tiene pantalla de detalle.
-- Límites por item: notas ≤ 500 caracteres (las URL cuentan), archivos ≤ 5, imágenes ≤ 5. Al
+- Los objetivos no tienen detalles propios: si un objetivo necesita notas, no es lo bastante atómico.
+  El contexto (notas, enlaces, archivos, imágenes) vive en el **Sidequest**, en su pestaña Notas; los
+  objetivos son el resultado destilado de ese contexto.
+- Límites por Sidequest: notas ≤ 500 caracteres (las URL cuentan), archivos ≤ 5, imágenes ≤ 5. Al
   alcanzar un límite, el botón de añadir correspondiente se deshabilita y el contador lo muestra.
+- Objetivos e items se **renombran** con el lápiz que aparece al pasar el cursor, editando en la misma
+  tarjeta. Mismo texto en ambos sitios (es el mismo objeto).
+- Objetivos (en el panel) e items pendientes (en el Sidequest) se **reordenan arrastrando** desde un
+  asa ⋮⋮ que aparece al pasar el cursor. El resto de la tarjeta no inicia arrastre. Reordenar en el
+  panel cambia `PanelIndex`; reordenar en el Sidequest cambia `SortIndex`. Son órdenes independientes.
 - El usuario llega a un item navegando: panel principal → Sidequests → Sidequest → "Enviar objetivo".
   No hay atajo para traer items desde el panel principal; es intencional.
 
@@ -118,7 +137,7 @@ Carpeta: `%APPDATA%\Sidequest\`.
 | `sidequests.json` | Lista de Sidequests con sus items (un solo archivo; el volumen esperado es pequeño). |
 | `settings.json` | Ajustes de la app y posición de ventanas. |
 | `boards\<sidequestId>.json` | Contenido de la Bitácora de un Sidequest. Se crea al abrirla por primera vez. |
-| `media\<guid>.<ext>` | Imágenes copiadas (objetivos y bitácoras) **[D4]**. |
+| `media\<guid>.<ext>` | Imágenes copiadas (notas de Sidequest y bitácoras) **[D4]**. |
 
 ```csharp
 public enum SidequestTheme { Amber, Teal, Indigo, Coral, Olive, Plum, Steel, Slate }
@@ -131,6 +150,9 @@ public sealed class Sidequest
     public DateTime CreatedAt { get; set; }
     public int SortIndex { get; set; }        // orden en la lista de Sidequests
     public ObservableCollection<SidequestItem> Items { get; set; }
+    public string Notes { get; set; }         // ≤ 500 caracteres, texto plano; las URL se detectan al mostrar
+    public List<string> Files { get; set; }   // ≤ 5 rutas absolutas (referencia, no copia)
+    public List<string> Images { get; set; }  // ≤ 5 nombres de archivo dentro de media\
 }
 
 public sealed class SidequestItem : INotifyPropertyChanged
@@ -141,9 +163,6 @@ public sealed class SidequestItem : INotifyPropertyChanged
     public bool InPanel { get; set; }         // true = es un objetivo (aparece en el panel principal)
     public int SortIndex { get; set; }        // orden dentro del Sidequest
     public int? PanelIndex { get; set; }      // orden en el panel principal; null si InPanel = false
-    public string Notes { get; set; }         // ≤ 500 caracteres, texto plano; las URL se detectan al mostrar
-    public List<string> Files { get; set; }   // ≤ 5 rutas absolutas (referencia, no copia)
-    public List<string> Images { get; set; }  // ≤ 5 nombres de archivo dentro de media\
 }
 
 public sealed class AppSettings
@@ -156,6 +175,7 @@ public sealed class AppSettings
     public bool Collapsed { get; set; }                    // estado contraído del panel principal, SÍ se persiste
     public double? MainLeft { get; set; }
     public double? MainTop { get; set; }
+    public double MainHeight { get; set; } = 640;          // alto de la ventana compacta, ajustable por el usuario
 }
 ```
 
@@ -178,6 +198,12 @@ Al arrancar, si no existe `%APPDATA%\Sidequest\sidequests.json` y sí existe
 2. Copiar cada `TaskItem` como `SidequestItem { Text, Done, InPanel = false }`.
 3. Copiar de `settings.json` antiguo solo `Theme`, `Language`, `KeepOnTop`, `StartWithWindows`.
 4. Renombrar `week.json` a `week.json.migrated`. No borrar nada.
+
+### Datos de la 0.1.0 **[D10]**
+
+Un `sidequests.json` escrito por la 0.1.0 se carga sin migración: los campos `Notes`, `Files` e
+`Images` de los items se ignoran (no se leen ni se copian) y desaparecen en el siguiente guardado.
+Lo demás (Sidequests, items, `Done`, `InPanel`, `SortIndex`, `PanelIndex`) se conserva tal cual.
 
 ---
 
@@ -260,7 +286,13 @@ futuro se permite color libre, hay que validar contraste al elegirlo.
 | Componente | Especificación |
 |------------|----------------|
 | **Barra de título** | 36 px. Izquierda: "Sidequest" 11/600 `Text2` (o enlace "‹ Volver" en sub-paneles, con el nombre de la app a la derecha). Derecha: botones de icono 28×28: pin (activo = fondo `Hover`, color `Text`), contraer (chevron arriba), cerrar. Sin minimizar. Toda la barra arrastra la ventana. |
-| **Tarjeta de objetivo** | 50 px, `Surface`, borde `Line`, radio 10. Checkbox 18 px · texto 14/500 con elipsis · chip · acciones (aparecen en hover: devolver, eliminar). |
+| **Tarjeta de objetivo** | 50 px, `Surface`, borde `Line`, radio 10, padding 0 8 0 4. Asa ⋮⋮ (18 px, solo en hover) · checkbox 18 px · texto 14/500 con elipsis · chip · acciones en hover: lápiz, devolver, eliminar. El texto no es clicable. |
+| **Asa de arrastre** | 18 × 32, seis puntos de 1.3 px en `Text2`, cursor `grab`. Su espacio está reservado siempre (no desplaza el contenido) pero solo es visible en hover o con foco de teclado. Es el único punto que inicia el arrastre. |
+| **Tarjeta arrastrada** | La tarjeta sigue al cursor (eje vertical), borde `Line2`, sombra `0 10 24 rgba(0,0,0,.45)`, cursor `grabbing`. En su posición de destino, un hueco del mismo alto con borde 1.5 px punteado en `C` y relleno `C @ 6 %`. Las demás tarjetas se desplazan para abrir el hueco (animación ≤ 120 ms). |
+| **Tarjeta en edición** | Misma tarjeta, borde 1.5 px en `C`. El asa y el chip desaparecen; el texto se vuelve un campo sin borde (14/500, caret `C`, texto seleccionado al entrar); a la derecha, confirmar (check en `C`) y cancelar (x). Debajo, alineado a la derecha, "Enter guarda · Esc cancela" en 11 `Text2`. |
+| **Área con scroll** | Contenido con scroll vertical entre cabecera y pie fijos. Cuando hay contenido oculto debajo: desvanecido de 36 px de `Bg @ 0 %` a `Bg` sobre el borde inferior; arriba, el mismo desvanecido invertido cuando ya se bajó. Barra de 4 px, radio 2, `ScrollThumbBrush`, a 3 px del borde derecho, **siempre visible** mientras haya overflow (no solo en hover). Sin overflow: ni desvanecido ni barra. |
+| **Asa de redimensión** | Barra de 36 × 4, radio 2, `Line2`, centrada en el pie, 8 px bajo su contenido. Es solo una señal: el área real de redimensión es todo el borde inferior de la ventana (6 px, cursor `SizeNS`). |
+| **Pestañas** | Contenedor `Surface`, borde `Line`, radio 12, padding 3, dos opciones de igual ancho y 32 px. Activa: relleno `Text`, texto 13/700 `Inv`. Inactiva: texto 13/500 `Text2`. Contador opcional junto a la etiqueta al 70 % de opacidad. |
 | **Checkbox** | 18 px, radio 6, borde 1.5 px `Line2`. Marcado: relleno con el color del tema del Sidequest, tick `Inv` de 2.25 px. Foco: anillo 2 px `Text`. |
 | **Chip de Sidequest** | Píldora 24 px, `Surface`, borde `Line`, texto 11/500 en el color del tema. Click → detalle del Sidequest. |
 | **Botón primario** | Píldora 36 px, relleno `Text`, texto 13/700 `Inv`. Uno por pantalla como máximo. |
@@ -278,24 +310,35 @@ futuro se permite color libre, hay que validar contraste al elegirlo.
 
 ## 5. Pantallas
 
-Todas las pantallas compactas comparten una ventana de **400 px de ancho** (`MainWindow`). Los
-paneles 1–4 son vistas que se reemplazan dentro de ella (un `ContentControl` con la vista activa;
+Todas las pantallas compactas comparten una ventana de **400 px de ancho fijo y alto fijo elegido por
+el usuario** (`MainWindow`, `Settings.MainHeight`, por defecto 640, mínimo 360, máximo el alto del área
+de trabajo). El alto **no cambia al navegar** entre vistas: cada vista organiza su contenido en cabecera
+fija, área con scroll (4.4) y pie fijo. El usuario lo ajusta arrastrando el borde inferior; se guarda al
+soltar. El estado contraído (5.2) ignora este alto y lo restaura al expandir. Los paneles 1–4 son vistas
+que se reemplazan dentro de ella (un `ContentControl` con la vista activa;
 sin animación de transición). La Bitácora y Ajustes abren **ventanas aparte**. Referencia visual:
 `docs/design/reference/<archivo>.html`.
 
 ### 5.1 Panel principal — `FnMain.html`, tema claro en `FnMainClaro.html`
 
-- Alto: crece con el contenido hasta `WorkArea.Height − 48`; luego scroll (mismo enfoque que hoy).
-  Alto mínimo 360 px para que el estado vacío no quede aplastado.
+- Alto: el de la ventana (5). La lista de objetivos es el área con scroll; cabecera de fecha y pie con
+  "Sidequests →" quedan fijos.
 - Barra de título: "Sidequest", pin, contraer, cerrar. **Cerrar** cierra la ventana, no la app (la
   app sigue en la bandeja; doble clic o "Mostrar" la reabre).
 - Cabecera (padding 22/16/14): línea 1 con el día de la semana en etiqueta de sección y el contador
   `completados / total` a la derecha (12 `Text2`); línea 2 con la fecha completa 22/700,
   formateada con la cultura activa ("17 de septiembre de 2026" / "17 September 2026").
 - Lista de tarjetas de objetivo en el orden `PanelIndex`. Sin secciones ni agrupación.
-- Click en el texto → detalle del objetivo. Click en el chip → detalle del Sidequest.
-- Hover sobre una tarjeta: fondo `Hover` y aparecen dos botones de icono a la derecha: **devolver al
-  Sidequest** y **eliminar** (este último pide confirmación con el `ConfirmDialog` existente).
+- El texto del objetivo no navega a ningún sitio. Click en el chip → detalle del Sidequest.
+- Hover sobre una tarjeta: fondo `Hover`, aparece el asa ⋮⋮ a la izquierda y tres botones de icono a la
+  derecha: **renombrar** (lápiz), **devolver al Sidequest** y **eliminar** (este último pide confirmación
+  con el `ConfirmDialog` existente).
+- **Renombrar** (`FnMainEdit.html`): la tarjeta pasa al estado "en edición" (4.4). Enter o perder el foco
+  guarda; Esc cancela; un nombre vacío no se guarda (se restaura el anterior). F2 sobre una tarjeta con
+  foco también entra en edición.
+- **Reordenar** (`FnMainDrag.html`): arrastrar desde el asa. Al soltar se actualiza `PanelIndex` y se
+  guarda. Esc durante el arrastre lo cancela. Teclado: con el asa enfocada, Alt+↑ / Alt+↓ mueven una
+  posición. Los objetivos completados se pueden reordenar igual que los pendientes.
 - Pie (60 px, borde superior `Line`): botón primario "Sidequests →" a la izquierda, icono de ajustes a
   la derecha.
 - Estado vacío: texto `Text2` centrado "Sin objetivos. Entra a un Sidequest y envía uno." y debajo el
@@ -310,38 +353,30 @@ sin animación de transición). La Bitácora y Ajustes abren **ventanas aparte**
   borde inferior de la pantalla se enrolle hacia arriba.
 - `KeepOnTop` se mantiene mientras está contraído. El estado se persiste (`Settings.Collapsed`).
 
-### 5.3 Detalle del objetivo — `FnObjetivo.html`
+### 5.3 ~~Detalle del objetivo~~ (eliminado en 0.2)
 
-- Barra: "‹ Panel principal" · "Sidequest".
-- Banda tintada con el tema del Sidequest: checkbox (mismo comportamiento que en el panel), título del
-  objetivo 19/700, chip del Sidequest debajo (click → detalle del Sidequest).
-- Sección **Notas y enlaces** con contador `n / 500`: un solo campo de texto plano multilínea. Las URL
-  (`http://`, `https://`) se muestran subrayadas en el color del tema y se abren con **Ctrl+clic** (o clic
-  simple cuando el campo no tiene el foco). Implementación sugerida: `RichTextBox` con detección de URL
-  al perder el foco, o `TextBox` en edición y `TextBlock` con `Hyperlink` en reposo.
-- Sección **Archivos locales** con contador `n / 5`: filas de 42 px con icono, nombre de archivo, carpeta
-  contenedora abreviada (`…\Mudanza`) y botón de quitar. Clic en la fila abre el archivo con la app
-  asociada (`Process.Start` con `UseShellExecute`). Botón "Vincular archivo" abre un `OpenFileDialog`;
-  se deshabilita al llegar a 5. Si el archivo ya no existe, la fila se muestra en `Text2` con tooltip.
-- Sección **Imágenes** con contador `n / 5`: rejilla de 5 celdas de 66 px, radio 10. Celdas ocupadas
-  muestran la miniatura (`Stretch=UniformToFill`); clic abre la imagen. Una celda "+" (punteada) añade
-  con `OpenFileDialog` **o arrastrando** un archivo de imagen sobre el panel; las restantes son celdas
-  vacías punteadas. Hover en una ocupada muestra "quitar".
-- Los cambios se guardan al salir del campo o cerrar la vista; no hay botón de guardar.
+Ya no existe. Su contenido pasa a la pestaña **Notas** del detalle del Sidequest (5.6).
 
 ### 5.4 Lista de Sidequests — `FnSidequests.html`
 
-- Barra: "‹ Panel principal" · "Sidequest". Cabecera: "Sidequests" 22/700 y "n activos" a la derecha.
-- Un botón por Sidequest (spec en 4.4), orden `SortIndex`, con nombre, `completados / total` y barra de
-  progreso. Clic → detalle.
-- Al final, botón punteado "+ Nuevo Sidequest".
-- Estado vacío: solo el botón punteado, sin texto extra.
+Referencias: `FnSidequests.html` (pocos), `FnSidequestsLargo.html` y `FnSidequestsCompacto.html` (14
+Sidequests en 640 px, para comparar), `FnSidequestsLargoNuevo.html`.
+
+- Barra: "‹ Panel principal" · "Sidequest". Cabecera: solo "Sidequests" 22/700 (sin contador; no existe
+  archivado, así que todos los Sidequests están siempre en la lista).
+- Área con scroll (4.4) con un botón por Sidequest, orden `SortIndex`: nombre, `completados / total` y
+  barra de progreso. Clic → detalle. Tamaño del botón **[D9]**: *compacto* (42 px, radio 10, nombre
+  14/600, progreso de 2 px pegado al borde inferior, gap 6), unos 9 visibles a 640 px. El *normal*
+  (64 px, radio 12, progreso de 3 px bajo el nombre; unos 6 visibles) queda en `FnSidequestsLargo.html`
+  solo como comparación.
+- Pie fijo: botón punteado "+ Nuevo Sidequest" y asa de redimensión. Siempre visible, sin scroll.
+- Estado vacío: lista vacía y el pie; sin texto extra.
 
 ### 5.5 Nuevo Sidequest — `FnSidequestNuevo.html`
 
-- Misma pantalla que 5.4: al pulsar "Nuevo Sidequest", el botón punteado se reemplaza por una tarjeta
-  de formulario tintada con el tema seleccionado, y los botones de la lista pasan a su versión compacta
-  (44 px, sin barra de progreso) para dejar sitio.
+- Misma pantalla que 5.4: al pulsar "Nuevo Sidequest", el botón punteado **del pie** se reemplaza por una
+  tarjeta de formulario tintada con el tema seleccionado. El pie crece hacia arriba y el área con scroll
+  se reduce; la lista no cambia de tamaño de botón.
 - Formulario: etiqueta "NUEVO SIDEQUEST" en el color del tema; campo "Nombre" (foco automático, borde
   en el color del tema); "Tema": ocho cuadrados de 30 px, radio 10, el seleccionado con anillo de 2 px
   `Text` a 2 px de distancia; botones "Cancelar" (secundario) y "Crear" (primario).
@@ -349,21 +384,55 @@ sin animación de transición). La Bitácora y Ajustes abren **ventanas aparte**
   nuevo Sidequest (vacío), donde el usuario añade items.
 - Tema por defecto: el primero que no esté usado por otro Sidequest; si todos están usados, Amber.
 
-### 5.6 Detalle del Sidequest — `FnSidequest.html`
+### 5.6 Detalle del Sidequest — `FnSidequest.html`, `FnSidequestAdd.html`, `FnSidequestNotas.html`
 
 - Barra: "‹ Sidequests" · "Sidequest".
 - Banda tintada: nombre 22/700 en `C` (clic prolongado o doble clic edita el nombre en línea), menú "⋯"
   con **Renombrar**, **Cambiar tema** y **Eliminar Sidequest** (confirmación; elimina también sus
   objetivos del panel y su Bitácora); progreso 6 px con `completados / total`; botón secundario
   "Bitácora" con icono de libro en `C`.
+- Bajo la banda, **pestañas Items / Notas** (4.4). La pestaña activa se recuerda por Sidequest durante
+  la sesión (no se persiste). Items muestra el número total de items.
+
+**Pestaña Items**
+
 - Lista de items en tarjetas, en este orden fijo: (1) items con `InPanel` ("Objetivo actual"), (2)
   pendientes con botón "Enviar objetivo", (3) completados (sin tarjeta: check en `C` + texto tachado
   `Text2`). Dentro de cada grupo, por `SortIndex`.
 - "Enviar objetivo" marca `InPanel = true`, asigna `PanelIndex` al final del panel y mueve la tarjeta
   al grupo (1) sin salir de la pantalla.
-- Hover sobre un item pendiente muestra a la izquierda del botón un icono de eliminar (confirmación).
-- Pie: botón punteado "+ Añadir item" que se convierte en un campo de texto en línea; Enter añade y
-  deja el campo abierto para el siguiente; Escape cierra.
+- Hover sobre un item pendiente: asa ⋮⋮ a la izquierda y, antes de "Enviar objetivo", **renombrar**
+  (lápiz) y **eliminar** (confirmación). Sobre un "Objetivo actual": asa y renombrar.
+- Renombrar funciona igual que en el panel principal (5.1).
+- Reordenar: se arrastra dentro de su grupo (objetivos actuales entre sí, pendientes entre sí); no se
+  puede soltar un item en otro grupo. Los completados no se reordenan.
+- **Añadir item** (`FnSidequestAdd.html`): el botón punteado del pie se convierte en un campo píldora de
+  44 px con borde 1.5 px en `C`, icono "+" en `C` y botón de cerrar; debajo, "Enter añade y sigue · Esc
+  cierra" en 11 `Text2`. Enter crea el item al final de los pendientes, lo resalta (borde `C @ 50 %`,
+  relleno `C @ 8 %` durante 1.5 s), hace scroll hasta él y deja el campo vacío y con foco para el
+  siguiente. Esc o perder el foco con el campo vacío cierra; con texto, perder el foco no crea nada
+  (evita items accidentales).
+
+**Pestaña Notas** (`FnSidequestNotas.html`)
+
+Lo que en 0.1 era el detalle del objetivo, ahora a nivel de Sidequest. El contexto donde se compilan
+ideas y apuntes; los objetivos son el resultado destilado.
+
+- **Notas y enlaces** con contador `n / 500`: un solo campo de texto plano multilínea de 176 px. Las URL
+  (`http://`, `https://`) se muestran subrayadas en el color del tema y se abren con **Ctrl+clic** (o
+  clic simple cuando el campo no tiene el foco). Implementación sugerida: `RichTextBox` con detección de
+  URL al perder el foco, o `TextBox` en edición y `TextBlock` con `Hyperlink` en reposo.
+- **Archivos locales** con contador `n / 5`: filas de 42 px con icono, nombre de archivo, carpeta
+  contenedora abreviada (`…\Mudanza`) y botón de quitar. Clic en la fila abre el archivo con la app
+  asociada (`Process.Start` con `UseShellExecute`). "Vincular archivo" abre un `OpenFileDialog`; se
+  deshabilita al llegar a 5. Si el archivo ya no existe, la fila se muestra en `Text2` con tooltip.
+- **Imágenes** con contador `n / 5`: rejilla de 5 celdas de 66 px, radio 10. Celdas ocupadas muestran la
+  miniatura (`Stretch=UniformToFill`); clic abre la imagen. Una celda "+" (punteada) añade con
+  `OpenFileDialog` **o arrastrando** un archivo de imagen sobre la pestaña; las restantes son celdas
+  vacías punteadas. Hover en una ocupada muestra "quitar".
+- Los cambios se guardan al salir del campo o al cambiar de pestaña; no hay botón de guardar.
+- La Bitácora se mantiene: Notas es para texto, enlaces y archivos; la Bitácora, para pensar en el
+  espacio.
 - Los completados se pueden desmarcar desde aquí solo si no están en el panel (si están en el panel, se
   desmarcan desde el panel). Regla simple: **el estado `Done` se edita donde se ve el checkbox**.
 
@@ -417,9 +486,16 @@ forma puede ser un cuadrado redondeado neutro con una "S", en `Text` sobre trans
   `DwmSetWindowAttribute` deja de ser necesario salvo para los diálogos con marco nativo (`ConfirmDialog`
   puede mantenerlo).
 - `MainWindow`: `ShowInTaskbar="False"`, `Topmost = Settings.KeepOnTop`, posición recordada
-  (`MainLeft/Top`) con la misma validación de pantalla y "Restablecer posición" que hoy. Ancho fijo 400.
-- El cambio de vista dentro de `MainWindow` no cambia el ancho; el alto se recalcula
-  (`SizeToContent="Height"` con el mismo `MaxHeight` que hoy).
+  (`MainLeft/Top`) con la misma validación de pantalla y "Restablecer posición" que hoy.
+- Tamaño: `MinWidth = MaxWidth = 400`, `Height = Settings.MainHeight`, `MinHeight = 360`,
+  `MaxHeight = WorkArea.Height`. **Sin** `SizeToContent`. Redimensión solo vertical por el borde
+  inferior: `WindowChrome` con `ResizeBorderThickness="0,0,0,6"` o un `Thumb` propio de 6 px a lo ancho
+  del borde inferior que ajusta `Height` en `DragDelta`. Guardar `MainHeight` en `DragCompleted`.
+  Si la ventana está apoyada en el borde inferior de la pantalla, la redimensión mantiene fijo el borde
+  superior (crece hacia abajo hasta el límite del área de trabajo).
+- Cada vista es un `Grid` de tres filas: cabecera `Auto`, contenido `*` (un `ScrollViewer`), pie `Auto`.
+  Las señales de scroll (4.4) se calculan con `ScrollViewer.ScrollChanged`: desvanecido inferior visible
+  si `VerticalOffset < ScrollableHeight`, superior si `VerticalOffset > 0`.
 - Bitácora y Ajustes: `ShowInTaskbar="True"`, se abren con `Owner = MainWindow` para que hereden el
   tema y se cierren con la app; no son `Topmost`.
 - Fuente: `<Setter Property="TextElement.FontFamily" Value="./Fonts/#DM Sans"/>` en `AppWindow`.
@@ -437,7 +513,6 @@ L_AppName             — Sidequest — Sidequest
 L_Back                — Volver — Back
 L_MainPanel           — Panel principal — Main panel
 L_Sidequests          — Sidequests — Sidequests
-L_ActiveFmt           — {0} activos — {0} active
 L_CounterFmt          — {0} / {1} — {0} / {1}
 L_PanelEmpty          — Sin objetivos. Entra a un Sidequest y envía uno. — No objectives yet. Open a Sidequest and send one.
 L_ReturnToSidequest   — Devolver al Sidequest — Return to Sidequest
@@ -447,6 +522,17 @@ L_Collapse            — Contraer — Collapse
 L_Expand              — Expandir — Expand
 L_KeepOnTop           — Mantener encima de otras apps — Keep above other apps
 L_Close               — Cerrar — Close
+L_Items               — Items — Items
+L_Notes               — Notas — Notes
+L_RenameObjective     — Renombrar objetivo — Rename objective
+L_RenameItem          — Renombrar item — Rename item
+L_SaveName            — Guardar nombre — Save name
+L_EnterSaves          — Enter guarda — Enter saves
+L_EscCancels          — Esc cancela — Esc cancels
+L_DragToReorder       — Arrastrar para reordenar — Drag to reorder
+L_NewItem             — Nuevo item — New item
+L_EnterAddsNext       — Enter añade y sigue — Enter adds and continues
+L_EscCloses           — Esc cierra — Esc closes
 L_NotesAndLinks       — Notas y enlaces — Notes and links
 L_LocalFiles          — Archivos locales — Local files
 L_LinkFile            — Vincular archivo — Link file
@@ -521,8 +607,9 @@ cultura activa (`es-ES` / `en-GB`, como hoy).
 1. Renombre del proyecto, modelos nuevos, `Storage` y migración **[D3, D5]**. Tests de serialización.
 2. Tokens de tema (`Themes/*.xaml`), fuente empaquetada, retemplates en `App.xaml`.
 3. `MainWindow` con navegación entre vistas: panel principal (con vacío, hover, contraído) → lista
-   de Sidequests → nuevo → detalle. Sin detalle de objetivo todavía.
-4. Detalle del objetivo: notas con URL, archivos, imágenes con copia a `media\`.
+   de Sidequests → nuevo → detalle (pestaña Items, sin renombrar ni arrastrar todavía).
+4. Renombrar y reordenar (panel principal y pestaña Items), añadir item, y la pestaña Notas del
+   Sidequest: notas con URL, archivos, imágenes con copia a `media\`.
 5. Ajustes y bandeja.
 6. Bitácora (la pieza más grande; puede entregarse después del resto).
 7. Tema claro: revisar cada pantalla contra `FnMainClaro.html` y los tokens de la 4.2.

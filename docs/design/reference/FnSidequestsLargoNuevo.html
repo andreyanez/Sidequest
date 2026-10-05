@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'DM Sans', system-ui, sans-serif; background: #16171a; color: #e8e9ec; }
+    a { color: #e8e9ec; text-decoration: none; } a:hover { color: #9a9ea8; }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    .ib:hover { background: #202328; color: #e8e9ec; }
+    .row:hover { background: #202328; }
+    .row .acts { display: none; }
+    .row:hover .acts { display: flex; }
+    .cb { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+    .cb + span svg { opacity: 0; }
+    .cb:checked + span { background: var(--c, #e8e9ec); border-color: var(--c, #e8e9ec); }
+    .cb:checked + span svg { opacity: 1; }
+    .cb:focus-visible + span { outline: 2px solid #e8e9ec; outline-offset: 2px; }
+    .row:has(.cb:checked) .t { text-decoration: line-through; color: #9a9ea8 !important; }
+    .sw:checked + span { background: #e8e9ec !important; border-color: #e8e9ec !important; }
+    .sw:checked + span span { transform: translateX(16px); background: #16171a !important; }
+    .sw:focus-visible + span { outline: 2px solid #e8e9ec; outline-offset: 2px; }
+    .cta:hover { border-color: #e8e9ec; }
+    .row .grip { visibility: hidden; }
+    .row:hover .grip { visibility: visible; }
+    .seg:hover { color: #e8e9ec !important; }
+    .ed::placeholder { color: #9a9ea8; }
+  </style>
+</helmet>
+<div style="width: 400px; height: 640px; box-sizing: border-box; display: flex; flex-direction: column; background: #16171a; border: 1px solid #3a3e46; color: #e8e9ec;">
+  <div style="height: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 14px 0 6px; border-bottom: 1px solid #2a2d33;">
+    <a class="ib" href="FnMain.html" style="display: flex; align-items: center; gap: 4px; height: 28px; padding: 0 8px 0 4px; border-radius: 8px; font-size: 12px; color: #9a9ea8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 3.5L5 8l4.5 4.5"/></svg>Panel principal</a>
+    <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #9a9ea8;">Sidequest</span>
+  </div>
+  <div style="flex-shrink: 0; padding: 20px 16px 12px;"><span style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em;">Sidequests</span></div>
+  <div style="position: relative; flex-grow: 1; min-height: 0; overflow: hidden;">
+   <div style="display: flex; flex-direction: column; gap: 8px; padding: 2px 14px 12px 12px;">
+    <a class="cta" href="FnSidequest.html" style="flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; height: 64px; padding: 15px 14px 0; border: 1px solid rgba(160, 164, 173, 0.34); border-radius: 12px; background: rgba(160, 164, 173, 0.09);">
+      <div style="display: flex; align-items: center; gap: 11px;"><span style="flex-grow: 1; min-width: 0; font-size: 15px; font-weight: 600; color: #a0a4ad; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Job Pivoting</span><span style="flex-shrink: 0; font-size: 12px; color: #9a9ea8;">0 / 1</span></div>
+      <div style="height: 3px; border-radius: 2px; background: rgba(160, 164, 173, 0.2); display: flex;"><span style="width: 0.0%; border-radius: 2px; background: #a0a4ad;"></span></div>
+    </a>
+    <a class="cta" href="FnSidequest.html" style="flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; height: 64px; padding: 15px 14px 0; border: 1px solid rgba(79, 181, 168, 0.34); border-radius: 12px; background: rgba(79, 181, 168, 0.09);">
+      <div style="display: flex; align-items: center; gap: 11px;"><span style="flex-grow: 1; min-width: 0; font-size: 15px; font-weight: 600; color: #4fb5a8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Misc</span><span style="flex-shrink: 0; font-size: 12px; color: #9a9ea8;">0 / 3</span></div>
+      <div style="height: 3px; border-radius: 2px; background: rgba(79, 181, 168, 0.2); display: flex;"><span style="width: 0.0%; border-radius: 2px; background: #4fb5a8;"></span></div>
+    </a>
+    <a class="cta" href="FnSidequest.html" style="flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; height: 64px; padding: 15px 14px 0; border: 1px solid rgba(106, 165, 216, 0.34); border-radius: 12px; background: rgba(106, 165, 216, 0.09);">
+      <div style="display: flex; align-items: center; gap: 11px;"><span style="flex-grow: 1; min-width: 0; font-size: 15px; font-weight: 600; color: #6aa5d8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Mantenimiento de Auto</span><span style="flex-shrink: 0; font-size: 12px; color: #9a9ea8;">0 / 1</span></div>
+      <div style="height: 3px; border-radius: 2px; background: rgba(106, 165, 216, 0.2); display: flex;"><span style="width: 0.0%; border-radius: 2px; background: #6aa5d8;"></span></div>
+    </a>
+    <a class="cta" href="FnSidequest.html" style="flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; height: 64px; padding: 15px 14px 0; border: 1px solid rgba(212, 162, 74, 0.34); border-radius: 12px; background: rgba(212, 162, 74, 0.09);">
+      <div style="display: flex; align-items: center; gap: 11px;"><span style="flex-grow: 1; min-width: 0; font-size: 15px; font-weight: 600; color: #d4a24a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Meditación Preparación</span><span style="flex-shrink: 0; font-size: 12px; color: #9a9ea8;">0 / 2</span></div>
+      <div style="height: 3px; border-radius: 2px; background: rgba(212, 162, 74, 0.2); display: flex;"><span style="width: 0.0%; border-radius: 2px; background: #d4a24a;"></span></div>
+    </a>
+    <a class="cta" href="FnSidequest.html" style="flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; height: 64px; padding: 15px 14px 0; border: 1px solid rgba(163, 179, 87, 0.34); border-radius: 12px; background: rgba(163, 179, 87, 0.09);">
+      <div style="display: flex; align-items: center; gap: 11px;"><span style="flex-grow: 1; min-width: 0; font-size: 15px; font-weight: 600; color: #a3b357; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Salud y Bienestar</span><span style="flex-shrink: 0; font-size: 12px; color: #9a9ea8;">0 / 5</span></div>
+      <div style="height: 3px; border-radius: 2px; background: rgba(163, 179, 87, 0.2); display: flex;"><span style="width: 0.0%; border-radius: 2px; background: #a3b357;"></span></div>
+    </a>
+    <a class="cta" href="FnSidequest.html" style="flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; height: 64px; padding: 15px 14px 0; border: 1px solid rgba(139, 147, 230, 0.34); border-radius: 12px; background: rgba(139, 147, 230, 0.09);">
+      <div style="display: flex; align-items: center; gap: 11px;"><span style="flex-grow: 1; min-width: 0; font-size: 15px; font-weight: 600; color: #8b93e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Audio Rescue</span><span style="flex-shrink: 0; font-size: 12px; color: #9a9ea8;">0 / 2</span></div>
+      <div style="height: 3px; border-radius: 2px; background: rgba(139, 147, 230, 0.2); display: flex;"><span style="width: 0.0%; border-radius: 2px; background: #8b93e6;"></span></div>
+    </a>
+    <a class="cta" href="FnSidequest.html" style="flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; height: 64px; padding: 15px 14px 0; border: 1px solid rgba(224, 121, 95, 0.34); border-radius: 12px; background: rgba(224, 121, 95, 0.09);">
+      <div style="display: flex; align-items: center; gap: 11px;"><span style="flex-grow: 1; min-width: 0; font-size: 15px; font-weight: 600; color: #e0795f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">To Solve Loopitis</span><span style="flex-shrink: 0; font-size: 12px; color: #9a9ea8;">0 / 4</span></div>
+      <div style="height: 3px; border-radius: 2px; background: rgba(224, 121, 95, 0.2); display: flex;"><span style="width: 0.0%; border-radius: 2px; background: #e0795f;"></span></div>
+    </a>
+    <a class="cta" href="FnSidequest.html" style="flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; height: 64px; padding: 15px 14px 0; border: 1px solid rgba(212, 162, 74, 0.34); border-radius: 12px; background: rgba(212, 162, 74, 0.09);">
+      <div style="display: flex; align-items: center; gap: 11px;"><span style="flex-grow: 1; min-width: 0; font-size: 15px; font-weight: 600; color: #d4a24a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Money Investment</span><span style="flex-shrink: 0; font-size: 12px; color: #9a9ea8;">0 / 3</span></div>
+      <div style="height: 3px; border-radius: 2px; background: rgba(212, 162, 74, 0.2); display: flex;"><span style="width: 0.0%; border-radius: 2px; background: #d4a24a;"></span></div>
+    </a>
+    <a class="cta" href="FnSidequest.html" style="flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; height: 64px; padding: 15px 14px 0; border: 1px solid rgba(106, 165, 216, 0.34); border-radius: 12px; background: rgba(106, 165, 216, 0.09);">
+      <div style="display: flex; align-items: center; gap: 11px;"><span style="flex-grow: 1; min-width: 0; font-size: 15px; font-weight: 600; color: #6aa5d8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">A Voice to Train</span><span style="flex-shrink: 0; font-size: 12px; color: #9a9ea8;">0 / 2</span></div>
+      <div style="height: 3px; border-radius: 2px; background: rgba(106, 165, 216, 0.2); display: flex;"><span style="width: 0.0%; border-radius: 2px; background: #6aa5d8;"></span></div>
+    </a>
+    <a class="cta" href="FnSidequest.html" style="flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; height: 64px; padding: 15px 14px 0; border: 1px solid rgba(139, 147, 230, 0.34); border-radius: 12px; background: rgba(139, 147, 230, 0.09);">
+      <div style="display: flex; align-items: center; gap: 11px;"><span style="flex-grow: 1; min-width: 0; font-size: 15px; font-weight: 600; color: #8b93e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Knot-ledge</span><span style="flex-shrink: 0; font-size: 12px; color: #9a9ea8;">0 / 2</span></div>
+      <div style="height: 3px; border-radius: 2px; background: rgba(139, 147, 230, 0.2); display: flex;"><span style="width: 0.0%; border-radius: 2px; background: #8b93e6;"></span></div>
+    </a>
+    <a class="cta" href="FnSidequest.html" style="flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; height: 64px; padding: 15px 14px 0; border: 1px solid rgba(79, 181, 168, 0.34); border-radius: 12px; background: rgba(79, 181, 168, 0.09);">
+      <div style="display: flex; align-items: center; gap: 11px;"><span style="flex-grow: 1; min-width: 0; font-size: 15px; font-weight: 600; color: #4fb5a8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Smile for Me</span><span style="flex-shrink: 0; font-size: 12px; color: #9a9ea8;">0 / 1</span></div>
+      <div style="height: 3px; border-radius: 2px; background: rgba(79, 181, 168, 0.2); display: flex;"><span style="width: 0.0%; border-radius: 2px; background: #4fb5a8;"></span></div>
+    </a>
+    <a class="cta" href="FnSidequest.html" style="flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; height: 64px; padding: 15px 14px 0; border: 1px solid rgba(139, 147, 230, 0.34); border-radius: 12px; background: rgba(139, 147, 230, 0.09);">
+      <div style="display: flex; align-items: center; gap: 11px;"><span style="flex-grow: 1; min-width: 0; font-size: 15px; font-weight: 600; color: #8b93e6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Tesismo Moderno</span><span style="flex-shrink: 0; font-size: 12px; color: #9a9ea8;">0 / 1</span></div>
+      <div style="height: 3px; border-radius: 2px; background: rgba(139, 147, 230, 0.2); display: flex;"><span style="width: 0.0%; border-radius: 2px; background: #8b93e6;"></span></div>
+    </a>
+    <a class="cta" href="FnSidequest.html" style="flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; height: 64px; padding: 15px 14px 0; border: 1px solid rgba(224, 121, 95, 0.34); border-radius: 12px; background: rgba(224, 121, 95, 0.09);">
+      <div style="display: flex; align-items: center; gap: 11px;"><span style="flex-grow: 1; min-width: 0; font-size: 15px; font-weight: 600; color: #e0795f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">How To Untie A Ballon</span><span style="flex-shrink: 0; font-size: 12px; color: #9a9ea8;">0 / 1</span></div>
+      <div style="height: 3px; border-radius: 2px; background: rgba(224, 121, 95, 0.2); display: flex;"><span style="width: 0.0%; border-radius: 2px; background: #e0795f;"></span></div>
+    </a>
+    <a class="cta" href="FnSidequest.html" style="flex-shrink: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; height: 64px; padding: 15px 14px 0; border: 1px solid rgba(79, 181, 168, 0.34); border-radius: 12px; background: rgba(79, 181, 168, 0.09);">
+      <div style="display: flex; align-items: center; gap: 11px;"><span style="flex-grow: 1; min-width: 0; font-size: 15px; font-weight: 600; color: #4fb5a8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Alternative Revenue</span><span style="flex-shrink: 0; font-size: 12px; color: #9a9ea8;">0 / 6</span></div>
+      <div style="height: 3px; border-radius: 2px; background: rgba(79, 181, 168, 0.2); display: flex;"><span style="width: 0.0%; border-radius: 2px; background: #4fb5a8;"></span></div>
+    </a>
+   </div>
+   <div aria-hidden="true" style="position: absolute; left: 0; right: 0; bottom: 0; height: 36px; pointer-events: none; background: linear-gradient(to bottom, rgba(22, 23, 26, 0), #16171a);"></div>
+   <div aria-hidden="true" style="position: absolute; top: 4px; bottom: 4px; right: 3px; width: 6px;"><span style="position: absolute; top: 0; left: 1px; width: 4px; height: 22%; border-radius: 2px; background: #4a4e56;"></span></div>
+  </div>
+  <div style="flex-shrink: 0; padding: 12px 12px 6px; border-top: 1px solid #2a2d33;">
+    <div style="display: flex; flex-direction: column; gap: 14px; padding: 14px; border: 1px solid rgba(163, 179, 87, 0.4); border-radius: 12px; background: rgba(163, 179, 87, 0.07);">
+      <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #a3b357;">Nuevo Sidequest</span>
+      <div style="display: flex; flex-direction: column; gap: 6px;"><label for="nombre" style="font-size: 12px; color: #9a9ea8;">Nombre</label><input id="nombre" type="text" value="Renovar pasaporte" style="box-sizing: border-box; width: 100%; height: 38px; padding: 0 12px; border: 1px solid #a3b357; border-radius: 10px; background: #16171a; font: inherit; font-size: 14px; color: #e8e9ec; outline: none;"></div>
+      <div style="display: flex; flex-direction: column; gap: 8px;"><span style="font-size: 12px; color: #9a9ea8;">Tema</span><div style="display: flex; gap: 10px; padding: 2px;"><button aria-label="Ámbar" style="width: 28px; height: 28px; padding: 0; border: none; border-radius: 9px; background: #d4a24a;"></button><button aria-label="Turquesa" style="width: 28px; height: 28px; padding: 0; border: none; border-radius: 9px; background: #4fb5a8;"></button><button aria-label="Índigo" style="width: 28px; height: 28px; padding: 0; border: none; border-radius: 9px; background: #8b93e6;"></button><button aria-label="Coral" style="width: 28px; height: 28px; padding: 0; border: none; border-radius: 9px; background: #e0795f;"></button><button aria-label="Oliva, seleccionado" aria-pressed="true" style="width: 28px; height: 28px; padding: 0; border: none; border-radius: 9px; background: #a3b357; outline: 2px solid #e8e9ec; outline-offset: 2px;"></button><button aria-label="Ciruela" style="width: 28px; height: 28px; padding: 0; border: none; border-radius: 9px; background: #c47fb5;"></button><button aria-label="Acero" style="width: 28px; height: 28px; padding: 0; border: none; border-radius: 9px; background: #6aa5d8;"></button><button aria-label="Grafito" style="width: 28px; height: 28px; padding: 0; border: none; border-radius: 9px; background: #a0a4ad;"></button></div></div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px;"><a class="cta" href="FnSidequests.html" style="display: flex; align-items: center; height: 34px; padding: 0 14px; border: 1px solid #3a3e46; border-radius: 999px; font-size: 13px; font-weight: 500;">Cancelar</a><a href="FnSidequest.html" style="display: flex; align-items: center; height: 34px; padding: 0 18px; border-radius: 999px; background: #e8e9ec; font-size: 13px; font-weight: 700; color: #16171a;">Crear</a></div>
+    </div>
+    <div aria-hidden="true" style="display: flex; justify-content: center; padding-top: 8px;"><span style="width: 36px; height: 4px; border-radius: 2px; background: #3a3e46;"></span></div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":400,"height":640}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
