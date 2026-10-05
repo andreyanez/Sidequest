@@ -8,6 +8,12 @@ in its footer.
 
 ## [Unreleased]
 
+### Fixed
+
+- After dragging a card, or ticking or unticking its checkbox, its drag handle, buttons
+  and highlight stayed on screen until something else was clicked. They now show only
+  while the pointer is over the card, or when you reach it with the keyboard.
+
 ## [0.3.0] - 2026-10-04
 
 After a few days of use: notes move to the Sidequest, the panel keeps the height you

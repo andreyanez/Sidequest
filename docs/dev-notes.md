@@ -527,6 +527,15 @@ Conflicts settled in the same exchange:
 - **Fixed on the way:** `render-artboard.ps1 -Light` refused `FnSidequestsCompacto`,
   whose scroll fades write Bg as `rgba()`.
 
+### After 0.3.0
+
+- **Fixed: a card kept its grip, actions and hover fill after a drag or a click on its
+  checkbox** (the user, 2026-10-04). They showed on `IsKeyboardFocusWithin`, which a
+  click sets as surely as Tab does, and both leave focus in the card. 4.4 says keyboard
+  focus, so they now follow `KeyboardCue`: CSS's `:focus-visible`, true only while the
+  focus inside arrived by keyboard. The image cells' "Quitar" follows it too. Checked
+  live after a drop; Tab revealing a card could not be, as the machine was in use.
+
 ## Known deviations from the spec
 
 - **The import does not carry over WeeklyReminder's settings** (§3 step 3). Accepted on

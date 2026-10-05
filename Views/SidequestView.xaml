@@ -28,14 +28,15 @@
              than collapsed: unseen, taking no room and no clicks, as the artboard's
              display:none, but still tab stops. Tab meets them in the order they are drawn,
              and reveals them; and the current objective's rename is the only stop its card
-             has. They are not clipped, which would clip their focus rings too. -->
+             has. They are not clipped, which would clip their focus rings too. Only focus
+             the keyboard put there reveals them, not a click's (KeyboardCue). -->
 
         <!-- (1) In the panel: padding 4 and 10, the grip (18, unseen at rest but always in
              its place), the text 10 after it, and the "Objetivo actual" pill (24, C fill,
              11/700 Inv). Hover shows the grip, and rename before the pill. -->
         <DataTemplate DataType="{x:Type local:CurrentObjectiveRow}">
             <StackPanel Margin="0,0,0,6">
-                <Grid x:Name="Card" LostKeyboardFocus="Card_LostKeyboardFocus">
+                <Grid x:Name="Card" LostKeyboardFocus="Card_LostKeyboardFocus" local:KeyboardCue.Track="True">
                     <Border x:Name="Fill" CornerRadius="10" Background="{DynamicResource Surface}"/>
                     <Border x:Name="Edge"
                             Height="48"
@@ -148,7 +149,7 @@
                     <Setter TargetName="Actions" Property="IsHitTestVisible" Value="True"/>
                     <Setter TargetName="Grip" Property="Opacity" Value="1"/>
                 </Trigger>
-                <Trigger SourceName="Card" Property="IsKeyboardFocusWithin" Value="True">
+                <Trigger SourceName="Card" Property="local:KeyboardCue.Within" Value="True">
                     <Setter TargetName="Fill" Property="Background" Value="{DynamicResource Hover}"/>
                     <Setter TargetName="Actions" Property="Width" Value="Auto"/>
                     <Setter TargetName="Actions" Property="Margin" Value="6,0,0,0"/>
@@ -196,7 +197,7 @@
              none apart. -->
         <DataTemplate DataType="{x:Type local:PendingItemRow}">
             <StackPanel Margin="0,0,0,6">
-                <Grid x:Name="Card" LostKeyboardFocus="Card_LostKeyboardFocus">
+                <Grid x:Name="Card" LostKeyboardFocus="Card_LostKeyboardFocus" local:KeyboardCue.Track="True">
                     <Border x:Name="Fill" CornerRadius="10" Background="{DynamicResource Surface}"/>
                     <Border x:Name="Edge"
                             Height="48"
@@ -329,7 +330,7 @@
                     <Setter TargetName="Actions" Property="IsHitTestVisible" Value="True"/>
                     <Setter TargetName="Grip" Property="Opacity" Value="1"/>
                 </Trigger>
-                <Trigger SourceName="Card" Property="IsKeyboardFocusWithin" Value="True">
+                <Trigger SourceName="Card" Property="local:KeyboardCue.Within" Value="True">
                     <Setter TargetName="Fill" Property="Background" Value="{DynamicResource Hover}"/>
                     <Setter TargetName="Actions" Property="Width" Value="Auto"/>
                     <Setter TargetName="Actions" Property="Margin" Value="6,0,0,0"/>

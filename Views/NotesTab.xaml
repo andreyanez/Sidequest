@@ -68,7 +68,7 @@
 
         <!-- The image grid's three kinds of cell, 66 high. -->
         <DataTemplate DataType="{x:Type local:ImageThumb}">
-            <Grid x:Name="Cell">
+            <Grid x:Name="Cell" local:KeyboardCue.Track="True">
                 <Button Style="{StaticResource ImageCellButton}"
                         Background="{Binding Thumbnail}"
                         AutomationProperties.Name="{Binding Label}"
@@ -99,12 +99,13 @@
                 <DataTrigger Binding="{Binding IsMissing}" Value="True">
                     <Setter TargetName="MissingIcon" Property="Visibility" Value="Visible"/>
                 </DataTrigger>
-                <!-- 5.6's "quitar" appears on hover; focus inside the cell shows it too,
-                     or the keyboard could never reach it. -->
+                <!-- 5.6's "quitar" appears on hover; keyboard focus inside the cell shows
+                     it too, or the keyboard could never reach it (KeyboardCue: a click's
+                     focus does not). -->
                 <Trigger SourceName="Cell" Property="IsMouseOver" Value="True">
                     <Setter TargetName="Remove" Property="Visibility" Value="Visible"/>
                 </Trigger>
-                <Trigger SourceName="Cell" Property="IsKeyboardFocusWithin" Value="True">
+                <Trigger SourceName="Cell" Property="local:KeyboardCue.Within" Value="True">
                     <Setter TargetName="Remove" Property="Visibility" Value="Visible"/>
                 </Trigger>
             </DataTemplate.Triggers>
