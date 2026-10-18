@@ -8,6 +8,14 @@ in its footer.
 
 ## [Unreleased]
 
+### Changed
+
+- Notes hold up to 2000 characters, up from 500.
+- The panel's height is set from its top edge instead of its bottom. The bottom stays
+  where it is, as it does when the panel collapses, so a panel resting on the bottom of
+  the screen grows upward. The bar at the foot of the Sidequests list, which marked the
+  old edge, is gone.
+
 ## [0.3.1] - 2026-10-04
 
 ### Fixed

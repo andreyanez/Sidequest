@@ -124,7 +124,7 @@ public class SidequestRulesTests
     }
 
     [Fact]
-    public void SetNotes_KeepsLinesAsNewlines_AndStopsAtFiveHundred()
+    public void SetNotes_KeepsLinesAsNewlines_AndStopsAtTwoThousand()
     {
         var project = new SidequestProject();
 
@@ -132,7 +132,12 @@ public class SidequestRulesTests
         Assert.Equal("uno\ndos", project.Notes);
         Assert.False(SidequestRules.SetNotes(project, "uno\ndos"));
 
+        // Up to 0.3 this was cut to 500; since 0.4 the limit is 2000.
         SidequestRules.SetNotes(project, new string('x', 600));
+        Assert.Equal(600, project.Notes.Length);
+
+        SidequestRules.SetNotes(project, new string('x', 2100));
+        Assert.Equal(2000, project.Notes.Length);
         Assert.Equal(SidequestProject.MaxNotesLength, project.Notes.Length);
     }
 

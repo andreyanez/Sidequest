@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation;
 using Sidequest.Models;
@@ -5,6 +6,9 @@ using Sidequest.Services;
 using DispatcherPriority = System.Windows.Threading.DispatcherPriority;
 using DragCompletedEventArgs = System.Windows.Controls.Primitives.DragCompletedEventArgs;
 using DragDeltaEventArgs = System.Windows.Controls.Primitives.DragDeltaEventArgs;
+using DragStartedEventArgs = System.Windows.Controls.Primitives.DragStartedEventArgs;
+using VisualTreeHelper = System.Windows.Media.VisualTreeHelper;
+using WindowInteropHelper = System.Windows.Interop.WindowInteropHelper;
 using FocusNavigationDirection = System.Windows.Input.FocusNavigationDirection;
 using MouseButtonEventArgs = System.Windows.Input.MouseButtonEventArgs;
 using MouseButtonState = System.Windows.Input.MouseButtonState;
@@ -221,27 +225,83 @@ public partial class MainWindow : Window
     private double CollapsedWindowHeight =>
         CollapsedRoot.Height + Card.BorderThickness.Top + Card.BorderThickness.Bottom + Shadow;
 
-    /// <summary>
-    /// The bottom edge follows the pointer and the top stays put (6), so the card grows
-    /// down, as far as the bottom of the work area.
-    /// </summary>
-    private void ResizeEdge_DragDelta(object sender, DragDeltaEventArgs e)
-    {
-        var cardTop = Top + Card.Margin.Top;
-        var roomBelow = SystemParameters.WorkArea.Bottom - cardTop;
-        var card = ActualHeight - Shadow + e.VerticalChange;
+    // The drag on the top edge, in the device pixels Windows places windows in: the
+    // window's rectangle and the pointer's height when it began, and the screen's scale.
+    private Native.Rect _resizeFrom;
+    private int _resizePointerY;
+    private double _resizeScale = 1;
 
-        Height = Math.Clamp(card, MinCardHeight, Math.Max(MinCardHeight, Math.Min(MaxCardHeight, roomBelow))) + Shadow;
+    private void ResizeEdge_DragStarted(object sender, DragStartedEventArgs e)
+    {
+        Native.GetWindowRect(new WindowInteropHelper(this).Handle, out _resizeFrom);
+        Native.GetCursorPos(out var pointer);
+        _resizePointerY = pointer.Y;
+        _resizeScale = VisualTreeHelper.GetDpi(this).DpiScaleY;
     }
 
     /// <summary>
-    /// 5: the height is saved once, on letting go. ActualHeight rather than Height:
-    /// Windows can stop a window short of what was asked, near the screen's full height.
+    /// The top edge follows the pointer and the bottom stays put, as it does when the
+    /// panel collapses, so the card grows upward, as far as the top of the work area. The
+    /// top and the height change in one call: set one after the other, as Top and Height
+    /// would be, the bottom edge would jump for a frame between them.
+    /// </summary>
+    private void ResizeEdge_DragDelta(object sender, DragDeltaEventArgs e)
+    {
+        Native.GetCursorPos(out var pointer);
+        var from = _resizeFrom;
+        var scale = _resizeScale;
+
+        var cardBottom = from.Bottom / scale - Card.Margin.Bottom;
+        var roomAbove = cardBottom - SystemParameters.WorkArea.Top;
+        var card = (from.Bottom - from.Top) / scale - Shadow + (_resizePointerY - pointer.Y) / scale;
+        card = Math.Clamp(card, MinCardHeight, Math.Max(MinCardHeight, Math.Min(MaxCardHeight, roomAbove)));
+
+        var height = (int)Math.Round((card + Shadow) * scale);
+        Native.SetWindowPos(new WindowInteropHelper(this).Handle, IntPtr.Zero,
+            from.Left, from.Bottom - height, from.Right - from.Left, height,
+            Native.NoZOrder | Native.NoActivate);
+    }
+
+    /// <summary>
+    /// 5: the height is saved once, on letting go, and the position with it, since the
+    /// top moved. ActualHeight rather than Height: Windows can stop a window short of
+    /// what was asked, near the screen's full height.
     /// </summary>
     private void ResizeEdge_DragCompleted(object sender, DragCompletedEventArgs e)
     {
+        Height = ActualHeight;
         App.Current.Settings.MainHeight = ActualHeight - Shadow;
-        Storage.SaveSettings(App.Current.Settings);
+        SavePosition();
+    }
+
+    private static class Native
+    {
+        public const uint NoZOrder = 0x0004;
+        public const uint NoActivate = 0x0010;
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Rect
+        {
+            public int Left, Top, Right, Bottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Point
+        {
+            public int X, Y;
+        }
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetWindowRect(IntPtr window, out Rect rect);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetCursorPos(out Point point);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetWindowPos(IntPtr window, IntPtr insertAfter, int x, int y, int width, int height, uint flags);
     }
 
     private void RefreshCollapsedRow()

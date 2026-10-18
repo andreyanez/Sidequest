@@ -13,9 +13,10 @@ shell and main panel; navigation, the Sidequests list, the new-Sidequest form an
 Sidequest detail; the objective detail with its notes, files and images; the settings
 window and the tray; the light-theme and keyboard pass, short of a live Tab walk; and
 the switch from WeeklyReminder. v1 is complete. Of the spec's 0.2 and 0.3 changes ("0.2
-and 0.3" below), A to G are done: they shipped together as 0.3.0 on 2026-10-04, and
-0.3.1, a fix to it from the same day, is the installed build. Phase 7, the Bitácora
-(v1.1), is next.
+and 0.3" below), A to G are done: they shipped together as 0.3.0 on 2026-10-04, with
+0.3.1, a fix, the same day. 0.4.0 (2026-10-18) followed a week's use with two of the
+user's own calls, which depart from the spec: notes up to 2000 characters, and the
+height set from the top edge ("0.4.0" below). Phase 7, the Bitácora (v1.1), is next.
 
 ---
 
@@ -142,7 +143,8 @@ committed. A release:
 0.2 and 0.3 together, was released and installed on 2026-10-04, with the data folder
 copied to `%APPDATA%\Sidequest.backup-20261004\` first. 0.3.1 followed the same evening
 with one fix ("After 0.3.0" under "0.2 and 0.3"), installed over it; it does not touch
-the data's format, so it took no backup of its own.
+the data's format, so it took no backup of its own. 0.4.0 came on 2026-10-18 ("0.4.0"
+under "0.2 and 0.3"). Its data is 0.3's, though notes may now be longer than 0.3 keeps.
 
 ## Decisions
 
@@ -539,8 +541,31 @@ Conflicts settled in the same exchange:
   focus inside arrived by keyboard. The image cells' "Quitar" follows it too. Checked
   live after a drop; Tab revealing a card could not be, as the machine was in use.
 
+### 0.4.0
+
+After a week of daily use the user asked for two changes that need no design
+(2026-10-18). Both depart from the spec, and are in "Known deviations" below.
+
+- **Notes take 2000 characters**, where 5.6 says 500. Only the limit moved
+  (`SidequestProject.MaxNotesLength`); the field stays 176 high and scrolls, and the
+  counter reads "n / 2000".
+- **The top edge resizes the window, and the bottom stays put** - as when the panel
+  collapses, so a panel resting on the bottom of the screen grows upward. 5 says the
+  bottom edge. The `Thumb` is the card's first 6px, over the title bar; the card stops
+  at the work area's top, and 5's 360 still holds. The top and the height change in one
+  `SetWindowPos`: set as `Top` and then `Height`, the bottom edge would jump for a frame
+  in between. On letting go the position is saved with the height, since the top moved.
+  Checked live: up to the work area's top, down past the minimum, the bottom pixel-still
+  throughout.
+- **The resize grip is gone** from the Sidequests list's footer, which is now 12 all
+  round: it marked the bottom edge. 4.4 has no sign for a top edge, and none was
+  invented.
+
 ## Known deviations from the spec
 
+- **Notes take 2000 characters, not 500** (5.6), and **the top edge sets the height,
+  not the bottom** (5), with no resize grip in the Sidequests list's footer (4.4, 5.4):
+  the user's calls for 0.4.0 (see "0.4.0").
 - **The import does not carry over WeeklyReminder's settings** (§3 step 3). Accepted on
   2026-09-29 as not worth fixing: theme, language and startup get set again in Settings.
   `LegacyMigration` copies them into `AppSettings`, but `App.OnStartup` applies the

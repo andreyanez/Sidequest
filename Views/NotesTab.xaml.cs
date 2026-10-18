@@ -162,7 +162,7 @@ public partial class NotesTab : UserControl
     /// <summary>
     /// The cap's backstop. A RichTextBox queues typed characters and applies them in a
     /// batch, so the keystroke guard below can measure a document a few keys behind, and
-    /// fast typing went five past 500. Whatever lands over the limit is taken back off
+    /// fast typing went five past the limit. Whatever lands over it is taken back off
     /// from just before the caret - the text that was just typed or pasted.
     /// </summary>
     private void TrimBeforeCaret(int count)
@@ -206,9 +206,10 @@ public partial class NotesTab : UserControl
         });
     }
 
-    // 5.6 caps the notes at 500 characters. A RichTextBox has no MaxLength, so typing,
-    // Enter and pasting are each held to the room that is left - a first line that keeps
-    // the common case from flickering - and TrimBeforeCaret catches what gets past it.
+    // The notes are capped at MaxNotesLength characters. A RichTextBox has no MaxLength,
+    // so typing, Enter and pasting are each held to the room that is left - a first line
+    // that keeps the common case from flickering - and TrimBeforeCaret catches what gets
+    // past it.
 
     private void NotesBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
     {

@@ -15,8 +15,11 @@ public sealed class SidequestProject
 {
     public const int MaxNameLength = 60;
 
-    /// <summary>The Notas tab's limits (1, 5.6).</summary>
-    public const int MaxNotesLength = 500;
+    /// <summary>
+    /// The Notas tab's limits (1, 5.6). The notes take 2000 characters where 5.6 says 500:
+    /// the user's call, after a week of use (2026-10-18).
+    /// </summary>
+    public const int MaxNotesLength = 2000;
     public const int MaxFiles = 5;
     public const int MaxImages = 5;
 

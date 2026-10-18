@@ -79,7 +79,7 @@ public static class SidequestRules
     }
 
     /// <summary>
-    /// The Notas tab's notes (5.6): plain text, at most 500 characters, addresses
+    /// The Notas tab's notes (5.6): plain text, at most 2000 characters, addresses
     /// included. Lines are kept as "\n", which is how the counter counts them. Returns
     /// whether anything changed.
     /// </summary>

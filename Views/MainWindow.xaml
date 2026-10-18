@@ -172,15 +172,17 @@
                 </StackPanel>
             </Grid>
 
-            <!-- 5: the bottom edge resizes the window, its top staying put. These are the
-                 card's own last 6px rather than the shadow below them: the shadow's margin
-                 is transparent, and a transparent pixel passes clicks to whatever is behind. -->
+            <!-- The top edge resizes the window, its bottom staying put (the user's call; 5
+                 says the bottom). These are the card's own first 6px, over the title bar,
+                 rather than the shadow above them: the shadow's margin is transparent, and a
+                 transparent pixel passes clicks to whatever is behind. -->
             <Thumb x:Name="ResizeEdge"
                    Height="6"
-                   VerticalAlignment="Bottom"
+                   VerticalAlignment="Top"
                    Cursor="SizeNS"
                    Focusable="False"
                    AutomationProperties.Name="{DynamicResource L_ResizePanel}"
+                   DragStarted="ResizeEdge_DragStarted"
                    DragDelta="ResizeEdge_DragDelta"
                    DragCompleted="ResizeEdge_DragCompleted">
                 <Thumb.Template>

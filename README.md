@@ -72,8 +72,8 @@ set theme, language and startup again in Settings.
 - **Panel** — today's date, and the objectives you have sent to it, each with the
   Sidequest it came from. Tick them off here; the chip opens its Sidequest. Hovering or
   focusing a row shows its ⋮⋮ handle, to drag it into another place, and *rename*,
-  *return to Sidequest* and *delete*. Drag the bottom edge
-  to set the panel's height, which every screen keeps; a long list scrolls. The chevron
+  *return to Sidequest* and *delete*. Drag the top edge to set the panel's height, which
+  every screen keeps, while the bottom stays put; a long list scrolls. The chevron
   collapses the panel to one row, and it stays collapsed until you expand it. The pin
   keeps it above other apps.
 - **Sidequests** — every Sidequest with its progress, and *New Sidequest*: a name and one

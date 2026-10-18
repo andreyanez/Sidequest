@@ -80,13 +80,14 @@
                           ItemTemplate="{StaticResource SidequestRow}"/>
         </ScrollViewer>
 
-        <!-- 5.4's fixed footer, 12/12/6 under a Line: "+ Nuevo Sidequest", or the form in
-             its place while it is open (5.5), which grows the footer upward and leaves the
-             list less room; then the resize grip, 8 below. -->
+        <!-- 5.4's fixed footer, 12 all round under a Line: "+ Nuevo Sidequest", or the form
+             in its place while it is open (5.5), which grows the footer upward and leaves
+             the list less room. 5.4 also puts the resize grip here, 8 below; it went when
+             the top edge took over resizing from the bottom, and the 6 under it with it. -->
         <Border Grid.Row="2"
                 BorderBrush="{DynamicResource Line}"
                 BorderThickness="0,1,0,0"
-                Padding="12,12,12,6">
+                Padding="12">
             <StackPanel>
                 <Button x:Name="NewButton"
                         Style="{StaticResource DashedPillButton}"
@@ -166,7 +167,6 @@
                     </Border>
                 </Grid>
 
-                <Border Style="{StaticResource ResizeGrip}"/>
             </StackPanel>
         </Border>
     </Grid>
