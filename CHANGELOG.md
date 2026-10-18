@@ -8,6 +8,8 @@ in its footer.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-18
+
 ### Changed
 
 - Notes hold up to 2000 characters, up from 500.
@@ -87,7 +89,8 @@ The first version, replacing WeeklyReminder.
 - The weekly rollover. Objectives stay until you remove them.
 - Reordering by dragging. Lists keep the order items were added or sent in.
 
-[Unreleased]: https://github.com/andreyanez/Sidequest/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/andreyanez/Sidequest/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/andreyanez/Sidequest/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/andreyanez/Sidequest/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/andreyanez/Sidequest/compare/v0.1.0...v0.3.0
 [0.1.0]: https://github.com/andreyanez/Sidequest/releases/tag/v0.1.0
