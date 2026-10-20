@@ -17,8 +17,8 @@ and 0.3" below), A to G are done: they shipped together as 0.3.0 on 2026-10-04, 
 0.3.1, a fix, the same day. 0.4.0 (2026-10-18) followed a week's use with two of the
 user's own calls, which depart from the spec: notes up to 2000 characters, and the
 height set from the top edge ("0.4.0" below). The spec's 0.5, the panel's two-line
-objective card, is built and checked against `FnMainOverflowB`, live too ("0.5" below).
-Phase 7, the Bitácora (v1.1), is next.
+objective card, shipped as 0.5.0 on 2026-10-20 ("0.5" below). Phase 7, the Bitácora
+(v1.1), is next.
 
 ---
 
@@ -152,6 +152,7 @@ copied to `%APPDATA%\Sidequest.backup-20261004\` first. 0.3.1 followed the same 
 with one fix ("After 0.3.0" under "0.2 and 0.3"), installed over it; it does not touch
 the data's format, so it took no backup of its own. 0.4.0 came on 2026-10-18 ("0.4.0"
 under "0.2 and 0.3"). Its data is 0.3's, though notes may now be longer than 0.3 keeps.
+0.5.0, the spec's 0.5, came on 2026-10-20 ("0.5"), with the same data as 0.4.0.
 
 ## Decisions
 

@@ -8,6 +8,10 @@ in its footer.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-20
+
+Objectives on the panel get room for their whole title.
+
 ### Changed
 
 - An objective on the panel takes two lines: its title runs the card's full width and
@@ -15,7 +19,7 @@ in its footer.
   below. A title too long for two lines ends in "…" and shows whole in a tooltip, when
   you point at it or reach its card with the keyboard.
 - Renaming an objective on the panel gives a field two lines high, with "Enter saves ·
-  Esc cancels" where the Sidequest's name was, so the card no longer grows underneath.
+  Esc cancels" where the Sidequest's name was, rather than under the card.
 - Pasting text with several lines into a name, on the panel or in a Sidequest, keeps
   all of it, the lines joined by spaces, instead of only the first line.
 - Tooltips have a new look: the hover colour, a soft shadow, and longer text wrapping.
@@ -101,7 +105,8 @@ The first version, replacing WeeklyReminder.
 - The weekly rollover. Objectives stay until you remove them.
 - Reordering by dragging. Lists keep the order items were added or sent in.
 
-[Unreleased]: https://github.com/andreyanez/Sidequest/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/andreyanez/Sidequest/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/andreyanez/Sidequest/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/andreyanez/Sidequest/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/andreyanez/Sidequest/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/andreyanez/Sidequest/compare/v0.1.0...v0.3.0
