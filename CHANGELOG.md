@@ -8,6 +8,18 @@ in its footer.
 
 ## [Unreleased]
 
+### Changed
+
+- An objective on the panel takes two lines: its title runs the card's full width and
+  wraps onto a second line, with its Sidequest and its buttons on a line of their own
+  below. A title too long for two lines ends in "…" and shows whole in a tooltip, when
+  you point at it or reach its card with the keyboard.
+- Renaming an objective on the panel gives a field two lines high, with "Enter saves ·
+  Esc cancels" where the Sidequest's name was, so the card no longer grows underneath.
+- Pasting text with several lines into a name, on the panel or in a Sidequest, keeps
+  all of it, the lines joined by spaces, instead of only the first line.
+- Tooltips have a new look: the hover colour, a soft shadow, and longer text wrapping.
+
 ## [0.4.0] - 2026-10-18
 
 ### Changed

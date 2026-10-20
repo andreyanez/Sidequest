@@ -22,6 +22,8 @@ param(
     [switch]$Empty,
     # FnSidequestsCompacto's fourteen Sidequests, for the long list (5.4).
     [switch]$Many,
+    # FnMainOverflowB's panel, with its long titles (5.1).
+    [switch]$Overflow,
     # Start on the collapsed one-row panel (5.2).
     [switch]$Collapsed,
     # Start where a fresh install does, in the work area's bottom-right corner, rather than
@@ -72,7 +74,7 @@ $data = Join-Path $Sandbox 'Sidequest'
 New-Item -ItemType Directory -Force -Path $data | Out-Null
 
 if ($Empty) { Set-Content -LiteralPath (Join-Path $data 'sidequests.json') -Value '[]' }
-else { & (Join-Path $PSScriptRoot 'seed-sandbox.ps1') -Sandbox $Sandbox -Many:$Many | Out-Null }
+else { & (Join-Path $PSScriptRoot 'seed-sandbox.ps1') -Sandbox $Sandbox -Many:$Many -Overflow:$Overflow | Out-Null }
 
 # A fixed spot on the primary screen, so one capture lines up with the next.
 $settings = [ordered]@{

@@ -3,6 +3,8 @@ using Sidequest.Services;
 
 // WinForms is referenced for NotifyIcon, so its implicit usings collide with WPF's.
 using Button = System.Windows.Controls.Button;
+using DataFormats = System.Windows.DataFormats;
+using DataObject = System.Windows.DataObject;
 using DispatcherPriority = System.Windows.Threading.DispatcherPriority;
 using ItemsControl = System.Windows.Controls.ItemsControl;
 using Key = System.Windows.Input.Key;
@@ -88,6 +90,24 @@ internal sealed class InlineRename
         else return;
 
         e.Handled = true;
+    }
+
+    /// <summary>
+    /// 5.1: line breaks in pasted text become spaces, since a name is one line, however
+    /// many the field wraps it over. Left alone, a TextBox that doesn't accept Return
+    /// keeps only the first line of what is pasted.
+    /// </summary>
+    public static void Pasting(object sender, DataObjectPastingEventArgs e)
+    {
+        if (e.SourceDataObject.GetData(DataFormats.UnicodeText, true) is not string text) return;
+
+        var line = SidequestRules.OneLine(text);
+        if (line == text) return;
+
+        var data = new DataObject();
+        data.SetData(DataFormats.UnicodeText, line);
+        e.DataObject = data;
+        e.FormatToApply = DataFormats.UnicodeText;
     }
 
     /// <summary>

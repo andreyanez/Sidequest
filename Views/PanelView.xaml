@@ -57,77 +57,118 @@
                     <ItemsControl x:Name="ObjectiveList" Focusable="False">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Margin="0,0,0,6">
-                                    <!-- FnMain (4.4): 50 with its border, padding 4 and 8, 8
-                                         between parts, starting with the grip. The text is not a
-                                         link (5.1). -->
-                                    <Border x:Name="Card"
-                                            Height="50"
-                                            Padding="4,0,8,0"
-                                            CornerRadius="10"
-                                            Background="{DynamicResource Surface}"
-                                            BorderBrush="{DynamicResource Line}"
-                                            BorderThickness="1"
-                                            LostKeyboardFocus="Card_LostKeyboardFocus"
-                                            local:KeyboardCue.Track="True">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <!-- Unseen at rest, but always in its place (4.4). -->
-                                            <Thumb x:Name="Grip"
-                                                   Style="{StaticResource Grip}"
-                                                   Opacity="0"
-                                                   AutomationProperties.Name="{DynamicResource L_DragToReorder}"
-                                                   AutomationProperties.HelpText="{Binding Item.Text}"
-                                                   DragStarted="Grip_DragStarted"
-                                                   DragDelta="Grip_DragDelta"
-                                                   DragCompleted="Grip_DragCompleted"/>
+                                <!-- FnMainOverflowB (4.4, 5.1): 66 with a one-line title, 85 with
+                                     two. Inside the border, padding 8 8 8 4; then the grip, the
+                                     checkbox and the body, 8 apart, the body 4 further in. The
+                                     grip and the checkbox sit on the title's first line, not in
+                                     the card's middle. The title is not a link (5.1). -->
+                                <Border x:Name="Card"
+                                        Margin="0,0,0,6"
+                                        Padding="4,8,8,8"
+                                        CornerRadius="10"
+                                        Background="{DynamicResource Surface}"
+                                        BorderBrush="{DynamicResource Line}"
+                                        BorderThickness="1"
+                                        LostKeyboardFocus="Card_LostKeyboardFocus"
+                                        local:KeyboardCue.Track="True">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
 
-                                            <!-- The label is a sibling TextBlock rather than the
-                                                 box's content, so the name has to be set for it
-                                                 or the box announces itself with no label. -->
-                                            <CheckBox x:Name="Check"
-                                                      Grid.Column="1"
-                                                      Margin="8,0,0,0"
-                                                      VerticalAlignment="Center"
-                                                      Background="{Binding ThemeBrush}"
-                                                      AutomationProperties.Name="{Binding Item.Text}"
-                                                      IsChecked="{Binding Item.Done, Mode=TwoWay}"
-                                                      Checked="Done_Changed"
-                                                      Unchecked="Done_Changed"/>
+                                        <!-- Unseen at rest, but always in its place (4.4). 32
+                                             high, centred on the first line's 19, so it reaches
+                                             above and below it without making the line taller. -->
+                                        <Thumb x:Name="Grip"
+                                               Style="{StaticResource Grip}"
+                                               VerticalAlignment="Top"
+                                               Margin="0,-7,0,-6"
+                                               Opacity="0"
+                                               local:TitleTip.OnKeyboardFocus="True"
+                                               AutomationProperties.Name="{DynamicResource L_DragToReorder}"
+                                               AutomationProperties.HelpText="{Binding Item.Text}"
+                                               DragStarted="Grip_DragStarted"
+                                               DragDelta="Grip_DragDelta"
+                                               DragCompleted="Grip_DragCompleted"/>
 
-                                            <!-- 8 and the text's own 4. -->
-                                            <TextBlock x:Name="ItemText"
-                                                       Grid.Column="2"
-                                                       Margin="12,0,0,0"
-                                                       Style="{StaticResource ItemText}"
-                                                       Text="{Binding Item.Text}"
-                                                       VerticalAlignment="Center"/>
-                                            <!-- 10 and TextBox's own 2. -->
-                                            <TextBox x:Name="NameEdit"
-                                                     Grid.Column="2"
-                                                     Margin="10,0,0,0"
-                                                     Style="{StaticResource BareTextBox}"
-                                                     MaxLength="120"
-                                                     Visibility="Collapsed"
-                                                     CaretBrush="{Binding ThemeBrush}"
-                                                     AutomationProperties.Name="{DynamicResource L_RenameObjective}"
-                                                     KeyDown="ItemNameEdit_KeyDown"/>
+                                        <!-- The label is a sibling TextBlock rather than the
+                                             box's content, so the name has to be set for it
+                                             or the box announces itself with no label. -->
+                                        <CheckBox x:Name="Check"
+                                                  Grid.Column="1"
+                                                  Margin="8,1,0,0"
+                                                  VerticalAlignment="Top"
+                                                  local:TitleTip.OnKeyboardFocus="True"
+                                                  Background="{Binding ThemeBrush}"
+                                                  AutomationProperties.Name="{Binding Item.Text}"
+                                                  IsChecked="{Binding Item.Done, Mode=TwoWay}"
+                                                  Checked="Done_Changed"
+                                                  Unchecked="Done_Changed"/>
 
+                                        <!-- The whole width, two lines of 19 at most, the second
+                                             cut short at a word with an ellipsis, as CSS's
+                                             line-clamp cuts it. 8 and the body's own 4. Drawn
+                                             1 higher than its place: WPF sets the baseline of a
+                                             19 line a fraction lower than CSS, which here rounds
+                                             to a whole pixel. A cut title shows whole in a
+                                             tooltip (TitleTip). -->
+                                        <TextBlock x:Name="ItemText"
+                                                   Grid.Column="2"
+                                                   Margin="12,-1,0,1"
+                                                   Style="{StaticResource ItemText}"
+                                                   Text="{Binding Item.Text}"
+                                                   TextWrapping="Wrap"
+                                                   TextTrimming="WordEllipsis"
+                                                   LineHeight="19"
+                                                   LineStackingStrategy="BlockLineHeight"
+                                                   MaxHeight="38"
+                                                   ToolTipOpening="Title_ToolTipOpening">
+                                            <TextBlock.ToolTip>
+                                                <ToolTip/>
+                                            </TextBlock.ToolTip>
+                                        </TextBlock>
+                                        <!-- 4.4's field: two lines like the title, wrapping, and
+                                             scrolling within when the name runs longer. 10 and
+                                             TextBox's own 2, which it takes on the right too;
+                                             1 higher, as the title is, so the text stays put. -->
+                                        <TextBox x:Name="NameEdit"
+                                                 Grid.Column="2"
+                                                 Margin="10,-1,-2,1"
+                                                 Height="38"
+                                                 VerticalAlignment="Top"
+                                                 Style="{StaticResource BareTextBox}"
+                                                 TextWrapping="Wrap"
+                                                 TextBlock.LineHeight="19"
+                                                 TextBlock.LineStackingStrategy="BlockLineHeight"
+                                                 MaxLength="120"
+                                                 Visibility="Collapsed"
+                                                 CaretBrush="{Binding ThemeBrush}"
+                                                 AutomationProperties.Name="{DynamicResource L_RenameObjective}"
+                                                 KeyDown="ItemNameEdit_KeyDown"
+                                                 DataObject.Pasting="ItemNameEdit_Pasting"/>
+
+                                        <!-- The meta line, 5 under the title and 24 high: the chip
+                                             on the left, the actions on the right. -->
+                                        <Grid Grid.Row="1"
+                                              Grid.Column="2"
+                                              Margin="12,5,0,0"
+                                              Height="24">
                                             <!-- Chip: opens the Sidequest (5.1). A button, so the
-                                                 keyboard reaches it too. The name is truncated
-                                                 rather than shortened: the model carries one name,
-                                                 and an abbreviation would be a second field. -->
+                                                 keyboard reaches it too. The full name, cut short
+                                                 when it doesn't fit: at most the body's 304 less the
+                                                 actions' 84 and a gap of 8, so the actions never
+                                                 cover it. -->
                                             <Button x:Name="ChipButton"
-                                                    Grid.Column="3"
-                                                    Margin="8,0,0,0"
                                                     Style="{StaticResource Chip}"
+                                                    HorizontalAlignment="Left"
                                                     VerticalAlignment="Center"
+                                                    MaxWidth="212"
                                                     AutomationProperties.Name="{Binding ProjectName}"
                                                     Click="Chip_Click">
                                                 <TextBlock Text="{Binding ProjectName}"
@@ -135,22 +176,18 @@
                                                            FontSize="11"
                                                            FontWeight="Medium"
                                                            VerticalAlignment="Center"
-                                                           MaxWidth="96"
                                                            TextTrimming="CharacterEllipsis"/>
                                             </Button>
 
-                                            <!-- 5.1: rename, return and delete appear on hover,
-                                                 8 after the chip and none apart. At rest they have
-                                                 no width, no opacity and no hit-testing, rather than
-                                                 being collapsed: unseen, taking no room and no
-                                                 clicks, but still tab stops, and still there for a
-                                                 screen reader. Not clipped, which would clip the
-                                                 focus ring too. -->
+                                            <!-- 5.1: rename, return and delete, on hover. 28 high
+                                                 on the 24 line, and 4 past the body on the right,
+                                                 level with the card's edge. At rest unseen and
+                                                 taking no clicks, but still tab stops, and still
+                                                 there for a screen reader. -->
                                             <StackPanel x:Name="Actions"
-                                                        Grid.Column="4"
                                                         Orientation="Horizontal"
-                                                        VerticalAlignment="Center"
-                                                        Width="0"
+                                                        HorizontalAlignment="Right"
+                                                        Margin="0,-2,-4,-2"
                                                         Opacity="0"
                                                         IsHitTestVisible="False">
                                                 <Button x:Name="RenameButton"
@@ -177,42 +214,37 @@
                                                 </Button>
                                             </StackPanel>
 
-                                            <!-- FnMainEdit: the check in C and the x, 8 apart. -->
-                                            <Button x:Name="SaveName"
-                                                    Grid.Column="3"
-                                                    Margin="8,0,0,0"
-                                                    Style="{StaticResource SaveNameButton}"
-                                                    VerticalAlignment="Center"
-                                                    Visibility="Collapsed"
-                                                    ToolTip="{DynamicResource L_SaveName}"
-                                                    AutomationProperties.Name="{DynamicResource L_SaveName}"
-                                                    Click="SaveName_Click">
-                                                <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Check}"/>
-                                            </Button>
-                                            <Button x:Name="CancelName"
-                                                    Grid.Column="4"
-                                                    Margin="8,0,0,0"
-                                                    Style="{StaticResource IconButton}"
-                                                    VerticalAlignment="Center"
-                                                    Visibility="Collapsed"
-                                                    ToolTip="{DynamicResource L_Cancel}"
-                                                    AutomationProperties.Name="{DynamicResource L_Cancel}"
-                                                    Click="CancelName_Click">
-                                                <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Close}"/>
-                                            </Button>
+                                            <!-- Renaming: the hint where the chip was, 11 in Text2,
+                                                 and the check in C and the x where the actions
+                                                 were. -->
+                                            <TextBlock x:Name="EditHint"
+                                                       VerticalAlignment="Center"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource Text2}"
+                                                       Visibility="Collapsed"><Run Text="{DynamicResource L_EnterSaves}"/><Run Text=" · "/><Run Text="{DynamicResource L_EscCancels}"/></TextBlock>
+                                            <StackPanel x:Name="EditActions"
+                                                        Orientation="Horizontal"
+                                                        HorizontalAlignment="Right"
+                                                        Margin="0,-2,-4,-2"
+                                                        Visibility="Collapsed">
+                                                <Button x:Name="SaveName"
+                                                        Style="{StaticResource SaveNameButton}"
+                                                        ToolTip="{DynamicResource L_SaveName}"
+                                                        AutomationProperties.Name="{DynamicResource L_SaveName}"
+                                                        Click="SaveName_Click">
+                                                    <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Check}"/>
+                                                </Button>
+                                                <Button x:Name="CancelName"
+                                                        Style="{StaticResource IconButton}"
+                                                        ToolTip="{DynamicResource L_Cancel}"
+                                                        AutomationProperties.Name="{DynamicResource L_Cancel}"
+                                                        Click="CancelName_Click">
+                                                    <Path Style="{StaticResource IconPath}" Data="{StaticResource Icon.Close}"/>
+                                                </Button>
+                                            </StackPanel>
                                         </Grid>
-                                    </Border>
-
-                                    <!-- FnMainEdit's hint, right-aligned 6 in, 4 under the card. -->
-                                    <StackPanel x:Name="EditHint"
-                                                Orientation="Horizontal"
-                                                HorizontalAlignment="Right"
-                                                Margin="0,4,6,0"
-                                                Visibility="Collapsed">
-                                        <TextBlock Text="{DynamicResource L_EnterSaves}" FontSize="11" Foreground="{DynamicResource Text2}"/>
-                                        <TextBlock Text="{DynamicResource L_EscCancels}" FontSize="11" Foreground="{DynamicResource Text2}" Margin="12,0,0,0"/>
-                                    </StackPanel>
-                                </StackPanel>
+                                    </Grid>
+                                </Border>
 
                                 <DataTemplate.Triggers>
                                     <DataTrigger Binding="{Binding Item.Done}" Value="True">
@@ -222,8 +254,6 @@
                                     <Trigger SourceName="Card" Property="IsMouseOver" Value="True">
                                         <Setter TargetName="Card" Property="Background" Value="{DynamicResource Hover}"/>
                                         <Setter TargetName="Grip" Property="Opacity" Value="1"/>
-                                        <Setter TargetName="Actions" Property="Width" Value="Auto"/>
-                                        <Setter TargetName="Actions" Property="Margin" Value="8,0,0,0"/>
                                         <Setter TargetName="Actions" Property="Opacity" Value="1"/>
                                         <Setter TargetName="Actions" Property="IsHitTestVisible" Value="True"/>
                                     </Trigger>
@@ -233,8 +263,6 @@
                                     <Trigger SourceName="Card" Property="local:KeyboardCue.Within" Value="True">
                                         <Setter TargetName="Card" Property="Background" Value="{DynamicResource Hover}"/>
                                         <Setter TargetName="Grip" Property="Opacity" Value="1"/>
-                                        <Setter TargetName="Actions" Property="Width" Value="Auto"/>
-                                        <Setter TargetName="Actions" Property="Margin" Value="8,0,0,0"/>
                                         <Setter TargetName="Actions" Property="Opacity" Value="1"/>
                                         <Setter TargetName="Actions" Property="IsHitTestVisible" Value="True"/>
                                     </Trigger>
@@ -252,28 +280,25 @@
                                             </Setter.Value>
                                         </Setter>
                                         <Setter TargetName="Grip" Property="Opacity" Value="1"/>
-                                        <Setter TargetName="Actions" Property="Width" Value="0"/>
-                                        <Setter TargetName="Actions" Property="Margin" Value="0"/>
                                         <Setter TargetName="Actions" Property="Opacity" Value="0"/>
                                         <Setter TargetName="Actions" Property="IsHitTestVisible" Value="False"/>
                                     </DataTrigger>
-                                    <!-- FnMainEdit (4.4's "tarjeta en edición"): a border in C -
-                                         1.5 drawn as 1, see CheckBox - padding 26 and 6, no grip
-                                         or chip, the field 14/500 with a C caret, then the check
-                                         and the x. Last, so it wins over hover and focus. -->
+                                    <!-- 4.4's "tarjeta en edición", FnMainOverflowB's third card: a
+                                         border in C - 1.5 drawn as 1, see CheckBox, so the padding
+                                         stays and so does the height - the grip gone but its place
+                                         kept, the field for the title, and the hint, the check and
+                                         the x for the meta line. Last, so it wins over hover and
+                                         focus. -->
                                     <DataTrigger Binding="{Binding IsEditing}" Value="True">
                                         <Setter TargetName="Card" Property="Background" Value="{DynamicResource Surface}"/>
                                         <Setter TargetName="Card" Property="BorderBrush" Value="{Binding ThemeBrush}"/>
-                                        <Setter TargetName="Card" Property="Padding" Value="26,0,6,0"/>
-                                        <Setter TargetName="Grip" Property="Visibility" Value="Collapsed"/>
-                                        <Setter TargetName="Check" Property="Margin" Value="0"/>
+                                        <Setter TargetName="Grip" Property="Visibility" Value="Hidden"/>
                                         <Setter TargetName="ItemText" Property="Visibility" Value="Collapsed"/>
                                         <Setter TargetName="NameEdit" Property="Visibility" Value="Visible"/>
                                         <Setter TargetName="ChipButton" Property="Visibility" Value="Collapsed"/>
                                         <Setter TargetName="Actions" Property="Visibility" Value="Collapsed"/>
-                                        <Setter TargetName="SaveName" Property="Visibility" Value="Visible"/>
-                                        <Setter TargetName="CancelName" Property="Visibility" Value="Visible"/>
                                         <Setter TargetName="EditHint" Property="Visibility" Value="Visible"/>
+                                        <Setter TargetName="EditActions" Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
                                 </DataTemplate.Triggers>
                             </DataTemplate>

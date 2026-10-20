@@ -124,6 +124,17 @@ public class SidequestRulesTests
     }
 
     [Fact]
+    public void RenameItem_TurnsLineBreaksIntoSpaces()
+    {
+        // 5.1: "los saltos de línea pegados se guardan como espacios".
+        var item = Item("a", 0, panelIndex: 0);
+
+        Assert.True(SidequestRules.RenameItem(item, "Revisar el contrato\r\nantes de firmar\npedir\rla cláusula\n"));
+
+        Assert.Equal("Revisar el contrato antes de firmar pedir la cláusula", item.Text);
+    }
+
+    [Fact]
     public void SetNotes_KeepsLinesAsNewlines_AndStopsAtTwoThousand()
     {
         var project = new SidequestProject();

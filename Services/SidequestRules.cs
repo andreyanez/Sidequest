@@ -67,16 +67,21 @@ public static class SidequestRules
 
     /// <summary>
     /// Renames an item, which renames its objective too, being the same object (5.1, 5.6).
-    /// A blank name is not saved and the old one stays. Returns whether anything changed.
+    /// A blank name is not saved and the old one stays; line breaks become spaces. Returns
+    /// whether anything changed.
     /// </summary>
     public static bool RenameItem(SidequestItem item, string text)
     {
-        var clipped = Clip(text, SidequestItem.MaxTextLength);
+        var clipped = Clip(OneLine(text), SidequestItem.MaxTextLength);
         if (clipped.Length == 0 || clipped == item.Text) return false;
 
         item.Text = clipped;
         return true;
     }
+
+    /// <summary>5.1: a name is one line, so each line break in it becomes a space.</summary>
+    public static string OneLine(string text) =>
+        text.Replace("\r\n", " ").Replace('\r', ' ').Replace('\n', ' ');
 
     /// <summary>
     /// The Notas tab's notes (5.6): plain text, at most 2000 characters, addresses

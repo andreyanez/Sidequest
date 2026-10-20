@@ -69,10 +69,11 @@ set theme, language and startup again in Settings.
 
 ## How it works
 
-- **Panel** — today's date, and the objectives you have sent to it, each with the
-  Sidequest it came from. Tick them off here; the chip opens its Sidequest. Hovering or
-  focusing a row shows its ⋮⋮ handle, to drag it into another place, and *rename*,
-  *return to Sidequest* and *delete*. Drag the top edge to set the panel's height, which
+- **Panel** — today's date, and the objectives you have sent to it: each title on up to
+  two lines, whole in a tooltip when it is longer, and the Sidequest it came from
+  beneath. Tick them off here; the chip opens its Sidequest. Hovering or focusing a card
+  shows its ⋮⋮ handle, to drag it into another place, and *rename*, *return to
+  Sidequest* and *delete*. Drag the top edge to set the panel's height, which
   every screen keeps, while the bottom stays put; a long list scrolls. The chevron
   collapses the panel to one row, and it stays collapsed until you expand it. The pin
   keeps it above other apps.

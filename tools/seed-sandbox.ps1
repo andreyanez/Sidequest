@@ -1,7 +1,9 @@
 param(
     [Parameter(Mandatory = $true)][string]$Sandbox,
     # FnSidequestsCompacto's fourteen Sidequests instead, for the long list (5.4).
-    [switch]$Many
+    [switch]$Many,
+    # FnMainOverflowB's panel instead of FnMain's: longer titles, and a seventh objective.
+    [switch]$Overflow
 )
 
 # Seeds the sandbox with the sample data from docs/design/reference, so the screens can be
@@ -98,6 +100,17 @@ $impuestos = Project 'Impuestos 2026' 'Coral' 3 @(
     (Item 'Revisar deducciones'          $false $null),
     (Item 'Presentar declaración'        $false $null)
 )
+
+if ($Overflow) {
+    # FnMainOverflowB: two objectives' titles run to two lines, and a third, too long for
+    # two, joins the panel fourth, after the one being renamed.
+    $mudanza.Items[0].Text = 'Cotizar camión de mudanza con al menos tres empresas y comparar precios'
+    $curso.Items[0].Text = 'Terminar módulo de genéricos y escribir los ejercicios del capítulo 4'
+    $mudanza.Items += Item 'Revisar el contrato del depósito antes de firmar y pedir que agreguen la cláusula de salida anticipada' $false 3
+    $impuestos.Items[0].PanelIndex = 4
+    $portafolio.Items[4].PanelIndex = 5
+    $mudanza.Items[5].PanelIndex = 6
+}
 
 # FnSidequestNotas's Notas tab, on Mudanza: its notes (207 characters, as the artboard
 # counts them), one linked file and three images. The file is real, in the sandbox, so it

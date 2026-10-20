@@ -16,7 +16,9 @@ the switch from WeeklyReminder. v1 is complete. Of the spec's 0.2 and 0.3 change
 and 0.3" below), A to G are done: they shipped together as 0.3.0 on 2026-10-04, with
 0.3.1, a fix, the same day. 0.4.0 (2026-10-18) followed a week's use with two of the
 user's own calls, which depart from the spec: notes up to 2000 characters, and the
-height set from the top edge ("0.4.0" below). Phase 7, the Bitácora (v1.1), is next.
+height set from the top edge ("0.4.0" below). The spec's 0.5, the panel's two-line
+objective card, is built and checked against `FnMainOverflowB`, live too ("0.5" below).
+Phase 7, the Bitácora (v1.1), is next.
 
 ---
 
@@ -66,8 +68,8 @@ border is drawn 1px wide at 100 %.
 
 | Script | What it is for |
 | --- | --- |
-| `tools/seed-sandbox.ps1` | Fills a sandbox with the artboards' four Sidequests and six panel objectives, with `FnSidequestNotas`'s notes, file and images on Mudanza; `-Many` seeds `FnSidequestsCompacto`'s fourteen Sidequests instead |
-| `tools/run-sandbox.ps1` | Reseeds the sandbox and launches the build in a given theme and language, at a fixed position; `-Many` or `-Empty` choose the data, `-Height` the card's height, `-Collapsed` starts on the one-row panel, `-Corner` in the default bottom-right corner, `-Exe .\publish\Sidequest.exe` a Release build, and `-Stop` only stops the last copy, which frees the build for `dotnet build`. It stops only the copy it started, never a trial run of the same build |
+| `tools/seed-sandbox.ps1` | Fills a sandbox with the artboards' four Sidequests and six panel objectives, with `FnSidequestNotas`'s notes, file and images on Mudanza; `-Many` seeds `FnSidequestsCompacto`'s fourteen Sidequests instead, and `-Overflow` `FnMainOverflowB`'s long titles and seventh objective |
+| `tools/run-sandbox.ps1` | Reseeds the sandbox and launches the build in a given theme and language, at a fixed position; `-Many`, `-Overflow` or `-Empty` choose the data, `-Height` the card's height, `-Collapsed` starts on the one-row panel, `-Corner` in the default bottom-right corner, `-Exe .\publish\Sidequest.exe` a Release build, and `-Stop` only stops the last copy, which frees the build for `dotnet build`. It stops only the copy it started, never a trial run of the same build |
 | `tools/render-artboard.ps1` | Renders an artboard to PNG at 1:1 with headless Edge; `-Light` renders any of them in the light theme, and `-WithoutJournal` takes the Bitácora button out of a Sidequest's band, as the app leaves it until v1.1 |
 | `tools/capture-window.ps1` | Screenshots the window rect of a copy started from the repo (never the desktop, never the installed copy); `-Untitled` takes a popup, such as the "⋯" menu, and `-BinDir` picks one build folder's copy when a trial run of `bin\Debug` is up too, as the other tools' `-BinDir` does |
 | `tools/compare-ink.ps1` | Where each element is drawn, artboard vs app, to the pixel (or per-row, for text) |
@@ -105,8 +107,8 @@ Look at shapes as well as measuring boxes. Through phases 2 and 3 every pill ren
 an ellipse, whose bounding box is the same as a pill's, so no measurement caught it; a 4x
 zoom of one chip did at once.
 
-Four traps. The first three produced confident wrong answers before; the fourth
-hijacks the keyboard of whoever is using the machine:
+Five traps. The first three produced confident wrong answers before; the last two
+hijack the keyboard of whoever is using the machine:
 
 - **Foreground stealing.** `SetForegroundWindow` fails silently when another process owns
   the last input, and the keystrokes go to that app instead. `tab-walk.ps1` borrows the
@@ -126,6 +128,11 @@ hijacks the keyboard of whoever is using the machine:
   stop the sandbox copy, which hands focus back. Captures don't have this problem:
   `capture-window.ps1` doesn't foreground a topmost window, and `run-sandbox.ps1` keeps
   the panel on top, so every window the app opens is one.
+- **So does a text field.** Invoking a pencil through UIA started a rename, whose field
+  took focus, and the window with it: the user's typing landed in the sandbox
+  (2026-10-20). Nothing that moves focus into a field runs through UIA while the machine
+  is in use. To capture a state that needs the pointer or a field, build a copy of the
+  source that opens it on its own and never takes focus (see "0.5, as built").
 
 ## Releasing
 
@@ -561,11 +568,94 @@ After a week of daily use the user asked for two changes that need no design
   round: it marked the bottom edge. 4.4 has no sign for a top edge, and none was
   invented.
 
+## 0.5
+
+The spec's 0.5 (2026-10-18) changes the panel's objective card only: two lines, drawn in
+`FnMainOverflowB`, which overrides the cards of `FnMain`, `FnMainClaro`, `FnMainEdit` and
+`FnMainDrag` (5.1). The order, agreed with the user on 2026-10-20:
+
+1. **The card**: the title over the full width, two lines at most, and a meta line with
+   the chip and the actions. `seed-sandbox.ps1 -Overflow` seeds the artboard's titles.
+2. **The tooltip** with the whole title, when it is cut.
+3. **Renaming**: the two-line field, the hint in the meta line, line breaks.
+4. Both themes, both languages, the keyboard and a drag among cards of two heights, then
+   0.5.0.
+
+Conflicts settled in the same exchange:
+
+- **Titles keep the 120-character cap**, on the panel and in the detail alike, though 0.5
+  says there is none: the user's call. §6's `≤ 120` stands.
+- **Every tooltip takes `FnMainOverflowB`'s box.** 5.1 says the title uses the implicit
+  `ToolTip`, and the artboard draws one unlike it, so the implicit style becomes the
+  artboard's, and the icon buttons' tooltips change with it.
+- **A card being renamed keeps its height, 85.** 4.4 takes 0.5 off the padding to make
+  room for the 1.5 border, but Chrome draws that border 1px, so the artboard's card comes
+  out 84. Drawn 1px here too, the border needs no padding taken off.
+- **Chips carry the full name** (see Rules in CLAUDE.md), where `FnMainOverflowB`
+  shortens "Portafolio web" to "Portafolio".
+
+### 0.5, as built
+
+- **The card** is a two-row grid inside 8 8 8 4 of padding: the title, then the 24 meta
+  line 5 below it, both 12 in from the checkbox. The grip, 32 high, is held to the first
+  line's 19 by negative margins, and the actions, 28 on the 24 line and 4 past its end,
+  the same way: a child larger than its slot would be clipped to it. The chip is at
+  most 212 wide, the body's 304 less the actions' 84 and a gap of 8. Nothing on the line
+  moves when the actions appear, so they no longer need the zero width they rested at.
+- **The title** wraps at the full width and stops at 38, two lines of 19, where WPF cuts
+  the second with an ellipsis. `WordEllipsis`, since CSS's line-clamp ends the second
+  line at a word: `CharacterEllipsis` gave "cláusula de sa…" for its "cláusula de…".
+- **WPF sets a fixed line height's baseline a fraction lower than CSS**: 19 × ascent /
+  natural line rather than half the leading above, which comes to 0.2 at 14px and
+  rounded to a whole pixel low. The title, the field and the tooltip's text are each
+  drawn 1 higher than their place, which puts every line on the artboard's baselines.
+  A TextBox takes `TextBlock.LineHeight` too, so the field's second line falls on the
+  artboard's as well.
+- **The tooltip** (`TitleTip`): WPF never says whether it trimmed a TextBlock, so the
+  title is laid out again with `FormattedText` at its width, unlimited in height, and a
+  tooltip opens only if that is taller. Hovering the title goes through the title's own
+  ToolTip, filled in `ToolTipOpening`, where its placement is set on the title through
+  `ToolTipService`: the service places a tooltip by its owner's settings, and set on the
+  tooltip alone, the card as its target gave way to the title. The title takes no
+  focus, so WPF's tooltip on keyboard focus can't show it: the grip and the checkbox,
+  the card's own stops, open one shared tooltip when the keyboard brings focus to them
+  and close it when focus leaves; the chip and the actions keep their own. It is 280
+  wide whatever its lines, as drawn, where the implicit style otherwise fits its text,
+  up to 280.
+- **Renaming**: the field is 38 high and wraps, so a one-line card grows to 85 while
+  it is renamed, as 4.4's two-line field implies. Line breaks in pasted text become
+  spaces, through `InlineRename.Pasting` and `SidequestRules.OneLine`, in the detail's
+  rename too, being the same text; left alone, a TextBox that doesn't accept Return
+  keeps only the first line. `SidequestRulesTests` holds the rule.
+- **Checked** against `FnMainOverflowB`, rendered at 1:1 in dark and light and in English,
+  with `compare-ink.ps1` and `compare-colours.ps1`: every card at rest, the hovered card,
+  the card being renamed, and the tooltip, to the pixel. The only fills that differ are
+  the scroll bar's, the artboard clipping a list that scrolls in the app. Below the card
+  being renamed everything sits 1 lower, the 85 above.
+
+  The hovered, renamed and tooltip states were captured from a copy of the source built
+  into `bin\Scratch\`, which opens them by itself: the second card's text triggers the
+  hover setters, the third card's rename starts on loading without taking focus, and the
+  fourth card's tooltip opens. The pointer and the keyboard were never touched.
+
+  **Then live**, with the user away from the machine (2026-10-20), on a copy of its own:
+  hovering a cut title brings its tooltip under the card, where `FnMainOverflowB` has it,
+  and a title that fits brings none; Tab onto a cut card's grip or checkbox brings it up,
+  and on to the chip takes it away; F2 on a one-line card grows it to 85 with the title
+  selected, a longer title wraps in the field, Enter saves it and gives focus back to the
+  pencil, and Escape keeps the old one; a 66 card dragged to the top over four of 85, and
+  one of 85 to the bottom past two of 66, the list scrolling under it, open gaps of their
+  own heights and save the order; Alt+Up moves a card and its grip keeps focus and the
+  tooltip. It found one bug: hovering put the tooltip under the title, not the card (see
+  the tooltip, above). **Not checked:** pasting, since the clipboard is the user's.
+
 ## Known deviations from the spec
 
 - **Notes take 2000 characters, not 500** (5.6), and **the top edge sets the height,
   not the bottom** (5), with no resize grip in the Sidequests list's footer (4.4, 5.4):
   the user's calls for 0.4.0 (see "0.4.0").
+- **Titles keep their 120-character cap**, where 0.5 says they have none: the user's
+  call (see "0.5").
 - **The import does not carry over WeeklyReminder's settings** (§3 step 3). Accepted on
   2026-09-29 as not worth fixing: theme, language and startup get set again in Settings.
   `LegacyMigration` copies them into `AppSettings`, but `App.OnStartup` applies the

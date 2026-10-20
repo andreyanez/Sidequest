@@ -12,6 +12,7 @@ using DragDeltaEventArgs = System.Windows.Controls.Primitives.DragDeltaEventArgs
 using DragStartedEventArgs = System.Windows.Controls.Primitives.DragStartedEventArgs;
 using Key = System.Windows.Input.Key;
 using Thumb = System.Windows.Controls.Primitives.Thumb;
+using ToolTipEventArgs = System.Windows.Controls.ToolTipEventArgs;
 using KeyboardFocusChangedEventArgs = System.Windows.Input.KeyboardFocusChangedEventArgs;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Keyboard = System.Windows.Input.Keyboard;
@@ -223,6 +224,8 @@ public partial class PanelView : UserControl
         e.Handled = true;
     }
 
+    private void Title_ToolTipOpening(object sender, ToolTipEventArgs e) => TitleTip.Opening(sender, e);
+
     // ---- Renaming (5.1) -----------------------------------------------------------
 
     private void Rename_Click(object sender, RoutedEventArgs e)
@@ -231,6 +234,8 @@ public partial class PanelView : UserControl
     }
 
     private void ItemNameEdit_KeyDown(object sender, KeyEventArgs e) => _rename.FieldKeyDown(e);
+
+    private void ItemNameEdit_Pasting(object sender, DataObjectPastingEventArgs e) => InlineRename.Pasting(sender, e);
 
     private void SaveName_Click(object sender, RoutedEventArgs e) => _rename.Commit(focusRow: true);
 

@@ -270,6 +270,8 @@ public partial class SidequestView : UserControl
 
     private void ItemNameEdit_KeyDown(object sender, KeyEventArgs e) => _rename.FieldKeyDown(e);
 
+    private void ItemNameEdit_Pasting(object sender, DataObjectPastingEventArgs e) => InlineRename.Pasting(sender, e);
+
     private void SaveName_Click(object sender, RoutedEventArgs e) => _rename.Commit(focusRow: true);
 
     private void CancelName_Click(object sender, RoutedEventArgs e) => _rename.Cancel(focusRow: true);

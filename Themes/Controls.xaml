@@ -323,11 +323,12 @@
     </Style>
 
     <!-- The Sidequest chip on an objective card (4.4, 5.1): click opens the Sidequest.
-         FnMain gives it no hover state - its inline colour outranks a:hover - so only the
-         cursor says it is clickable. The text colour is the Sidequest's, set per card. -->
+         FnMainOverflowB draws it 20 high with its border, padding 0 8. It has no hover
+         state - its inline colour outranks a:hover - so only the cursor says it is
+         clickable. The text colour is the Sidequest's, set per card. -->
     <Style x:Key="Chip" TargetType="Button">
-        <Setter Property="Height" Value="26"/>
-        <Setter Property="Padding" Value="9,0"/>
+        <Setter Property="Height" Value="20"/>
+        <Setter Property="Padding" Value="8,0"/>
         <Setter Property="Background" Value="{DynamicResource Surface}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource Line}"/>
         <Setter Property="Cursor" Value="Hand"/>
@@ -1211,10 +1212,15 @@
     </Style>
 
     <!-- ============ Tooltips ============ ====================================
-         The icon buttons' names. WPF shows a tooltip on keyboard focus as well as hover,
-         in fixed light chrome that ignores the theme - glaring on the dark panel. No
-         artboard shows one, so it takes 4.2's tokens. Implicit, so every ToolTip="..."
-         gets it; a popup inherits nothing, so the font is set here. -->
+         The icon buttons' names, and an objective's whole title when its card cuts it
+         (5.1, TitleTip). WPF shows a tooltip on keyboard focus as well as hover, in fixed
+         light chrome that ignores the theme - glaring on the dark panel. FnMainOverflowB
+         draws the title's: Hover under a Line2 border, radius 8, padding 7 and 10, 12/17
+         text wrapping at 280 with the padding, and a shadow 6 down, black at 45 % - CSS's
+         blur of 18 is a Gaussian of sigma 9, about 27 of WPF's BlurRadius. 5.1 has it use
+         the implicit style, so every tooltip takes that look. The box's margin is room for
+         the shadow, which TitleTip's placement allows for. Implicit, so every
+         ToolTip="..." gets it; a popup inherits nothing, so the font is set here. -->
     <Style TargetType="ToolTip">
         <Setter Property="OverridesDefaultStyle" Value="True"/>
         <Setter Property="HasDropShadow" Value="False"/>
@@ -1222,15 +1228,30 @@
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="Foreground" Value="{DynamicResource Text}"/>
         <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        <Setter Property="TextBlock.LineHeight" Value="17"/>
+        <Setter Property="TextBlock.LineStackingStrategy" Value="BlockLineHeight"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">
-                    <Border Background="{DynamicResource Surface}"
+                    <Border Margin="18,12,18,24"
+                            MaxWidth="280"
+                            Background="{DynamicResource Hover}"
                             BorderBrush="{DynamicResource Line2}"
                             BorderThickness="1"
-                            CornerRadius="6"
-                            Padding="8,4">
-                        <ContentPresenter/>
+                            CornerRadius="8"
+                            Padding="10,7">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="27" ShadowDepth="6" Direction="270" Opacity="0.45" Color="#000000"/>
+                        </Border.Effect>
+                        <!-- 1 higher than its place: WPF sets the baseline of a 17 line a
+                             fraction lower than CSS, which here rounds to a whole pixel. -->
+                        <ContentPresenter Margin="0,-1,0,1">
+                            <ContentPresenter.Resources>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                </Style>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
                     </Border>
                 </ControlTemplate>
             </Setter.Value>

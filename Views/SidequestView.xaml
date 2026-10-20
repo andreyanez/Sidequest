@@ -73,7 +73,8 @@
                                      Visibility="Collapsed"
                                      CaretBrush="{Binding ThemeBrush}"
                                      AutomationProperties.Name="{DynamicResource L_RenameItem}"
-                                     KeyDown="ItemNameEdit_KeyDown"/>
+                                     KeyDown="ItemNameEdit_KeyDown"
+                                     DataObject.Pasting="ItemNameEdit_Pasting"/>
 
                             <StackPanel x:Name="Actions"
                                         Grid.Column="2"
@@ -234,7 +235,8 @@
                                      Visibility="Collapsed"
                                      CaretBrush="{Binding ThemeBrush}"
                                      AutomationProperties.Name="{DynamicResource L_RenameItem}"
-                                     KeyDown="ItemNameEdit_KeyDown"/>
+                                     KeyDown="ItemNameEdit_KeyDown"
+                                     DataObject.Pasting="ItemNameEdit_Pasting"/>
 
                             <StackPanel x:Name="Actions"
                                         Grid.Column="2"
