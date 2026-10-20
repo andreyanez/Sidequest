@@ -1,6 +1,6 @@
 # Sidequest — especificación de diseño e implementación
 
-Versión 0.3 · 3 de octubre de 2026 · Reemplaza la UI de WeeklyReminder por Sidequest.
+Versión 0.5 · 18 de octubre de 2026 · Reemplaza la UI de WeeklyReminder por Sidequest.
 
 **Cambios en 0.2** (tras unos días de uso): se elimina el detalle del objetivo y sus notas, archivos
 e imágenes pasan al detalle del Sidequest como pestaña **Notas**; los objetivos e items se pueden
@@ -11,6 +11,12 @@ e imágenes pasan al detalle del Sidequest como pestaña **Notas**; los objetivo
 las vistas) con scroll interno y señales de scroll; la lista de Sidequests pierde el contador "n
 activos" y fija "Nuevo Sidequest" en el pie. No hay archivado de Sidequests. Secciones afectadas:
 3, 4.4, 5, 5.1, 5.4, 5.5, 6, 7.
+
+**Cambios en 0.5**: la tarjeta de objetivo pasa a **dos líneas**: el título usa todo el ancho y
+llega a 2 líneas (luego elipsis y tooltip con el texto completo); el chip del Sidequest baja a una
+segunda línea, con las acciones a su derecha. Referencia: `FnMainOverflowB.html`. No hay límite de
+caracteres para el título. Secciones afectadas: 4.3, 4.4, 5.1. *(No hay spec 0.4: la versión 0.4.0
+de la app recoge dos desvíos que constan en `dev-notes.md`.)*
 
 Este documento describe **qué** construir. Las convenciones del repo (cómo compilar, cómo
 se organizan temas e idiomas, qué patrones de WPF se usan) viven en `README.md` y, cuando
@@ -276,7 +282,8 @@ futuro se permite color libre, hay que validar contraste al elegirlo.
   acción 999 px (píldora); checkbox 6 px; botones de icono 8 px.
 - Bordes: 1 px `Line` en tarjetas y chips; 1 px `Line2` en botones con borde y en el marco de ventana.
 - Espaciado: padding lateral 12 px en listas de tarjetas, 16 px en cabeceras; gap 6 px entre tarjetas;
-  altura de fila 50 px (panel) / 48 px (detalle); altura de barra de título 36 px.
+  tarjeta de objetivo 66 px, 85 con el título en dos líneas (panel); fila de 48 px (detalle);
+  altura de barra de título 36 px.
 - Sin sombras dentro de las ventanas. La ventana tiene sombra suave si la plataforma lo permite.
 - Iconos: trazo de 1.5 px, 16 px, `Text2` en reposo y `Text` en hover. Nunca emoji ni glifos de texto
   (los botones actuales con "▾" y "✕" se reemplazan por `Path`).
@@ -286,15 +293,15 @@ futuro se permite color libre, hay que validar contraste al elegirlo.
 | Componente | Especificación |
 |------------|----------------|
 | **Barra de título** | 36 px. Izquierda: "Sidequest" 11/600 `Text2` (o enlace "‹ Volver" en sub-paneles, con el nombre de la app a la derecha). Derecha: botones de icono 28×28: pin (activo = fondo `Hover`, color `Text`), contraer (chevron arriba), cerrar. Sin minimizar. Toda la barra arrastra la ventana. |
-| **Tarjeta de objetivo** | 50 px, `Surface`, borde `Line`, radio 10, padding 0 8 0 4. Asa ⋮⋮ (18 px, solo en hover) · checkbox 18 px · texto 14/500 con elipsis · chip · acciones en hover: lápiz, devolver, eliminar. El texto no es clicable. |
+| **Tarjeta de objetivo** | `FnMainOverflowB.html`. `Surface`, borde `Line`, radio 10, padding 8 8 8 4; alto según el título: 66 px con una línea, 85 con dos. Columnas: asa ⋮⋮ (18 px, solo en hover o con foco de teclado) · checkbox 18 px · cuerpo (margen izquierdo 4). Asa y checkbox se centran en la **primera línea** del título, no en la tarjeta. Cuerpo, en columna con gap 5: **título** 14/500, interlineado 19, ocupa todo el ancho (~304 px), ajusta a **2 líneas como máximo** y corta la segunda con elipsis; **línea de meta** de 24 px con el chip a la izquierda y, en hover o con foco de teclado, las acciones a la derecha (lápiz, devolver, eliminar; 28 px, sobresalen 4 px a la derecha para alinearse con el borde). El chip nunca invade el sitio de las acciones (ancho máximo = cuerpo − 92 px). El título no es clicable. |
 | **Asa de arrastre** | 18 × 32, seis puntos de 1.3 px en `Text2`, cursor `grab`. Su espacio está reservado siempre (no desplaza el contenido) pero solo es visible en hover o con foco de teclado. Es el único punto que inicia el arrastre. |
 | **Tarjeta arrastrada** | La tarjeta sigue al cursor (eje vertical), borde `Line2`, sombra `0 10 24 rgba(0,0,0,.45)`, cursor `grabbing`. En su posición de destino, un hueco del mismo alto con borde 1.5 px punteado en `C` y relleno `C @ 6 %`. Las demás tarjetas se desplazan para abrir el hueco (animación ≤ 120 ms). |
-| **Tarjeta en edición** | Misma tarjeta, borde 1.5 px en `C`. El asa y el chip desaparecen; el texto se vuelve un campo sin borde (14/500, caret `C`, texto seleccionado al entrar); a la derecha, confirmar (check en `C`) y cancelar (x). Debajo, alineado a la derecha, "Enter guarda · Esc cancela" en 11 `Text2`. |
+| **Tarjeta en edición** | `FnMainOverflowB.html`, fila 3. Misma tarjeta, borde 1.5 px en `C` (el padding baja 0.5 px para que no cambie el alto). El asa desaparece (su hueco se conserva). El título se vuelve un campo sin borde de **2 líneas** (14/500, interlineado 19, caret `C`, texto seleccionado al entrar), con ajuste de línea y scroll interno si el texto no cabe. La línea de meta muestra "Enter guarda · Esc cancela" en 11 `Text2` a la izquierda, en lugar del chip, y confirmar (check en `C`) y cancelar (x) a la derecha. |
 | **Área con scroll** | Contenido con scroll vertical entre cabecera y pie fijos. Cuando hay contenido oculto debajo: desvanecido de 36 px de `Bg @ 0 %` a `Bg` sobre el borde inferior; arriba, el mismo desvanecido invertido cuando ya se bajó. Barra de 4 px, radio 2, `ScrollThumbBrush`, a 3 px del borde derecho, **siempre visible** mientras haya overflow (no solo en hover). Sin overflow: ni desvanecido ni barra. |
 | **Asa de redimensión** | Barra de 36 × 4, radio 2, `Line2`, centrada en el pie, 8 px bajo su contenido. Es solo una señal: el área real de redimensión es todo el borde inferior de la ventana (6 px, cursor `SizeNS`). |
 | **Pestañas** | Contenedor `Surface`, borde `Line`, radio 12, padding 3, dos opciones de igual ancho y 32 px. Activa: relleno `Text`, texto 13/700 `Inv`. Inactiva: texto 13/500 `Text2`. Contador opcional junto a la etiqueta al 70 % de opacidad. |
 | **Checkbox** | 18 px, radio 6, borde 1.5 px `Line2`. Marcado: relleno con el color del tema del Sidequest, tick `Inv` de 2.25 px. Foco: anillo 2 px `Text`. |
-| **Chip de Sidequest** | Píldora 24 px, `Surface`, borde `Line`, texto 11/500 en el color del tema. Click → detalle del Sidequest. |
+| **Chip de Sidequest** | Píldora 20 px, padding 0 8, `Surface`, borde `Line`, texto 11/500 en el color del tema. Nombre completo, cortado con elipsis si no cabe. Click → detalle del Sidequest. |
 | **Botón primario** | Píldora 36 px, relleno `Text`, texto 13/700 `Inv`. Uno por pantalla como máximo. |
 | **Botón secundario** | Píldora 34 px, `Surface`, borde `Line2`, texto 13/500. Hover: borde `Text`. |
 | **"Enviar objetivo"** | Píldora 30 px, sin relleno, borde 1.5 px `C @ 55 %`, texto 12/700 en `C`, icono flecha. |
@@ -321,6 +328,10 @@ sin animación de transición). La Bitácora y Ajustes abren **ventanas aparte**
 
 ### 5.1 Panel principal — `FnMain.html`, tema claro en `FnMainClaro.html`
 
+Las tarjetas de objetivo se dibujan como en `FnMainOverflowB.html` (4.4), que **prevalece** sobre las
+tarjetas de `FnMain`, `FnMainClaro`, `FnMainEdit` y `FnMainDrag`; el resto de esas pantallas sigue
+vigente. En tema claro, la tarjeta usa los tokens de la 4.2.
+
 - Alto: el de la ventana (5). La lista de objetivos es el área con scroll; cabecera de fecha y pie con
   "Sidequests →" quedan fijos.
 - Barra de título: "Sidequest", pin, contraer, cerrar. **Cerrar** cierra la ventana, no la app (la
@@ -330,11 +341,16 @@ sin animación de transición). La Bitácora y Ajustes abren **ventanas aparte**
   formateada con la cultura activa ("17 de septiembre de 2026" / "17 September 2026").
 - Lista de tarjetas de objetivo en el orden `PanelIndex`. Sin secciones ni agrupación.
 - El texto del objetivo no navega a ningún sitio. Click en el chip → detalle del Sidequest.
-- Hover sobre una tarjeta: fondo `Hover`, aparece el asa ⋮⋮ a la izquierda y tres botones de icono a la
-  derecha: **renombrar** (lápiz), **devolver al Sidequest** y **eliminar** (este último pide confirmación
-  con el `ConfirmDialog` existente).
+- Título cortado (más de 2 líneas): tooltip con el texto completo al pasar el cursor por el título y
+  cuando la tarjeta recibe el foco por teclado. Usa el `ToolTip` implícito y no aparece si el título
+  cabe entero. Lectores de pantalla: el nombre accesible es siempre el texto completo.
+- Hover sobre una tarjeta: fondo `Hover`, aparece el asa ⋮⋮ a la izquierda y, en la línea de meta a la
+  derecha del chip, tres botones de icono: **renombrar** (lápiz), **devolver al Sidequest** y
+  **eliminar** (este último pide confirmación con el `ConfirmDialog` existente). Como las acciones van en
+  la línea de meta, el ancho del título no cambia al aparecer.
 - **Renombrar** (`FnMainEdit.html`): la tarjeta pasa al estado "en edición" (4.4). Enter o perder el foco
-  guarda; Esc cancela; un nombre vacío no se guarda (se restaura el anterior). F2 sobre una tarjeta con
+  guarda; Esc cancela; un nombre vacío no se guarda (se restaura el anterior). Enter nunca inserta un
+  salto de línea, y los saltos de línea pegados se guardan como espacios. F2 sobre una tarjeta con
   foco también entra en edición.
 - **Reordenar** (`FnMainDrag.html`): arrastrar desde el asa. Al soltar se actualiza `PanelIndex` y se
   guarda. Esc durante el arrastre lo cancela. Teclado: con el asa enfocada, Alt+↑ / Alt+↓ mueven una
